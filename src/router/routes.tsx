@@ -1,5 +1,6 @@
 import { lazy, ReactElement } from 'react';
 import UserCreate from '../pages/SuperAdmin/UserCreate';
+import AllUser from '../pages/SuperAdmin/AllUsers';
 const Index = lazy(() => import('../pages/Index'));
 
 interface RouteType {
@@ -17,6 +18,11 @@ export const routes: RouteType[] = [
     {
         path: '/super-admin/user-create',
         element: <UserCreate />,
+        layout: 'default',
+    },
+     {
+        path: '/super-admin/all-user',
+        element: <AllUser />,
         layout: 'default',
     },
 ];
