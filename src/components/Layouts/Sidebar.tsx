@@ -55,6 +55,7 @@ const Sidebar = () => {
             key: 'users',
             children: [
                 { label: t('Add'), link: '/super-admin/user-create' },
+                { label: t('All Users'), link: '/super-admin/all-user' },
             ],
         },
     ];
