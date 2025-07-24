@@ -56,7 +56,19 @@ const Sidebar = () => {
             children: [
                 { label: t('Add'), link: '/super-admin/user-create' },
             ],
+            
         },
+         {
+            label: t('Inventory'),
+            icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+            key: 'inventory',
+            children: [
+                { label: t('Add'), link: '/super-admin/inventory-create' },
+                
+            ],
+            
+        },
+
     ];
 
     return (
