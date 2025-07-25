@@ -1,5 +1,4 @@
 import { lazy, ReactElement } from 'react';
-import UserCreate from '../pages/SuperAdmin/UserCreate';
 import InventoryCreate from '../pages/SuperAdmin/inventory/InventoryCreate';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { USER_ROLES } from '../types/auth.types';
@@ -81,7 +80,11 @@ export const routes: RouteType[] = [
     },
     {
         path: '/super-admin/inventory-create',
-        element: <InventoryCreate />,
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <InventoryCreate />
+            </ProtectedRoute>
+        ),
         layout: 'default',
     },
 
