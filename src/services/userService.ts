@@ -4,7 +4,7 @@ import { CreateUserFormData, CreateUserResponse } from '../types/user.types';
 export class UserService {
     static async createUser(userData: CreateUserFormData): Promise<CreateUserResponse> {
         try {
-            const response = await api.post<CreateUserResponse>('/admin/create-user', userData);
+            const response = await api.post<CreateUserResponse>('/create-user', userData);
             return response.data;
         } catch (error: any) {
             if (error.response?.data) {
