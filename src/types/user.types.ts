@@ -1,3 +1,5 @@
+import { PaginationData } from './pagination.types';
+
 export const USER_ROLES = {
     SUPER_ADMIN: 1,
     ADMIN: 2,
@@ -45,11 +47,22 @@ export interface ApiResponse<T = any> {
 export interface CreateUserResponse extends ApiResponse<User> {
     data: User;
 }
-
 export interface FormErrors {
     name?: string;
     email?: string;
     role_as?: string;
     phone?: string;
     address?: string;
+}
+
+export interface GetUsersResponse {
+    status: number;
+    users: PaginationData<User>;
+}
+
+export interface UsersFilters {
+    search?: string;
+    role?: UserRole | '';
+    is_active?: boolean | '';
+    per_page?: number;
 }
