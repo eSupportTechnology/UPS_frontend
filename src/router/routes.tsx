@@ -4,6 +4,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { USER_ROLES } from '../types/auth.types';
 import Login from '../pages/Auth/Login';
 import UserList from '../pages/SuperAdmin/AllUser/UserList';
+import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
@@ -93,6 +94,15 @@ export const routes: RouteType[] = [
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
             <InventoryCreate />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-inventory',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <AllInventory />
             </ProtectedRoute>
         ),
         layout: 'default',
