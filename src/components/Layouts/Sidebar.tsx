@@ -55,8 +55,9 @@ const Sidebar = () => {
             key: 'users',
             children: [
                 { label: t('Add'), link: '/super-admin/user-create' },
+                { label: t('All'), link: '/super-admin/all-user' },
             ],
-            
+
         },
          {
             label: t('Inventory'),
@@ -64,9 +65,9 @@ const Sidebar = () => {
             key: 'inventory',
             children: [
                 { label: t('Add'), link: '/super-admin/inventory-create' },
-                
+
             ],
-            
+
         },
 
     ];
