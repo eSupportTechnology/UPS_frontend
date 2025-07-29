@@ -40,8 +40,40 @@ export class InventoryService {
             if (filters.sort_direction) params.append('sort_direction', filters.sort_direction);
 
             const response = await api.get(`/all-shopInventories?${params}`);
-            // Assuming backend returns { status, inventories: PaginationData<Inventory> }
+
             return response.data.inventories;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async updateInventory(id: number, data: Partial<Inventory>): Promise<Inventory> {
+        try {
+            const response = await api.put(`/update-shopInventories/${id}`, data);
+            return response.data.inventory;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async deleteInventory(id: number): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.delete(`/delete-shopInventories/${id}`);
+            return response.data;
         } catch (error: any) {
             if (error.response?.data) {
                 throw error.response.data;
