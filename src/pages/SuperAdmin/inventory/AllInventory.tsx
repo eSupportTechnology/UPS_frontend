@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import EditInventory from './EditInventory';
+import ViewInventory from './ViewInventory';
+import DeleteInventoryModal from './DeleteInventoryModal';
 import { Inventory } from '../../../types/inventory.types';
 import { PaginationData } from '../../../types/pagination.types';
 import { InventoryService } from '../../../services/inventoryService';
@@ -67,31 +70,98 @@ const AllInventory: React.FC = () => {
         [fetchInventories],
     );
 
+    // Modal state
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
+    const [editForm, setEditForm] = useState<Partial<Inventory> | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const openViewModal = (inventory: Inventory) => {
+        setSelectedInventory(inventory);
+        setViewModalOpen(true);
+    };
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setSelectedInventory(null);
+    };
+    const openEditModal = (inventory: Inventory) => {
+        setSelectedInventory(inventory);
+        setEditForm({ ...inventory });
+        setEditModalOpen(true);
+    };
+    const closeEditModal = () => {
+        setEditModalOpen(false);
+        setSelectedInventory(null);
+        setEditForm(null);
+    };
+    const handleEditChange = (form: Partial<Inventory>) => {
+        setEditForm(form);
+    };
+    const handleEditSave = async () => {
+        if (!selectedInventory || !editForm) return;
+        setIsSaving(true);
+        try {
+            // Call your update API here
+            await InventoryService.updateInventory(selectedInventory.id, editForm);
+            showAlert({ type: 'success', title: 'Success', message: 'Inventory updated successfully.' });
+            closeEditModal();
+            fetchInventories(currentPage);
+        } catch (error: any) {
+            showAlert({ type: 'error', title: 'Error', message: error.message || 'Failed to update inventory.' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const openDeleteModal = (inventory: Inventory) => {
+        setSelectedInventory(inventory);
+        setDeleteModalOpen(true);
+    };
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setSelectedInventory(null);
+    };
+    const handleDelete = async () => {
+        if (!selectedInventory) return;
+        setIsDeleting(true);
+        try {
+            await InventoryService.deleteInventory(selectedInventory.id);
+            showAlert({ type: 'success', title: 'Deleted', message: 'Inventory deleted successfully.' });
+            closeDeleteModal();
+            fetchInventories(currentPage);
+        } catch (error: any) {
+            showAlert({ type: 'error', title: 'Error', message: error.message || 'Failed to delete inventory.' });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     const columns = useMemo(
         () => [
-            
             { key: 'product_name', label: 'Product Name' },
             { key: 'brand', label: 'Brand', render: (v: string) => v || '-' },
             { key: 'model', label: 'Model', render: (v: string) => v || '-' },
             { key: 'serial_number', label: 'Serial Number', render: (v: string) => v || '-' },
             { key: 'category', label: 'Category' },
             { key: 'quantity', label: 'Quantity' },
-            { key: 'unit_price', label: 'Unit Price', render: (v: number) => `₹${v}` },
-          
+            { key: 'unit_price', label: 'Unit Price', render: (v: number) => `Rs ${v}` },
             {
                 key: 'actions',
                 label: 'Actions',
                 render: (v: any, row: Inventory) => (
                     <div className="flex space-x-2">
-                        <Link to={`/inventory/${row.id}`} className="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                        <button type="button" className="text-blue-600 hover:text-blue-900 text-sm font-medium" onClick={() => openViewModal(row)}>
                             View
-                        </Link>
-                        <Link to={`/inventory/${row.id}/edit`} className="text-green-600 hover:text-green-900 text-sm font-medium">
+                        </button>
+                        <button type="button" className="text-green-600 hover:text-green-900 text-sm font-medium" onClick={() => openEditModal(row)}>
                             Edit
-                        </Link>
-                        <Link to={`/inventory/${row.id}/delete`} className="text-red-600 hover:text-red-900 text-sm font-medium">
+                        </button>
+                        <button type="button" className="text-red-600 hover:text-red-900 text-sm font-medium" onClick={() => openDeleteModal(row)}>
                             Delete
-                        </Link>
+                        </button>
                     </div>
                 ),
             },
@@ -204,6 +274,13 @@ const AllInventory: React.FC = () => {
             <Table data={tableData} columns={columns} loading={loading} emptyMessage="No inventory found" className="mb-6" />
 
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
+
+            {/* View Inventory Modal */}
+            <ViewInventory open={viewModalOpen} onClose={closeViewModal} inventory={selectedInventory} />
+            {/* Edit Inventory Modal */}
+            <EditInventory open={editModalOpen} onClose={closeEditModal} inventory={selectedInventory} form={editForm} onChange={handleEditChange} onSave={handleEditSave} isSaving={isSaving} />
+            {/* Delete Inventory Modal */}
+            <DeleteInventoryModal open={deleteModalOpen} onClose={closeDeleteModal} onDelete={handleDelete} isDeleting={isDeleting} inventory={selectedInventory} />
         </div>
     );
 };
