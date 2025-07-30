@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import EditInventory from './EditInventory';
-import ViewInventory from './ViewInventory';
-import DeleteInventoryModal from './DeleteInventoryModal';
+import EditInventory from './View/EditInventory';
+import ViewInventory from './View/ViewInventory';
+import DeleteInventoryModal from './View/DeleteInventoryModal';
 import { Inventory } from '../../../types/inventory.types';
 import { PaginationData } from '../../../types/pagination.types';
 import { InventoryService } from '../../../services/inventoryService';
