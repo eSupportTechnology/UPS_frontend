@@ -30,78 +30,84 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
-                        <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-lg text-black dark:text-white-dark">
+                        <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-3xl text-black dark:text-white-dark">
                             <button type="button" onClick={onClose} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none">
                                 <IconX />
                             </button>
                             <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">
                                 {inventory ? `Edit: ${inventory.product_name}` : 'Edit Inventory'}
                             </div>
-                            <div className="p-5 space-y-2">
-                                <div className="mb-5">
-                                    <label htmlFor="product_name">Product Name</label>
-                                    <input
-                                        id="product_name"
-                                        type="text"
-                                        className="form-input"
-                                        value={form?.product_name || ''}
-                                        onChange={(e) => onChange({ ...form, product_name: e.target.value })}
-                                    />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="brand">Brand</label>
-                                    <input id="brand" type="text" className="form-input" value={form?.brand || ''} onChange={(e) => onChange({ ...form, brand: e.target.value })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="model">Model</label>
-                                    <input id="model" type="text" className="form-input" value={form?.model || ''} onChange={(e) => onChange({ ...form, model: e.target.value })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="serial_number">Serial Number</label>
-                                    <input
-                                        id="serial_number"
-                                        type="text"
-                                        className="form-input"
-                                        value={form?.serial_number || ''}
-                                        onChange={(e) => onChange({ ...form, serial_number: e.target.value })}
-                                    />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="category">Category</label>
-                                    <input id="category" type="text" className="form-input" value={form?.category || ''} onChange={(e) => onChange({ ...form, category: e.target.value })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="description">Description</label>
-                                    <textarea id="description" className="form-textarea" value={form?.description || ''} onChange={(e) => onChange({ ...form, description: e.target.value })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="quantity">Quantity</label>
-                                    <input id="quantity" type="number" className="form-input" value={form?.quantity || ''} onChange={(e) => onChange({ ...form, quantity: Number(e.target.value) })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="unit_price">Unit Price</label>
-                                    <input
-                                        id="unit_price"
-                                        type="number"
-                                        className="form-input"
-                                        value={form?.unit_price || ''}
-                                        onChange={(e) => onChange({ ...form, unit_price: Number(e.target.value) })}
-                                    />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="purchase_date">Purchase Date</label>
-                                    <input
-                                        id="purchase_date"
-                                        type="date"
-                                        className="form-input"
-                                        value={form?.purchase_date || ''}
-                                        onChange={(e) => onChange({ ...form, purchase_date: e.target.value })}
-                                    />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="warranty">Warranty</label>
-                                    <input id="warranty" type="text" className="form-input" value={form?.warranty || ''} onChange={(e) => onChange({ ...form, warranty: e.target.value })} />
-                                </div>
+                            <div className="p-5">
+                                <form className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="mb-5">
+                                        <label htmlFor="product_name">Product Name</label>
+                                        <input
+                                            id="product_name"
+                                            type="text"
+                                            className="form-input"
+                                            value={form?.product_name || ''}
+                                            onChange={(e) => onChange({ ...form, product_name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="brand">Brand</label>
+                                        <input id="brand" type="text" className="form-input" value={form?.brand || ''} onChange={(e) => onChange({ ...form, brand: e.target.value })} />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="model">Model</label>
+                                        <input id="model" type="text" className="form-input" value={form?.model || ''} onChange={(e) => onChange({ ...form, model: e.target.value })} />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="serial_number">Serial Number</label>
+                                        <input
+                                            id="serial_number"
+                                            type="text"
+                                            className="form-input"
+                                            value={form?.serial_number || ''}
+                                            onChange={(e) => onChange({ ...form, serial_number: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="category">Category</label>
+                                        <input id="category" type="text" className="form-input" value={form?.category || ''} onChange={(e) => onChange({ ...form, category: e.target.value })} />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="quantity">Quantity</label>
+                                        <input id="quantity" type="number" className="form-input" value={form?.quantity || ''} onChange={(e) => onChange({ ...form, quantity: Number(e.target.value) })} />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="unit_price">Unit Price</label>
+                                        <input
+                                            id="unit_price"
+                                            type="number"
+                                            className="form-input"
+                                            value={form?.unit_price || ''}
+                                            onChange={(e) => onChange({ ...form, unit_price: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="purchase_date">Purchase Date</label>
+                                        <input
+                                            id="purchase_date"
+                                            type="date"
+                                            className="form-input"
+                                            value={form?.purchase_date || ''}
+                                            onChange={(e) => onChange({ ...form, purchase_date: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="warranty">Warranty</label>
+                                        <input id="warranty" type="text" className="form-input" value={form?.warranty || ''} onChange={(e) => onChange({ ...form, warranty: e.target.value })} />
+                                    </div>
+                                    <div className="mb-5">
+                                        <label htmlFor="created_by">Created By</label>
+                                        <input id="created_by" type="text" className="form-input" value={form?.created_by || ''} onChange={(e) => onChange({ ...form, created_by: e.target.value })} />
+                                    </div>
+                                    <div className="mb-5 md:col-span-3">
+                                        <label htmlFor="description">Description</label>
+                                        <textarea id="description" className="form-textarea" value={form?.description || ''} onChange={(e) => onChange({ ...form, description: e.target.value })} />
+                                    </div>
+                                </form>
                             </div>
                             <div className="mt-6 text-right p-5 pt-0 flex gap-2 justify-end">
                                 <button onClick={onClose} className="btn btn-outline-danger" type="button">
