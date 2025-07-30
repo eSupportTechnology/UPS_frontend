@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import IconX from '../../../components/Icon/IconX';
-import { Inventory } from '../../../types/inventory.types';
+import IconX from '../../../../components/Icon/IconX';
+import { Inventory } from '../../../../types/inventory.types';
 
 interface EditInventoryProps {
     open: boolean;
@@ -101,10 +101,6 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                                 <div className="mb-5">
                                     <label htmlFor="warranty">Warranty</label>
                                     <input id="warranty" type="text" className="form-input" value={form?.warranty || ''} onChange={(e) => onChange({ ...form, warranty: e.target.value })} />
-                                </div>
-                                <div className="mb-5">
-                                    <label htmlFor="created_by">Created By</label>
-                                    <input id="created_by" type="text" className="form-input" value={form?.created_by || ''} onChange={(e) => onChange({ ...form, created_by: e.target.value })} />
                                 </div>
                             </div>
                             <div className="mt-6 text-right p-5 pt-0 flex gap-2 justify-end">

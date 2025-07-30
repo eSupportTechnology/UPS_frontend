@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import IconX from '../../../components/Icon/IconX';
-import { Inventory } from '../../../types/inventory.types';
+import IconX from '../../../../components/Icon/IconX';
+import { Inventory } from '../../../../types/inventory.types';
 
 interface ViewInventoryProps {
     open: boolean;
@@ -68,12 +68,6 @@ const ViewInventory: React.FC<ViewInventoryProps> = ({ open, onClose, inventory 
                                         </div>
                                         <div>
                                             <strong>Created By:</strong> {inventory.created_by}
-                                        </div>
-                                        <div>
-                                            <strong>Created At:</strong> {inventory.created_at}
-                                        </div>
-                                        <div>
-                                            <strong>Updated At:</strong> {inventory.updated_at}
                                         </div>
                                     </>
                                 )}

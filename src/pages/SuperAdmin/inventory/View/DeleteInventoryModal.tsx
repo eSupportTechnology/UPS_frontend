@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import IconX from '../../../components/Icon/IconX';
-import { Inventory } from '../../../types/inventory.types';
+import IconX from '../../../../components/Icon/IconX';
+import { Inventory } from '../../../../types/inventory.types';
 
 interface DeleteInventoryModalProps {
     open: boolean;
