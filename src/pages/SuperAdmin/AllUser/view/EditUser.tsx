@@ -37,15 +37,15 @@ const EditUser: React.FC<EditUserProps> = ({ open, onClose, user, form, onChange
                             <div className="p-5 space-y-2">
                                 <div className="mb-5">
                                     <label htmlFor="name">Name</label>
-                                    <input id="name" type="text" className="form-input" value={form?.name || ''} onChange={(e) => onChange({ ...form, name: e.target.value })} />
+                                    <input id="name" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.name || ''} onChange={(e) => onChange({ ...form, name: e.target.value })} />
                                 </div>
                                 <div className="mb-5">
                                     <label htmlFor="email">Email</label>
-                                    <input id="email" type="email" className="form-input" value={form?.email || ''} onChange={(e) => onChange({ ...form, email: e.target.value })} />
+                                    <input id="email" type="email" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.email || ''} onChange={(e) => onChange({ ...form, email: e.target.value })} />
                                 </div>
                                 <div className="mb-5">
                                     <label htmlFor="role_as">Role</label>
-                                    <select id="role_as" className="form-input" value={form?.role_as || ''} onChange={(e) => onChange({ ...form, role_as: Number(e.target.value) })}>
+                                    <select id="role_as" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.role_as || ''} onChange={(e) => onChange({ ...form, role_as: Number(e.target.value) })}>
                                         {Object.entries(ROLE_LABELS).map(([value, label]) => (
                                             <option key={value} value={value}>
                                                 {label}
@@ -55,11 +55,11 @@ const EditUser: React.FC<EditUserProps> = ({ open, onClose, user, form, onChange
                                 </div>
                                 <div className="mb-5">
                                     <label htmlFor="phone">Phone</label>
-                                    <input id="phone" type="text" className="form-input" value={form?.phone || ''} onChange={(e) => onChange({ ...form, phone: e.target.value })} />
+                                    <input id="phone" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.phone || ''} onChange={(e) => onChange({ ...form, phone: e.target.value })} />
                                 </div>
                                 <div className="mb-5">
                                     <label htmlFor="address">Address</label>
-                                    <input id="address" type="text" className="form-input" value={form?.address || ''} onChange={(e) => onChange({ ...form, address: e.target.value })} />
+                                    <input id="address" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.address || ''} onChange={(e) => onChange({ ...form, address: e.target.value })} />
                                 </div>
                             </div>
                             <div className="mt-6 text-right p-5 pt-0 flex gap-2 justify-end">

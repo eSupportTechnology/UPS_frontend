@@ -44,39 +44,39 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                                         <input
                                             id="product_name"
                                             type="text"
-                                            className="form-input"
+                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
                                             value={form?.product_name || ''}
                                             onChange={(e) => onChange({ ...form, product_name: e.target.value })}
                                         />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="brand">Brand</label>
-                                        <input id="brand" type="text" className="form-input" value={form?.brand || ''} onChange={(e) => onChange({ ...form, brand: e.target.value })} />
+                                        <input id="brand" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.brand || ''} onChange={(e) => onChange({ ...form, brand: e.target.value })} />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="model">Model</label>
-                                        <input id="model" type="text" className="form-input" value={form?.model || ''} onChange={(e) => onChange({ ...form, model: e.target.value })} />
+                                        <input id="model" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.model || ''} onChange={(e) => onChange({ ...form, model: e.target.value })} />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="serial_number">Serial Number</label>
                                         <input
                                             id="serial_number"
                                             type="text"
-                                            className="form-input"
+                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
                                             value={form?.serial_number || ''}
                                             onChange={(e) => onChange({ ...form, serial_number: e.target.value })}
                                         />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="category">Category</label>
-                                        <input id="category" type="text" className="form-input" value={form?.category || ''} onChange={(e) => onChange({ ...form, category: e.target.value })} />
+                                        <input id="category" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.category || ''} onChange={(e) => onChange({ ...form, category: e.target.value })} />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="quantity">Quantity</label>
                                         <input
                                             id="quantity"
                                             type="number"
-                                            className="form-input"
+                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
                                             value={form?.quantity || ''}
                                             onChange={(e) => onChange({ ...form, quantity: Number(e.target.value) })}
                                         />
@@ -86,7 +86,7 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                                         <input
                                             id="unit_price"
                                             type="number"
-                                            className="form-input"
+                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
                                             value={form?.unit_price || ''}
                                             onChange={(e) => onChange({ ...form, unit_price: Number(e.target.value) })}
                                         />
@@ -96,22 +96,18 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                                         <input
                                             id="purchase_date"
                                             type="date"
-                                            className="form-input"
+                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
                                             value={form?.purchase_date || ''}
                                             onChange={(e) => onChange({ ...form, purchase_date: e.target.value })}
                                         />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="warranty">Warranty</label>
-                                        <input id="warranty" type="text" className="form-input" value={form?.warranty || ''} onChange={(e) => onChange({ ...form, warranty: e.target.value })} />
-                                    </div>
-                                    <div className="mb-5">
-                                        <label htmlFor="created_by">Created By</label>
-                                        <input id="created_by" type="text" className="form-input" value={form?.created_by || ''} onChange={(e) => onChange({ ...form, created_by: e.target.value })} />
+                                        <input id="warranty" type="text" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.warranty || ''} onChange={(e) => onChange({ ...form, warranty: e.target.value })} />
                                     </div>
                                     <div className="mb-5 md:col-span-3">
                                         <label htmlFor="description">Description</label>
-                                        <textarea id="description" className="form-textarea" value={form?.description || ''} onChange={(e) => onChange({ ...form, description: e.target.value })} />
+                                        <textarea id="description" className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300" value={form?.description || ''} onChange={(e) => onChange({ ...form, description: e.target.value })} />
                                     </div>
                                 </form>
                             </div>
