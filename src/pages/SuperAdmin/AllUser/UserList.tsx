@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import EditUser from './view/EditUser';
+import ViewUser from './view/ViewUser';
+import DeleteUserModal from './view/DeleteUserModal';
 import { User, UsersFilters, ROLE_LABELS } from '../../../types/user.types';
 import { PaginationData } from '../../../types/pagination.types';
 import { UserService } from '../../../services/userService';
@@ -19,6 +22,74 @@ const UserList: React.FC = () => {
         is_active: '',
         per_page: 10,
     });
+
+    // Modal state
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [editForm, setEditForm] = useState<any>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const openViewModal = (user: User) => {
+        setSelectedUser(user);
+        setViewModalOpen(true);
+    };
+    const closeViewModal = () => {
+        setViewModalOpen(false);
+        setSelectedUser(null);
+    };
+    const openEditModal = (user: User) => {
+        setSelectedUser(user);
+        setEditForm({ ...user });
+        setEditModalOpen(true);
+    };
+    const closeEditModal = () => {
+        setEditModalOpen(false);
+        setSelectedUser(null);
+        setEditForm(null);
+    };
+    const openDeleteModal = (user: User) => {
+        setSelectedUser(user);
+        setDeleteModalOpen(true);
+    };
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setSelectedUser(null);
+    };
+    const handleEditChange = (form: any) => {
+        setEditForm(form);
+    };
+    const handleEditSave = async () => {
+        if (!selectedUser || !editForm) return;
+        setIsSaving(true);
+        try {
+            await UserService.updateUser(selectedUser.id, editForm);
+            showAlert({ type: 'success', title: 'Success', message: 'User updated successfully.' });
+            closeEditModal();
+            fetchUsers(currentPage);
+        } catch (error: any) {
+            showAlert({ type: 'error', title: 'Error', message: error.message || 'Failed to update user.' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedUser) return;
+        setIsDeleting(true);
+        try {
+            await UserService.deleteUser(selectedUser.id);
+            showAlert({ type: 'success', title: 'Deleted', message: 'User deleted successfully.' });
+            closeDeleteModal();
+            fetchUsers(currentPage);
+        } catch (error: any) {
+            showAlert({ type: 'error', title: 'Error', message: error.message || 'Failed to delete user.' });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const fetchUsers = useCallback(
         async (page: number = currentPage) => {
@@ -126,15 +197,15 @@ const UserList: React.FC = () => {
                 label: 'Actions',
                 render: (value: any, row: User) => (
                     <div className="flex space-x-2">
-                        <Link to={`/users/${row.id}`} className="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                        <button type="button" className="text-blue-600 hover:text-blue-900 text-sm font-medium" onClick={() => openViewModal(row)}>
                             View
-                        </Link>
-                        <Link to={`/users/${row.id}/edit`} className="text-green-600 hover:text-green-900 text-sm font-medium">
+                        </button>
+                        <button type="button" className="text-green-600 hover:text-green-900 text-sm font-medium" onClick={() => openEditModal(row)}>
                             Edit
-                        </Link>
-                        <Link to={`/users/${row.id}/delete`} className="text-red-600 hover:text-red-900 text-sm font-medium">
+                        </button>
+                        <button type="button" className="text-red-600 hover:text-red-900 text-sm font-medium" onClick={() => openDeleteModal(row)}>
                             Delete
-                        </Link>
+                        </button>
                     </div>
                 ),
             },
@@ -265,6 +336,11 @@ const UserList: React.FC = () => {
             <Table data={tableData} columns={columns} loading={loading} emptyMessage="No users found" className="mb-6" />
 
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
+
+            {/* Modals */}
+            <ViewUser open={viewModalOpen} onClose={closeViewModal} user={selectedUser} />
+            <EditUser open={editModalOpen} onClose={closeEditModal} user={selectedUser} form={editForm} onChange={handleEditChange} onSave={handleEditSave} isSaving={isSaving} />
+            <DeleteUserModal open={deleteModalOpen} onClose={closeDeleteModal} onDelete={handleDelete} isDeleting={isDeleting} user={selectedUser} />
         </div>
     );
 };

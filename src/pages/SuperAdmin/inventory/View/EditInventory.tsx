@@ -73,7 +73,13 @@ const EditInventory: React.FC<EditInventoryProps> = ({ open, onClose, inventory,
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="quantity">Quantity</label>
-                                        <input id="quantity" type="number" className="form-input" value={form?.quantity || ''} onChange={(e) => onChange({ ...form, quantity: Number(e.target.value) })} />
+                                        <input
+                                            id="quantity"
+                                            type="number"
+                                            className="form-input"
+                                            value={form?.quantity || ''}
+                                            onChange={(e) => onChange({ ...form, quantity: Number(e.target.value) })}
+                                        />
                                     </div>
                                     <div className="mb-5">
                                         <label htmlFor="unit_price">Unit Price</label>

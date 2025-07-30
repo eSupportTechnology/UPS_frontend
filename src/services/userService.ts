@@ -59,4 +59,43 @@ export class UserService {
         const phoneRegex = /^[\+]?[0-9][\d]{0,15}$/;
         return phoneRegex.test(phone.replace(/\s/g, ''));
     }
+    static async updateUser(id: number, userData: Partial<CreateUserFormData>): Promise<CreateUserResponse> {
+        try {
+            // Only send allowed fields
+            const payload: Partial<CreateUserFormData> = {
+                name: userData.name,
+                email: userData.email,
+                role_as: userData.role_as,
+                phone: userData.phone,
+                address: userData.address,
+            };
+            const response = await api.put<CreateUserResponse>(`/update-users/${id}`, payload);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async deleteUser(id: number): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.delete<{ status: string; message: string }>(`/delete-users/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
 }
