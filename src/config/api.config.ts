@@ -1,17 +1,19 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
-const api = axios.create({
-    baseURL: 'https://apiupsd.nexgensolutionsl.com/api',
-    timeout: 10000,
+const api: AxiosInstance = axios.create({
+    baseURL: 'http://127.0.0.1:8000/api',
+    timeout: 15000,
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
     },
 });
 
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('auth_token');
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -23,13 +25,17 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-    (response) => {
+    (response: AxiosResponse) => {
         return response;
     },
-    (error) => {
+    (error: AxiosError) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('auth_token');
-            window.location.href = '/login';
+            localStorage.removeItem('user');
+
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     },
