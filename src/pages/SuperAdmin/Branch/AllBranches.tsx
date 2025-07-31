@@ -75,6 +75,31 @@ const AllBranches: React.FC = () => {
         [fetchBranches],
     );
 
+    const handleStatusToggle = async (branch: Branch) => {
+        try {
+            let response;
+            if (branch.is_active) {
+                response = await BranchService.deactivateBranch(branch.id);
+            } else {
+                response = await BranchService.activateBranch(branch.id);
+            }
+            fetchBranches(currentPage);
+            showAlert({
+                type: 'success',
+                title: 'Status Updated',
+                message: response.message || `Branch status updated to ${!branch.is_active ? 'Active' : 'Inactive'}.`,
+                duration: 4000,
+            });
+        } catch (err: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: err?.message || 'Failed to update status',
+                duration: 4000,
+            });
+        }
+    };
+
     const columns = useMemo(
         () => [
             { key: 'name', label: 'Branch Name' },
@@ -87,8 +112,20 @@ const AllBranches: React.FC = () => {
             {
                 key: 'is_active',
                 label: 'Status',
-                render: (v: boolean) => (
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${v ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{v ? 'Active' : 'Inactive'}</span>
+                render: (v: boolean, row: Branch) => (
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${v ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{v ? 'Active' : 'Inactive'}</span>
+                        <button
+                            type="button"
+                            className={`ml-2 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${v ? 'bg-green-500' : 'bg-gray-300'}`}
+                            onClick={() => handleStatusToggle(row)}
+                            title="Toggle Status"
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'}`}
+                            />
+                        </button>
+                    </div>
                 ),
             },
             {
@@ -131,7 +168,7 @@ const AllBranches: React.FC = () => {
                 ),
             },
         ],
-        [],
+        [fetchBranches, showAlert, currentPage],
     );
 
     const paginationMeta = useMemo(() => {

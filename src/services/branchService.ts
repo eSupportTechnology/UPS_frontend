@@ -3,7 +3,39 @@ import { BranchFormData, CreateBranchResponse } from '../types/branch.types';
 import { Branch } from '../types/branch.types';
 import { PaginationData } from '../types/pagination.types';
 
+
 export class BranchService {
+    static async activateBranch(id: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/admin/branches/activate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async deactivateBranch(id: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/admin/branches/deactivate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
     static async createBranch(data: BranchFormData): Promise<CreateBranchResponse> {
         try {
             const response = await api.post<CreateBranchResponse>('/create-branch', data);
