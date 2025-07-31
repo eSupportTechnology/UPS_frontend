@@ -10,6 +10,7 @@ import { useAlert } from '../../../components/Alert/Alert';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
+import { ToggleSwitch } from '../../../components/UI/ToggleSwitch';
 
 const UserList: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
@@ -23,7 +24,6 @@ const UserList: React.FC = () => {
         per_page: 10,
     });
 
-    // Modal state
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -31,6 +31,7 @@ const UserList: React.FC = () => {
     const [editForm, setEditForm] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [togglingUsers, setTogglingUsers] = useState<Set<number>>(new Set());
 
     const openViewModal = (user: User) => {
         setSelectedUser(user);
@@ -88,6 +89,40 @@ const UserList: React.FC = () => {
             showAlert({ type: 'error', title: 'Error', message: error.message || 'Failed to delete user.' });
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    const handleToggleUserStatus = async (userId: number, currentStatus: boolean) => {
+        setTogglingUsers((prev) => new Set(prev).add(userId));
+
+        try {
+            const response = await UserService.toggleUserStatus(userId, currentStatus);
+            setUsers((prevUsers) => {
+                if (!prevUsers) return prevUsers;
+
+                return {
+                    ...prevUsers,
+                    data: prevUsers.data.map((user) => (user.id === userId ? { ...user, is_active: !currentStatus } : user)),
+                };
+            });
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: response.message || `User ${currentStatus ? 'deactivated' : 'activated'} successfully.`,
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to update user status.',
+            });
+        } finally {
+            setTogglingUsers((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(userId);
+                return newSet;
+            });
         }
     };
 
@@ -190,7 +225,12 @@ const UserList: React.FC = () => {
             {
                 key: 'is_active',
                 label: 'Status',
-                render: (value: boolean) => getStatusBadge(value),
+                render: (value: boolean, row: User) => (
+                    <div className="flex items-center space-x-3">
+                        {getStatusBadge(value)}
+                        <ToggleSwitch checked={value} onChange={() => handleToggleUserStatus(row.id, value)} loading={togglingUsers.has(row.id)} size="sm" disabled={togglingUsers.has(row.id)} />
+                    </div>
+                ),
             },
             {
                 key: 'actions',
@@ -210,7 +250,7 @@ const UserList: React.FC = () => {
                 ),
             },
         ],
-        [getRoleBadge, getStatusBadge],
+        [getRoleBadge, getStatusBadge, handleToggleUserStatus, togglingUsers],
     );
 
     const roleOptions = useMemo(
@@ -337,7 +377,6 @@ const UserList: React.FC = () => {
 
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
 
-            {/* Modals */}
             <ViewUser open={viewModalOpen} onClose={closeViewModal} user={selectedUser} />
             <EditUser open={editModalOpen} onClose={closeEditModal} user={selectedUser} form={editForm} onChange={handleEditChange} onSave={handleEditSave} isSaving={isSaving} />
             <DeleteUserModal open={deleteModalOpen} onClose={closeDeleteModal} onDelete={handleDelete} isDeleting={isDeleting} user={selectedUser} />
