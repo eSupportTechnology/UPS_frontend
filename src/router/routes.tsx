@@ -5,6 +5,8 @@ import { USER_ROLES } from '../types/auth.types';
 import Login from '../pages/Auth/Login';
 import UserList from '../pages/SuperAdmin/AllUser/UserList';
 import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
+import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
+import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
@@ -103,6 +105,24 @@ export const routes: RouteType[] = [
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
             <AllInventory />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/create-branch',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <CreateBranch />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-branches',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <AllBranches />
             </ProtectedRoute>
         ),
         layout: 'default',
