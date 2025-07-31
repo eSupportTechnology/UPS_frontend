@@ -98,4 +98,40 @@ export class UserService {
             };
         }
     }
+
+    static async activateUser(id: number): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/users-activate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async deactivateUser(id: number): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/users-deactivate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async toggleUserStatus(id: number, isActive: boolean): Promise<{ status: string; message: string }> {
+        return isActive ? this.deactivateUser(id) : this.activateUser(id);
+    }
 }
