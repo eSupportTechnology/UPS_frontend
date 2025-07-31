@@ -3,7 +3,6 @@ import { BranchFormData, CreateBranchResponse } from '../types/branch.types';
 import { Branch } from '../types/branch.types';
 import { PaginationData } from '../types/pagination.types';
 
-
 export class BranchService {
     static async activateBranch(id: string): Promise<{ status: string; message: string }> {
         try {
@@ -63,9 +62,9 @@ export class BranchService {
             if (filters.state) params.append('state', filters.state);
             if (filters.city) params.append('city', filters.city);
             if (filters.type) params.append('type', filters.type);
-            
+
             const response = await api.get(`/all-branches?${params}`);
-        
+
             return response.data.branches;
         } catch (error: any) {
             if (error.response?.data) {

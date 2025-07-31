@@ -32,7 +32,6 @@ const AllBranches: React.FC = () => {
         async (page: number = currentPage) => {
             setLoading(true);
             try {
-                
                 const data = await BranchService.getBranches(page, filters);
                 setBranches(data);
                 setCurrentPage(page);
@@ -121,9 +120,7 @@ const AllBranches: React.FC = () => {
                             onClick={() => handleStatusToggle(row)}
                             title="Toggle Status"
                         >
-                            <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'}`}
-                            />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                     </div>
                 ),
