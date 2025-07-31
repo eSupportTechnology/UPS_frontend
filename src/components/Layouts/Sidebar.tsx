@@ -59,13 +59,23 @@ const Sidebar = () => {
             ],
 
         },
-         {
+        {
             label: t('Inventory'),
             icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
             key: 'inventory',
             children: [
                 { label: t('Add'), link: '/super-admin/inventory-create' },
                 { label: t('All'), link: '/super-admin/all-inventory' },
+            ],
+
+        },
+        {
+            label: t('Branches'),
+            icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+            key: 'branches',
+            children: [
+                { label: t('Add'), link: '/super-admin/create-branch' },
+                { label: t('All'), link: '/super-admin/all-branches' },
             ],
 
         },
