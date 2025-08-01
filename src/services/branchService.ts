@@ -109,4 +109,19 @@ export class BranchService {
             };
         }
     }
+    static async getActiveBranches(): Promise<Branch[]> {
+        try {
+            const response = await api.get('/active-branches');
+            return response.data.branches;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
 }

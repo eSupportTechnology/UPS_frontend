@@ -12,6 +12,11 @@ import IconMenuDashboard from '../Icon/Menu/IconMenuDashboard';
 import IconMenuContacts from '../Icon/Menu/IconMenuContacts';
 import IconMenuUsers from '../Icon/Menu/IconMenuUsers';
 import IconCaretDown from '../Icon/IconCaretDown';
+import IconMenuChat from '../Icon/Menu/IconMenuChat';
+import IconMenuComponents from '../Icon/Menu/IconMenuComponents';
+import IconMenuContract from '../Icon/Menu/IconMenuContract';
+import IconMenuInventory from '../Icon/Menu/IconMenuInventory';
+import IconMenuBranch from '../Icon/Menu/IconMenuBranch';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -57,29 +62,31 @@ const Sidebar = () => {
                 { label: t('Add'), link: '/super-admin/user-create' },
                 { label: t('All'), link: '/super-admin/all-user' },
             ],
-
         },
         {
             label: t('Inventory'),
-            icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+            icon: <IconMenuInventory className="group-hover:!text-primary shrink-0" />,
             key: 'inventory',
             children: [
                 { label: t('Add'), link: '/super-admin/inventory-create' },
                 { label: t('All'), link: '/super-admin/all-inventory' },
             ],
-
         },
         {
             label: t('Branches'),
-            icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+            icon: <IconMenuBranch className="group-hover:!text-primary shrink-0" />,
             key: 'branches',
             children: [
                 { label: t('Add'), link: '/super-admin/create-branch' },
                 { label: t('All'), link: '/super-admin/all-branches' },
             ],
-
         },
-
+        {
+            label: t('Contract'),
+            icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
+            key: 'contract',
+            children: [{ label: t('Add'), link: '/super-admin/create-contract' }],
+        },
     ];
 
     return (
@@ -91,9 +98,7 @@ const Sidebar = () => {
                     <div className="flex justify-between items-center px-4 py-3">
                         <NavLink to="/" className="main-logo flex items-center shrink-0">
                             <img className="w-8 ml-[5px] flex-none" src="/assets/images/logo.svg" alt="logo" />
-                            <span className="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light">
-                                {t('UPS')}
-                            </span>
+                            <span className="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light">{t('UPS')}</span>
                         </NavLink>
 
                         <button
@@ -108,16 +113,10 @@ const Sidebar = () => {
                         <ul className="relative font-semibold space-y-0.5 p-4 py-0">
                             {sidebarItems.map((item) => (
                                 <li className="menu nav-item" key={item.key}>
-                                    <button
-                                        type="button"
-                                        className={`${currentMenu === item.key ? 'active' : ''} nav-link group w-full`}
-                                        onClick={() => toggleMenu(item.key)}
-                                    >
+                                    <button type="button" className={`${currentMenu === item.key ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.key)}>
                                         <div className="flex items-center">
                                             {item.icon}
-                                            <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">
-                                                {item.label}
-                                            </span>
+                                            <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{item.label}</span>
                                         </div>
                                         <div className={currentMenu !== item.key ? 'rtl:rotate-90 -rotate-90' : ''}>
                                             <IconCaretDown />
