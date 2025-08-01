@@ -5,6 +5,7 @@ import { USER_ROLES } from '../types/auth.types';
 import Login from '../pages/Auth/Login';
 import UserList from '../pages/SuperAdmin/AllUser/UserList';
 import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
+import CreateAMCContract from '../pages/SuperAdmin/AMC/CreateAMCContract';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 const Index = lazy(() => import('../pages/Index'));
@@ -61,7 +62,15 @@ export const routes: RouteType[] = [
         ),
         layout: 'default',
     },
-
+    {
+        path: '/super-admin/create-contract',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <CreateAMCContract />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
     {
         path: '/admin',
         element: (
