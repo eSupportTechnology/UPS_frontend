@@ -23,7 +23,6 @@ const DeleteBranchModal: React.FC<DeleteBranchModalProps> = ({ open, onClose, br
         setLoading(true);
         setError(null);
         try {
-            
             await BranchService.deleteBranch(branchId);
             onDeleted();
             onClose();
@@ -57,16 +56,18 @@ const DeleteBranchModal: React.FC<DeleteBranchModalProps> = ({ open, onClose, br
                                 </button>
                                 <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">Delete Branch</div>
                                 <div className="p-5">
-                                    <p>Are you sure you want to delete this branch?</p>
+                                    <p>
+                                        Are you sure you want to delete <strong>this branch</strong>?
+                                    </p>
                                     {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-                                    <div className="flex justify-end gap-2 mt-6">
-                                        <button type="button" className="btn btn-outline" onClick={onClose} disabled={loading}>
-                                            Cancel
-                                        </button>
-                                        <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-                                            {loading ? 'Deleting...' : 'Delete'}
-                                        </button>
-                                    </div>
+                                </div>
+                                <div className="mt-6 text-right p-5 pt-0 flex gap-2 justify-end">
+                                    <button onClick={onClose} className="btn btn-outline-primary" type="button" disabled={loading}>
+                                        Cancel
+                                    </button>
+                                    <button onClick={handleDelete} className="btn btn-danger" type="button" disabled={loading}>
+                                        {loading ? 'Deleting...' : 'Delete'}
+                                    </button>
                                 </div>
                             </DialogPanel>
                         </TransitionChild>
