@@ -85,7 +85,10 @@ const Sidebar = () => {
             label: t('Contract'),
             icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
             key: 'contract',
-            children: [{ label: t('Add'), link: '/super-admin/create-contract' }],
+            children: [
+                { label: t('Add'), link: '/super-admin/create-contract' },
+                { label: t('All'), link: '/super-admin/all-contracts' },
+            ],
         },
     ];
 
