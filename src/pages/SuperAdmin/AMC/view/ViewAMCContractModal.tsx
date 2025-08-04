@@ -50,7 +50,7 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                                             <strong>Warranty End Date:</strong> {contract.warranty_end_date || '-'}
                                         </div>
                                         <div>
-                                            <strong>Amount:</strong> {contract.contract_amount != null ? `₹${contract.contract_amount}` : '-'}
+                                            <strong>Amount:</strong> {contract.contract_amount != null ? `Rs ${contract.contract_amount}` : '-'}
                                         </div>
                                         <div>
                                             <strong>Notes:</strong> {contract.notes || '-'}

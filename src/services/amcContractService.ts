@@ -5,16 +5,25 @@ export class AMCContractService {
     static async getContracts(page: number, filters: any): Promise<{ data: AMCContract[]; total: number; current_page: number; last_page: number; per_page: number; from: number; to: number }> {
         try {
             const params: any = { page };
+
             Object.entries(filters).forEach(([key, value]) => {
                 if (value !== '' && value !== undefined && value !== null) {
-                    params[key] = value;
+                    if (key === 'status') {
+                        params['is_active'] = value;
+                    } else {
+                        params[key] = value;
+                    }
                 }
             });
 
             if (params.per_page === '' || params.per_page === undefined || params.per_page === null) {
                 delete params.per_page;
             }
+
+            console.log('API Request params:', params);
             const response = await api.get<ContractListResponse>('/all-contract', { params });
+            console.log('Raw API response:', response.data);
+
             const contracts = response.data.contracts;
             return {
                 data: contracts.data,
@@ -26,6 +35,7 @@ export class AMCContractService {
                 to: contracts.to,
             };
         } catch (error: any) {
+            console.error('API Error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to fetch contracts' };
         }
     }
@@ -48,16 +58,28 @@ export class AMCContractService {
 
     static async updateContract(id: string, data: Partial<AMCContract>): Promise<{ message: string }> {
         try {
-            const response = await api.put(`/amc-contract/${id}`, data);
+            const cleanData: any = {};
+
+            const allowedFields = ['contract_type', 'branch_id', 'customer_id', 'purchase_date', 'warranty_end_date', 'contract_amount', 'notes', 'is_active'];
+
+            allowedFields.forEach((field) => {
+                if (data[field as keyof AMCContract] !== undefined) {
+                    cleanData[field] = data[field as keyof AMCContract];
+                }
+            });
+
+            console.log('Sending update data:', cleanData);
+            const response = await api.put(`/update-amc-contract/${id}`, cleanData);
             return response.data;
         } catch (error: any) {
+            console.error('Update error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to update contract' };
         }
     }
 
     static async deleteContract(id: string): Promise<{ message: string }> {
         try {
-            const response = await api.delete(`/amc-contract/${id}`);
+            const response = await api.delete(`/delete-amc-contract/${id}`);
             return response.data;
         } catch (error: any) {
             throw error.response?.data || { message: 'Failed to delete contract' };
