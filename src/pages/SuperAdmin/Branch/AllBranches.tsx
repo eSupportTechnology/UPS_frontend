@@ -199,8 +199,8 @@ const AllBranches: React.FC = () => {
             </div>
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory</h1>
-                    <p className="text-gray-600">Manage inventory items</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Branchers</h1>
+                    <p className="text-gray-600">Manage Braanchers</p>
                 </div>
                 <Link to="/super-admin/create-branch" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

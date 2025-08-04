@@ -1,6 +1,8 @@
 import { Fragment, useState } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import IconX from '../../../../components/Icon/IconX';
+import { AMCContractService } from '../../../../services/amcContractService';
+import { useAlert } from '../../../../components/Alert/Alert';
 
 interface DeleteAMCContractModalProps {
     open: boolean;
@@ -10,6 +12,7 @@ interface DeleteAMCContractModalProps {
 }
 
 const DeleteAMCContractModal: React.FC<DeleteAMCContractModalProps> = ({ open, onClose, contractId, onDeleted }) => {
+    const { showAlert } = useAlert();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -21,10 +24,22 @@ const DeleteAMCContractModal: React.FC<DeleteAMCContractModalProps> = ({ open, o
         setLoading(true);
         setError(null);
         try {
+            await AMCContractService.deleteContract(contractId);
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'Contract deleted successfully',
+            });
             onDeleted();
             onClose();
         } catch (err: any) {
-            setError(err?.message || 'Failed to delete contract');
+            const errorMessage = err?.message || 'Failed to delete contract';
+            setError(errorMessage);
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: errorMessage,
+            });
         } finally {
             setLoading(false);
         }

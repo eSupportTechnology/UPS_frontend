@@ -18,21 +18,26 @@ const AllAMCContracts: React.FC = () => {
     const [filters, setFilters] = useState<any>({
         search: '',
         status: '',
+        contract_type: '',
         per_page: 10,
     });
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedContract, setSelectedContract] = useState<AMCContract | null>(null);
+    const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
 
     const fetchContracts = useCallback(
         async (page: number = currentPage) => {
             setLoading(true);
             try {
+                console.log('Fetching contracts with filters:', filters);
                 const data = await AMCContractService.getContracts(page, filters);
+                console.log('API Response:', data);
                 setContracts(data);
                 setCurrentPage(page);
             } catch (error: any) {
+                console.error('Error fetching contracts:', error);
                 showAlert({
                     type: 'error',
                     title: 'Error',
@@ -47,7 +52,8 @@ const AllAMCContracts: React.FC = () => {
 
     useEffect(() => {
         fetchContracts(1);
-    }, [filters]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handlePageChange = useCallback(
         (page: number) => {
@@ -63,9 +69,50 @@ const AllAMCContracts: React.FC = () => {
     const handleSearch = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
+            console.log('Search triggered with filters:', filters);
             fetchContracts(1);
         },
-        [fetchContracts],
+        [fetchContracts, filters],
+    );
+
+    const handleStatusToggle = useCallback(
+        async (contract: AMCContract, currentStatus: boolean) => {
+            setStatusUpdating(contract.id);
+            try {
+                console.log('Updating contract status:', { contractId: contract.id, currentStatus, newStatus: !currentStatus });
+
+                const updateData = {
+                    contract_type: contract.contract_type,
+                    branch_id: contract.branch_id,
+                    customer_id: contract.customer_id,
+                    purchase_date: contract.purchase_date,
+                    warranty_end_date: contract.warranty_end_date,
+                    contract_amount: contract.contract_amount,
+                    notes: contract.notes,
+                    is_active: !currentStatus,
+                };
+
+                console.log('Sending status update with data:', updateData);
+                await AMCContractService.updateContract(contract.id, updateData);
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: `Contract ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+                });
+                // Refresh the contracts list
+                fetchContracts(currentPage);
+            } catch (error: any) {
+                console.error('Status toggle error:', error);
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: error.message || 'Failed to update contract status',
+                });
+            } finally {
+                setStatusUpdating(null);
+            }
+        },
+        [showAlert, fetchContracts, currentPage],
     );
 
     const columns = useMemo(
@@ -75,13 +122,25 @@ const AllAMCContracts: React.FC = () => {
             { key: 'customer', label: 'Customer', render: (v: any, row: AMCContract) => row.customer?.name || '-' },
             { key: 'purchase_date', label: 'Purchase Date' },
             { key: 'warranty_end_date', label: 'Warranty End Date' },
-            { key: 'contract_amount', label: 'Amount', render: (v: any) => (v != null ? `₹${v}` : '-') },
-            { key: 'notes', label: 'Notes', render: (v: any) => v || '-' },
+            { key: 'contract_amount', label: 'Amount', render: (v: any) => (v != null ? `Rs ${v}` : '-') },
             {
                 key: 'is_active',
                 label: 'Status',
-                render: (v: boolean) => (
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${v ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{v ? 'Active' : 'Inactive'}</span>
+                render: (v: boolean, row: AMCContract) => (
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${v ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{v ? 'Active' : 'Inactive'}</span>
+                        <button
+                            type="button"
+                            className={`ml-2 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${v ? 'bg-green-500' : 'bg-gray-300'} ${statusUpdating === row.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => handleStatusToggle(row, v)}
+                            title="Toggle Status"
+                            disabled={statusUpdating === row.id || loading}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'} ${statusUpdating === row.id ? 'animate-pulse' : ''}`}
+                            />
+                        </button>
+                    </div>
                 ),
             },
             {
@@ -123,7 +182,7 @@ const AllAMCContracts: React.FC = () => {
                 ),
             },
         ],
-        [],
+        [handleStatusToggle, statusUpdating, loading],
     );
 
     const paginationMeta = useMemo(() => {
@@ -178,7 +237,20 @@ const AllAMCContracts: React.FC = () => {
                             id="search"
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
-                            placeholder="Search by contract number or customer..."
+                            placeholder="Search by contract, customer, branch..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="contract_type" className="block text-sm font-medium text-gray-700 mb-2">
+                            Contract Type
+                        </label>
+                        <input
+                            type="text"
+                            id="contract_type"
+                            value={filters.contract_type}
+                            onChange={(e) => handleFilterChange('contract_type', e.target.value)}
+                            placeholder="Contract Type"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         />
                     </div>
@@ -192,12 +264,12 @@ const AllAMCContracts: React.FC = () => {
                             onChange={(e) => handleFilterChange('status', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         >
-                            <option value="">All</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="">All Status</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
                         </select>
                     </div>
-                    <div className="md:col-span-2 flex items-end">
+                    <div className="flex items-end">
                         <button
                             type="submit"
                             disabled={loading}
