@@ -60,7 +60,7 @@ export class AMCContractService {
         try {
             const cleanData: any = {};
 
-            const allowedFields = ['contract_type', 'branch_id', 'customer_id', 'purchase_date', 'warranty_end_date', 'contract_amount', 'notes', 'is_active'];
+            const allowedFields = ['contract_type', 'branch_id', 'customer_id', 'purchase_date', 'warranty_end_date', 'contract_amount', 'notes', 'is_active', 'maintenances'];
 
             allowedFields.forEach((field) => {
                 if (data[field as keyof AMCContract] !== undefined) {
@@ -103,6 +103,36 @@ export class AMCContractService {
         } catch (error: any) {
             console.error('Deactivate error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to deactivate contract' };
+        }
+    }
+
+    static async updateMaintenanceStatus(contractId: string, maintenanceId: string, status: 'pending' | 'completed' | 'missed'): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.put<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance/${maintenanceId}/status`, { status });
+            return response.data;
+        } catch (error: any) {
+            console.error('Update maintenance status error:', error.response?.data || error.message);
+            throw error.response?.data || { message: 'Failed to update maintenance status' };
+        }
+    }
+
+    static async addMaintenance(contractId: string, maintenance: { scheduled_date: string; note: string; status: 'pending' | 'completed' | 'missed' }): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance`, maintenance);
+            return response.data;
+        } catch (error: any) {
+            console.error('Add maintenance error:', error.response?.data || error.message);
+            throw error.response?.data || { message: 'Failed to add maintenance' };
+        }
+    }
+
+    static async deleteMaintenance(contractId: string, maintenanceId: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.delete<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance/${maintenanceId}`);
+            return response.data;
+        } catch (error: any) {
+            console.error('Delete maintenance error:', error.response?.data || error.message);
+            throw error.response?.data || { message: 'Failed to delete maintenance' };
         }
     }
 }
