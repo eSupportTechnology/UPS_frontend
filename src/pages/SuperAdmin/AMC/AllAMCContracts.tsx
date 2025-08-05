@@ -81,25 +81,18 @@ const AllAMCContracts: React.FC = () => {
             try {
                 console.log('Updating contract status:', { contractId: contract.id, currentStatus, newStatus: !currentStatus });
 
-                const updateData = {
-                    contract_type: contract.contract_type,
-                    branch_id: contract.branch_id,
-                    customer_id: contract.customer_id,
-                    purchase_date: contract.purchase_date,
-                    warranty_end_date: contract.warranty_end_date,
-                    contract_amount: contract.contract_amount,
-                    notes: contract.notes,
-                    is_active: !currentStatus,
-                };
+                if (currentStatus) {
+                    await AMCContractService.deactivateContract(contract.id);
+                } else {
+                    await AMCContractService.activateContract(contract.id);
+                }
 
-                console.log('Sending status update with data:', updateData);
-                await AMCContractService.updateContract(contract.id, updateData);
                 showAlert({
                     type: 'success',
                     title: 'Success',
                     message: `Contract ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
                 });
-                // Refresh the contracts list
+
                 fetchContracts(currentPage);
             } catch (error: any) {
                 console.error('Status toggle error:', error);
