@@ -85,4 +85,24 @@ export class AMCContractService {
             throw error.response?.data || { message: 'Failed to delete contract' };
         }
     }
+
+    static async activateContract(id: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/amc-contracts-activate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            console.error('Activate error:', error.response?.data || error.message);
+            throw error.response?.data || { message: 'Failed to activate contract' };
+        }
+    }
+
+    static async deactivateContract(id: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>(`/amc-contracts-deactivate/${id}`);
+            return response.data;
+        } catch (error: any) {
+            console.error('Deactivate error:', error.response?.data || error.message);
+            throw error.response?.data || { message: 'Failed to deactivate contract' };
+        }
+    }
 }
