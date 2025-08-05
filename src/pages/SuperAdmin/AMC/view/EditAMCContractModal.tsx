@@ -13,18 +13,23 @@ interface EditAMCContractModalProps {
     onClose: () => void;
     contract: AMCContract | null;
     onUpdated: () => void;
+    onShowAlert?: (type: 'success' | 'error', message: string) => void;
 }
 
-const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClose, contract, onUpdated }) => {
+const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClose, contract, onUpdated, onShowAlert }) => {
     const { showAlert } = useAlert();
     const [form, setForm] = useState<Partial<AMCContract>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [maintenances, setMaintenances] = useState<any[]>([]);
 
     useEffect(() => {
-        if (contract) setForm(contract);
+        if (contract) {
+            setForm(contract);
+            setMaintenances(contract.maintenances || []);
+        }
     }, [contract]);
 
     useEffect(() => {
@@ -58,27 +63,70 @@ const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClo
         setForm((prev: any) => ({ ...prev, [name]: value }));
     };
 
+    const handleMaintenanceChange = (index: number, field: string, value: string) => {
+        setMaintenances((prev) => prev.map((maintenance, i) => (i === index ? { ...maintenance, [field]: value } : maintenance)));
+    };
+
+    const addMaintenance = () => {
+        setMaintenances((prev) => [
+            ...prev,
+            {
+                id: `temp_${Date.now()}`,
+                scheduled_date: '',
+                note: '',
+                status: 'pending',
+            },
+        ]);
+    };
+
+    const removeMaintenance = (index: number) => {
+        setMaintenances((prev) => prev.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!contract) return;
         setLoading(true);
         setError(null);
         try {
-            await AMCContractService.updateContract(contract.id, form);
-            showAlert({
-                type: 'success',
-                title: 'Success',
-                message: 'Contract updated successfully',
-            });
-            onUpdated();
+            const updateData = {
+                ...form,
+                maintenances: maintenances.map((m) => ({
+                    ...(m.id && !m.id.startsWith('temp_') ? { id: m.id } : {}),
+                    scheduled_date: m.scheduled_date,
+                    note: m.note,
+                    status: m.status,
+                })),
+            };
+
+            console.log('Submitting contract update with maintenance data:', updateData);
+            await AMCContractService.updateContract(contract.id, updateData);
+
             onClose();
+
+            if (onShowAlert) {
+                onShowAlert('success', 'Contract updated successfully');
+            } else {
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: 'Contract updated successfully',
+                });
+            }
+
+            onUpdated();
         } catch (err: any) {
             setError(err?.message || 'Failed to update contract');
-            showAlert({
-                type: 'error',
-                title: 'Error',
-                message: err?.message || 'Failed to update contract',
-            });
+
+            if (onShowAlert) {
+                onShowAlert('error', err?.message || 'Failed to update contract');
+            } else {
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: err?.message || 'Failed to update contract',
+                });
+            }
         } finally {
             setLoading(false);
         }
@@ -217,6 +265,75 @@ const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClo
                                                 onChange={handleChange}
                                                 rows={3}
                                             />
+                                        </div>
+
+                                        {/* Maintenance Schedule Section */}
+                                        <div className="mb-5 md:col-span-3">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <label className="text-sm font-medium text-gray-700">Maintenance Schedule</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={addMaintenance}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                                >
+                                                    Add Maintenance
+                                                </button>
+                                            </div>
+
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                {maintenances.length === 0 ? (
+                                                    <p className="text-gray-500 text-center">No maintenance schedules yet</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {maintenances.map((maintenance, index) => (
+                                                            <div key={maintenance.id || index} className="bg-white p-4 rounded-md border border-gray-200">
+                                                                <div className="grid grid-cols-3 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled Date</label>
+                                                                        <input
+                                                                            type="date"
+                                                                            value={maintenance.scheduled_date}
+                                                                            onChange={(e) => handleMaintenanceChange(index, 'scheduled_date', e.target.value)}
+                                                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                                                        <select
+                                                                            value={maintenance.status}
+                                                                            onChange={(e) => handleMaintenanceChange(index, 'status', e.target.value)}
+                                                                            className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
+                                                                        >
+                                                                            <option value="pending">Pending</option>
+                                                                            <option value="completed">Completed</option>
+                                                                            <option value="cancelled">Cancelled</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div className="flex items-end">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removeMaintenance(index)}
+                                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                                        >
+                                                                            Remove
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="mt-3">
+                                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                                                                    <textarea
+                                                                        value={maintenance.note}
+                                                                        onChange={(e) => handleMaintenanceChange(index, 'note', e.target.value)}
+                                                                        rows={2}
+                                                                        placeholder="Add maintenance notes..."
+                                                                        className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </form>
                                 </div>

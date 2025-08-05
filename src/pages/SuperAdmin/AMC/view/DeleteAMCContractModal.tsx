@@ -9,9 +9,10 @@ interface DeleteAMCContractModalProps {
     onClose: () => void;
     contractId: string | null;
     onDeleted: () => void;
+    onShowAlert?: (type: 'success' | 'error', message: string) => void;
 }
 
-const DeleteAMCContractModal: React.FC<DeleteAMCContractModalProps> = ({ open, onClose, contractId, onDeleted }) => {
+const DeleteAMCContractModal: React.FC<DeleteAMCContractModalProps> = ({ open, onClose, contractId, onDeleted, onShowAlert }) => {
     const { showAlert } = useAlert();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,21 +26,33 @@ const DeleteAMCContractModal: React.FC<DeleteAMCContractModalProps> = ({ open, o
         setError(null);
         try {
             await AMCContractService.deleteContract(contractId);
-            showAlert({
-                type: 'success',
-                title: 'Success',
-                message: 'Contract deleted successfully',
-            });
-            onDeleted();
+
             onClose();
+
+            if (onShowAlert) {
+                onShowAlert('success', 'Contract deleted successfully');
+            } else {
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: 'Contract deleted successfully',
+                });
+            }
+
+            onDeleted();
         } catch (err: any) {
             const errorMessage = err?.message || 'Failed to delete contract';
             setError(errorMessage);
-            showAlert({
-                type: 'error',
-                title: 'Error',
-                message: errorMessage,
-            });
+
+            if (onShowAlert) {
+                onShowAlert('error', errorMessage);
+            } else {
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: errorMessage,
+                });
+            }
         } finally {
             setLoading(false);
         }

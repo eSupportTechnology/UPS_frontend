@@ -52,7 +52,6 @@ const AllAMCContracts: React.FC = () => {
 
     useEffect(() => {
         fetchContracts(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePageChange = useCallback(
@@ -281,8 +280,32 @@ const AllAMCContracts: React.FC = () => {
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
 
             <ViewAMCContractModal open={viewModalOpen} onClose={() => setViewModalOpen(false)} contract={selectedContract} />
-            <EditAMCContractModal open={editModalOpen} onClose={() => setEditModalOpen(false)} contract={selectedContract} onUpdated={() => fetchContracts(currentPage)} />
-            <DeleteAMCContractModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} contractId={selectedContract?.id ?? null} onDeleted={() => fetchContracts(currentPage)} />
+            <EditAMCContractModal
+                open={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                contract={selectedContract}
+                onUpdated={() => fetchContracts(currentPage)}
+                onShowAlert={(type, message) =>
+                    showAlert({
+                        type,
+                        title: type === 'success' ? 'Success' : 'Error',
+                        message,
+                    })
+                }
+            />
+            <DeleteAMCContractModal
+                open={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                contractId={selectedContract?.id ?? null}
+                onDeleted={() => fetchContracts(currentPage)}
+                onShowAlert={(type, message) =>
+                    showAlert({
+                        type,
+                        title: type === 'success' ? 'Success' : 'Error',
+                        message,
+                    })
+                }
+            />
         </div>
     );
 };
