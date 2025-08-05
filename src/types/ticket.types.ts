@@ -36,6 +36,18 @@ export interface TicketFilters {
     per_page?: number;
     sort_by?: string;
     sort_direction?: 'asc' | 'desc';
+
+}
+export interface Ticket {
+    id: string;
+    customer_id: number;
+    title: string;
+    description: string;
+    status: 'open' | 'in-progress' | 'resolved' | 'closed';
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    created_at: string;
+    updated_at: string;
+    photos?: string[];
 }
 
 export interface TicketResponse {
@@ -49,13 +61,12 @@ export interface TicketsListResponse {
     success: boolean;
     message: string;
     data?: {
-        tickets?: Ticket[];
-        data?: Ticket[];
+        tickets: Ticket[];
         pagination?: {
             current_page: number;
-            last_page: number;
             per_page: number;
             total: number;
+            last_page: number;
         };
     };
     errors?: any;

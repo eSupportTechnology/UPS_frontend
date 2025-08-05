@@ -9,10 +9,15 @@ class TicketService {
         try {
             const formData = new FormData();
 
+            // Create FormData for multipart/form-data request
+            const formData = new FormData();
+
+            // Append basic ticket data
             formData.append('customer_id', ticketData.customer_id.toString());
             formData.append('title', ticketData.title);
             formData.append('description', ticketData.description);
 
+            // Append photos if provided
             if (ticketData.photos && ticketData.photos.length > 0) {
                 ticketData.photos.forEach((photo, index) => {
                     formData.append(`photos[${index}]`, photo);
@@ -34,17 +39,20 @@ class TicketService {
             console.error('Create ticket error:', error);
 
             if (error.response) {
+                // Server responded with error status
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to create ticket',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
+                // Request was made but no response received
                 return {
                     success: false,
                     message: 'Network error. Please check your connection and try again.',
                 };
             } else {
+                // Something else happened
                 return {
                     success: false,
                     message: 'An unexpected error occurred. Please try again.',

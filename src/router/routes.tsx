@@ -18,6 +18,8 @@ const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
 const OperatorDashboard = lazy(() => import('../pages/Operator/Dashboard'));
 const TechnicianDashboard = lazy(() => import('../pages/Technician/Dashboard'));
 const CustomerDashboard = lazy(() => import('../pages/Customer/Dashboard'));
+const CreateTicket = lazy(() => import('../pages/Customer/Ticket/CreateTicket'));
+const AllTickets = lazy(() => import('../pages/Customer/Ticket/AllTickets'));
 
 interface RouteType {
     path: string;
@@ -164,7 +166,34 @@ export const routes: RouteType[] = [
                 <CustomerDashboard />
             </ProtectedRoute>
         ),
-        layout: 'default',
+        layout: 'blank',
+    },
+    {
+        path: '/customer/dashboard',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <CustomerDashboard />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
+    },
+    {
+        path: '/customer/ticket/create-ticket',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <CreateTicket />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
+    },
+    {
+        path: '/customer/ticket/all-tickets',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <AllTickets />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
     },
     {
         path: '/',
