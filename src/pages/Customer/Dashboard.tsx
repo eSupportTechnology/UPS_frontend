@@ -4,18 +4,44 @@ import UserLayout from '../../components/Layouts/userLayout';
 function Dashboard() {
     return (
         <UserLayout>
+            {/* Dashboard Header */}
+            <div className="relative mb-8">
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-screen">
+                    <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20">
+                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                            <div className="text-center">
+                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">Dashboard</h1>
+                                <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                                    Welcome to your customer portal. Monitor your contracts, tickets, and maintenance schedules.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* Spacer to maintain layout */}
+                <div className="h-32 sm:h-40"></div>
+            </div>
+
+            {/* Additional spacing between header and content */}
+            <div className="mb-12 sm:mb-16"></div>
+
             <div className="space-y-6">
                 {/* Dashboard Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-2xl backdrop-blur-sm group-hover:from-blue-500/15 group-hover:via-purple-500/15 group-hover:to-indigo-500/15 transition-all duration-300"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative p-6">
                             <div className="flex items-center">
                                 <div className="p-3 rounded-xl bg-gradient-to-br from-blue-400/20 to-blue-600/20 backdrop-blur-sm">
                                     <svg className="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
                                     </svg>
                                 </div>
                                 <div className="ml-4">
@@ -29,12 +55,17 @@ function Dashboard() {
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-teal-500/10 rounded-2xl backdrop-blur-sm group-hover:from-green-500/15 group-hover:via-emerald-500/15 group-hover:to-teal-500/15 transition-all duration-300"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative p-6">
                             <div className="flex items-center">
                                 <div className="p-3 rounded-xl bg-gradient-to-br from-green-400/20 to-green-600/20 backdrop-blur-sm">
                                     <svg className="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                        />
                                     </svg>
                                 </div>
                                 <div className="ml-4">
@@ -48,12 +79,17 @@ function Dashboard() {
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl backdrop-blur-sm group-hover:from-yellow-500/15 group-hover:via-orange-500/15 group-hover:to-amber-500/15 transition-all duration-300"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative p-6">
                             <div className="flex items-center">
                                 <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 backdrop-blur-sm">
                                     <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                                        />
                                     </svg>
                                 </div>
                                 <div className="ml-4">
@@ -67,12 +103,17 @@ function Dashboard() {
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-violet-500/10 to-indigo-500/10 rounded-2xl backdrop-blur-sm group-hover:from-purple-500/15 group-hover:via-violet-500/15 group-hover:to-indigo-500/15 transition-all duration-300"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative p-6">
                             <div className="flex items-center">
                                 <div className="p-3 rounded-xl bg-gradient-to-br from-purple-400/20 to-purple-600/20 backdrop-blur-sm">
                                     <svg className="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4" />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"
+                                        />
                                     </svg>
                                 </div>
                                 <div className="ml-4">
@@ -90,7 +131,7 @@ function Dashboard() {
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-2xl backdrop-blur-sm"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative">
                             <div className="px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Tickets</h3>
@@ -120,7 +161,7 @@ function Dashboard() {
                     <div className="group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-teal-500/5 to-blue-500/5 rounded-2xl backdrop-blur-sm"></div>
                         <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm"></div>
-                        
+
                         <div className="relative">
                             <div className="px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Maintenance</h3>
