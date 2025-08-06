@@ -1,71 +1,61 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import UserLayout from '../../../components/Layouts/userLayout';
+import { Ticket } from '../../../types/ticket.types';
 
 // Dummy data for tickets
 const dummyTickets: Ticket[] = [
     {
         id: 'TK001',
+        customer_id: 1,
         title: 'Login Issue with Mobile App',
         description: 'Unable to login to the mobile application. Getting authentication error.',
         status: 'open',
         priority: 'high',
-        createdAt: '2025-01-15T10:30:00Z',
-        updatedAt: '2025-01-16T14:20:00Z',
-        category: 'Technical Support',
+        created_at: '2025-01-15T10:30:00Z',
+        updated_at: '2025-01-16T14:20:00Z',
     },
     {
         id: 'TK002',
+        customer_id: 1,
         title: 'Payment Gateway Error',
         description: 'Transaction failed during checkout process. Need immediate assistance.',
         status: 'in-progress',
         priority: 'urgent',
-        createdAt: '2025-01-14T09:15:00Z',
-        updatedAt: '2025-01-16T11:45:00Z',
-        category: 'Billing',
+        created_at: '2025-01-14T09:15:00Z',
+        updated_at: '2025-01-16T11:45:00Z',
     },
     {
         id: 'TK003',
+        customer_id: 1,
         title: 'Account Information Update',
         description: 'Request to update account information and contact details.',
         status: 'resolved',
         priority: 'medium',
-        createdAt: '2025-01-13T16:45:00Z',
-        updatedAt: '2025-01-15T09:30:00Z',
-        category: 'Account Management',
+        created_at: '2025-01-13T16:45:00Z',
+        updated_at: '2025-01-15T09:30:00Z',
     },
     {
         id: 'TK004',
+        customer_id: 1,
         title: 'Feature Request - Dark Mode',
         description: 'Would like to request a dark mode option for the dashboard interface.',
         status: 'open',
         priority: 'low',
-        createdAt: '2025-01-12T14:20:00Z',
-        updatedAt: '2025-01-14T16:10:00Z',
-        category: 'Feature Request',
+        created_at: '2025-01-12T14:20:00Z',
+        updated_at: '2025-01-14T16:10:00Z',
     },
     {
         id: 'TK005',
+        customer_id: 1,
         title: 'Data Export Functionality',
         description: 'Need assistance with exporting account data and transaction history.',
         status: 'closed',
         priority: 'medium',
-        createdAt: '2025-01-11T11:30:00Z',
-        updatedAt: '2025-01-13T15:45:00Z',
-        category: 'Data Management',
+        created_at: '2025-01-11T11:30:00Z',
+        updated_at: '2025-01-13T15:45:00Z',
     },
 ];
-
-type Ticket = {
-    id: string;
-    title: string;
-    description: string;
-    status: 'open' | 'in-progress' | 'resolved' | 'closed';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    createdAt: string;
-    updatedAt: string;
-    category: string;
-};
 
 const AllTickets = () => {
     const { t } = useTranslation();
@@ -76,7 +66,6 @@ const AllTickets = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate loading
         setTimeout(() => {
             setTickets(dummyTickets);
             setLoading(false);
@@ -129,10 +118,7 @@ const AllTickets = () => {
             ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.id.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-        const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
-
-        return matchesSearch && matchesStatus && matchesPriority;
+        return matchesSearch;
     });
 
     if (loading) {
@@ -150,136 +136,76 @@ const AllTickets = () => {
 
     return (
         <UserLayout>
-            <div className="space-y-6">
-                {/* Page Header */}
-                <div className="relative mb-8">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 dark:from-blue-800/20 dark:via-purple-800/20 dark:to-indigo-800/20 rounded-3xl backdrop-blur-sm"></div>
-                    <div className="absolute inset-0 bg-white/40 dark:bg-gray-800/40 rounded-3xl shadow-2xl border border-white/30 dark:border-gray-700/30"></div>
+            {/* Page Header - Full Screen Width */}
+            <div className="relative mb-6 sm:mb-8">
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-screen">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 dark:from-blue-800/20 dark:via-purple-800/20 dark:to-indigo-800/20 backdrop-blur-sm"></div>
+                    <div className="absolute inset-0 bg-white/40 dark:bg-gray-800/40 border-y border-white/30 dark:border-gray-700/30"></div>
 
-                    {/* Decorative Elements */}
-                    <div className="absolute top-4 left-4 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-4 right-4 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-xl"></div>
+                    {/* Decorative Elements - Hidden on mobile for cleaner look */}
+                    <div className="hidden sm:block absolute top-4 left-4 w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
+                    <div className="hidden sm:block absolute bottom-4 right-4 w-12 sm:w-16 h-12 sm:h-16 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-xl"></div>
 
-                    <div className="relative text-center py-8 px-8">
+                    <div className="relative text-center py-6 sm:py-8 px-4 sm:px-8">
                         <div className="mb-4">
-                            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4">All Tickets</h1>
-                            <div className="w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
+                            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">All Tickets</h1>
+                            <div className="w-16 sm:w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
                         </div>
-                        <p className="text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">Manage and track all your support tickets in one place.</p>
+                        <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed px-2">
+                            Manage and track all your support tickets in one place.
+                        </p>
                     </div>
                 </div>
+                {/* Spacer to maintain layout height */}
+                <div className="h-32 sm:h-40 lg:h-48"></div>
+            </div>
 
-                {/* Filters and Search */}
-                <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-2xl backdrop-blur-sm"></div>
-                    <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30"></div>
-
-                    <div className="relative p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            {/* Search */}
-                            <div className="md:col-span-2">
-                                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Search Tickets
-                                </label>
-                                <input
-                                    type="text"
-                                    id="search"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Search by title, description, or ticket ID..."
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                />
-                            </div>
-
-                            {/* Status Filter */}
-                            <div>
-                                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Status
-                                </label>
-                                <select
-                                    id="status"
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="open">Open</option>
-                                    <option value="in-progress">In Progress</option>
-                                    <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </div>
-
-                            {/* Priority Filter */}
-                            <div>
-                                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Priority
-                                </label>
-                                <select
-                                    id="priority"
-                                    value={priorityFilter}
-                                    onChange={(e) => setPriorityFilter(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                >
-                                    <option value="all">All Priority</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="urgent">Urgent</option>
-                                </select>
-                            </div>
-                        </div>
+            {/* Content Area with Contained Width */}
+            <div className="w-full max-w-none space-y-4 sm:space-y-6">
+                {/* Search */}
+                <div className="mb-4 sm:mb-6 max-w-sm">
+                    <div>
+                        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Search Tickets
+                        </label>
+                        <input
+                            type="text"
+                            id="search"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search by title, description, or ticket ID..."
+                            className="w-full px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                        />
                     </div>
                 </div>
 
                 {/* Tickets Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
                     {filteredTickets.map((ticket) => (
                         <div key={ticket.id} className="group relative">
                             {/* Card Background */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-2xl backdrop-blur-sm group-hover:from-blue-500/15 group-hover:via-purple-500/15 group-hover:to-indigo-500/15 transition-all duration-300"></div>
-                            <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300 backdrop-blur-sm"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-xl sm:rounded-2xl backdrop-blur-sm group-hover:from-blue-500/15 group-hover:via-purple-500/15 group-hover:to-indigo-500/15 transition-all duration-300"></div>
+                            <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl group-hover:scale-[1.02] sm:group-hover:scale-105 transition-all duration-300 backdrop-blur-sm"></div>
 
                             {/* Card Content */}
-                            <div className="relative p-6 h-full flex flex-col">
+                            <div className="relative p-4 sm:p-6 h-full flex flex-col">
                                 {/* Header */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                                            {ticket.title}
-                                        </h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">#{ticket.id}</p>
-                                    </div>
-                                    <div className="flex flex-col items-end space-y-2">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                                            {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                                        </span>
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-                                            {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                                        </span>
-                                    </div>
+                                <div className="mb-3 sm:mb-4">
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                        {ticket.title}
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">#{ticket.id}</p>
                                 </div>
 
                                 {/* Description */}
-                                <div className="flex-1 mb-4">
-                                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">{ticket.description}</p>
-                                </div>
-
-                                {/* Category */}
-                                <div className="mb-4">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                        {ticket.category}
-                                    </span>
+                                <div className="flex-1 mb-3 sm:mb-4">
+                                    <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm leading-relaxed line-clamp-3">{ticket.description}</p>
                                 </div>
 
                                 {/* Footer */}
-                                <div className="border-t border-gray-200/50 dark:border-gray-700/50 pt-4">
-                                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                        <div>
-                                            <p>Created: {formatDate(ticket.createdAt)}</p>
-                                            <p>Updated: {formatDate(ticket.updatedAt)}</p>
-                                        </div>
-                                        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200">
+                                <div className="border-t border-gray-200/50 dark:border-gray-700/50 pt-3 sm:pt-4">
+                                    <div className="text-center">
+                                        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200 text-sm">
                                             View Details
                                         </button>
                                     </div>
@@ -291,11 +217,11 @@ const AllTickets = () => {
 
                 {/* Empty State */}
                 {filteredTickets.length === 0 && (
-                    <div className="text-center py-12">
+                    <div className="text-center py-8 sm:py-12">
                         <div className="relative inline-block">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
-                            <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
-                                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-6 sm:p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                                <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -305,10 +231,8 @@ const AllTickets = () => {
                                 </svg>
                             </div>
                         </div>
-                        <h3 className="mt-6 text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
-                        <p className="mt-2 text-gray-500 dark:text-gray-400">
-                            {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Try adjusting your search or filter criteria.' : "You haven't created any tickets yet."}
-                        </p>
+                        <h3 className="mt-4 sm:mt-6 text-base sm:text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
+                        <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-gray-400 px-4">{searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any tickets yet."}</p>
                     </div>
                 )}
             </div>

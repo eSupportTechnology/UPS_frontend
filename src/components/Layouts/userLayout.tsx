@@ -3,9 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import App from '../../App';
 import { IRootState } from '../../store';
 import { toggleSidebar } from '../../store/themeConfigSlice';
-import Footer from './Footer';
-import Header from './Header';
-import UserSidebar from './UserSidebar';
+import Footer from './UserFooter';
+import UserNavbar from './UserNavbar';
 import Portals from '../../components/Portals';
 import Loader from '../Icon/Loader';
 
@@ -45,7 +44,6 @@ const UserLayout = ({ children }: PropsWithChildren) => {
             }, 200);
         }
 
-        
         const handleResize = () => {
             if (window.innerWidth < 1024) {
                 setSidebarCollapsed(true);
@@ -55,7 +53,7 @@ const UserLayout = ({ children }: PropsWithChildren) => {
         };
 
         window.addEventListener('resize', handleResize);
-        handleResize(); 
+        handleResize();
 
         return () => {
             window.removeEventListener('scroll', onScrollHandler);
@@ -69,12 +67,6 @@ const UserLayout = ({ children }: PropsWithChildren) => {
             <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
                 {/* Professional backdrop overlay */}
                 <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm"></div>
-
-                {/* Sidebar menu overlay with enhanced styling */}
-                <div
-                    className={`${(!themeConfig.sidebar && 'hidden') || ''} fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden transition-all duration-300`}
-                    onClick={() => dispatch(toggleSidebar())}
-                ></div>
 
                 {/* Enhanced screen loader */}
                 {showLoader && (
@@ -109,34 +101,16 @@ const UserLayout = ({ children }: PropsWithChildren) => {
                     )}
                 </div>
 
-                {/* Professional breadcrumb indicator */}
-                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 lg:hidden">
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Customer Portal</span>
-                        </div>
-                    </div>
-                </div>
+                {/* BEGIN TOP NAVBAR */}
+                <UserNavbar />
+                {/* END TOP NAVBAR */}
 
-                {/* Main layout container with professional styling */}
-                <div className={`${themeConfig.navbar} main-container text-black dark:text-white-dark min-h-screen relative z-10`}>
-                    {/* BEGIN USER SIDEBAR */}
-                    <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'}`}>
-                        <UserSidebar />
-                    </div>
-                    {/* END USER SIDEBAR */}
-
-                    {/* Main content area with enhanced styling */}
-                    <div className="main-content flex flex-col min-h-screen transition-all duration-300">
-                        {/* BEGIN TOP NAVBAR */}
-                        <div className="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-                            <Header />
-                        </div>
-                        {/* END TOP NAVBAR */}
-
+                {/* Main layout container with professional styling - no sidebar spacing */}
+                <div className="text-black dark:text-white-dark min-h-screen relative z-10 w-full">
+                    {/* Main content area with enhanced styling - adjusted for top navbar */}
+                    <div className="flex flex-col min-h-screen pt-16 w-full">
                         {/* BEGIN CONTENT AREA */}
-                        <div className="flex-1 relative">
+                        <div className="flex-1 relative w-full">
                             {/* Content background with subtle pattern */}
                             <div className="absolute inset-0 opacity-30">
                                 <div
@@ -158,16 +132,16 @@ const UserLayout = ({ children }: PropsWithChildren) => {
                                     </div>
                                 }
                             >
-                                <div className={`${themeConfig.animation} p-6 relative z-10 animate__animated`}>
-                                    {/* Content wrapper with professional styling */}
-                                    <div className="max-w-full">{children}</div>
+                                <div className={`${themeConfig.animation} relative z-10 animate__animated w-full px-4 sm:px-6 lg:px-8 pb-16`}>
+                                    {/* Content wrapper with optimal width utilization */}
+                                    <div className="w-full max-w-7xl mx-auto">{children}</div>
                                 </div>
                             </Suspense>
                         </div>
                         {/* END CONTENT AREA */}
 
                         {/* BEGIN FOOTER */}
-                        <div className="mt-auto bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="mt-8 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50">
                             <Footer />
                         </div>
                         {/* END FOOTER */}
