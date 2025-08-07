@@ -6,6 +6,7 @@ import Login from '../pages/Auth/Login';
 import UserList from '../pages/SuperAdmin/AllUser/UserList';
 import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
 import CreateAMCContract from '../pages/SuperAdmin/AMC/CreateAMCContract';
+import AllAMCContracts from '../pages/SuperAdmin/AMC/AllAMCContracts';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 const Index = lazy(() => import('../pages/Index'));
@@ -16,6 +17,8 @@ const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
 const OperatorDashboard = lazy(() => import('../pages/Operator/Dashboard'));
 const TechnicianDashboard = lazy(() => import('../pages/Technician/Dashboard'));
 const CustomerDashboard = lazy(() => import('../pages/Customer/Dashboard'));
+const CreateTicket = lazy(() => import('../pages/Customer/Ticket/CreateTicket'));
+const AllTickets = lazy(() => import('../pages/Customer/Ticket/AllTickets'));
 
 interface RouteType {
     path: string;
@@ -72,6 +75,15 @@ export const routes: RouteType[] = [
         layout: 'default',
     },
     {
+        path: '/super-admin/all-contracts',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <AllAMCContracts />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
         path: '/admin',
         element: (
             <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN]}>
@@ -104,7 +116,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/inventory-create',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <InventoryCreate />
+                <InventoryCreate />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -113,7 +125,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/all-inventory',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <AllInventory />
+                <AllInventory />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -122,7 +134,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/create-branch',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <CreateBranch />
+                <CreateBranch />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -131,7 +143,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/all-branches',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <AllBranches />
+                <AllBranches />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -144,7 +156,34 @@ export const routes: RouteType[] = [
                 <CustomerDashboard />
             </ProtectedRoute>
         ),
-        layout: 'default',
+        layout: 'blank',
+    },
+    {
+        path: '/customer/dashboard',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <CustomerDashboard />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
+    },
+    {
+        path: '/customer/ticket/create-ticket',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <CreateTicket />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
+    },
+    {
+        path: '/customer/ticket/all-tickets',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+                <AllTickets />
+            </ProtectedRoute>
+        ),
+        layout: 'blank',
     },
     {
         path: '/',
