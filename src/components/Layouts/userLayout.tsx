@@ -8,7 +8,13 @@ import UserNavbar from './UserNavbar';
 import Portals from '../../components/Portals';
 import Loader from '../Icon/Loader';
 
-const UserLayout = ({ children }: PropsWithChildren) => {
+interface UserLayoutProps extends PropsWithChildren {
+    headerTitle?: string;
+    headerSubtitle?: string;
+    showHeader?: boolean;
+}
+
+const UserLayout = ({ children, headerTitle = 'WELCOME BACK, NAVOD', headerSubtitle = 'Low Cost Web Hosting Sri Lanka', showHeader = true }: UserLayoutProps) => {
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
     const dispatch = useDispatch();
 
@@ -104,6 +110,54 @@ const UserLayout = ({ children }: PropsWithChildren) => {
                 {/* BEGIN TOP NAVBAR */}
                 <UserNavbar />
                 {/* END TOP NAVBAR */}
+
+                {/* BEGIN HEADER SECTION */}
+                {showHeader && (
+                    <div className="relative mb-8 -mt-16">
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-screen z-10">
+                            <div className="relative h-80 sm:h-96 overflow-hidden">
+                                {/* Background Image */}
+                                <div className="absolute inset-0">
+                                    <img src="/assets/images/header .jpg" alt="Header background" className="w-full h-full object-cover" />
+                                    {/* Overlay for better text readability */}
+                                    <div className="absolute inset-0"></div>
+                                </div>
+
+                                <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full relative z-10">
+                                    <div className="flex items-end h-full pb-8">
+                                        <div className="max-w-2xl">
+                                            {/* Header content with image background */}
+                                            <div className="mb-6">
+                                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-black mb-2 drop-shadow-lg">
+                                                    {headerTitle.includes('NAVOD') ? (
+                                                        <>
+                                                            {headerTitle.split('NAVOD')[0]}
+                                                            <span className="text-gray-700">NAVOD</span>
+                                                            {headerTitle.split('NAVOD')[1]}
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-gray-700">{headerTitle}</span>
+                                                    )}
+                                                </h1>
+                                            </div>
+                                            <div className="flex flex-col space-y-3 text-lg">
+                                                <span className="text-gray-600 font-medium text-xl drop-shadow">{headerSubtitle}</span>
+                                                <div>
+                                                    <span className="text-black font-semibold bg-gray-200/90 px-4 py-2 rounded-full backdrop-blur-sm border border-gray-300/50 shadow-lg">
+                                                        Client Area
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Spacer to maintain layout */}
+                        <div className="h-80 sm:h-96"></div>
+                    </div>
+                )}
+                {/* END HEADER SECTION */}
 
                 {/* Main layout container with professional styling - no sidebar spacing */}
                 <div className="text-black dark:text-white-dark min-h-screen relative z-10 w-full">
