@@ -99,7 +99,6 @@ const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClo
                 })),
             };
 
-            console.log('Submitting contract update with maintenance data:', updateData);
             await AMCContractService.updateContract(contract.id, updateData);
 
             onClose();

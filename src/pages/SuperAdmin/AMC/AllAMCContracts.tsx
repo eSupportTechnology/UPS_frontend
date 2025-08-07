@@ -31,9 +31,7 @@ const AllAMCContracts: React.FC = () => {
         async (page: number = currentPage) => {
             setLoading(true);
             try {
-                console.log('Fetching contracts with filters:', filters);
                 const data = await AMCContractService.getContracts(page, filters);
-                console.log('API Response:', data);
                 setContracts(data);
                 setCurrentPage(page);
             } catch (error: any) {
@@ -68,7 +66,6 @@ const AllAMCContracts: React.FC = () => {
     const handleSearch = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
-            console.log('Search triggered with filters:', filters);
             fetchContracts(1);
         },
         [fetchContracts, filters],
@@ -78,8 +75,6 @@ const AllAMCContracts: React.FC = () => {
         async (contract: AMCContract, currentStatus: boolean) => {
             setStatusUpdating(contract.id);
             try {
-                console.log('Updating contract status:', { contractId: contract.id, currentStatus, newStatus: !currentStatus });
-
                 if (currentStatus) {
                     await AMCContractService.deactivateContract(contract.id);
                 } else {
@@ -94,7 +89,6 @@ const AllAMCContracts: React.FC = () => {
 
                 fetchContracts(currentPage);
             } catch (error: any) {
-                console.error('Status toggle error:', error);
                 showAlert({
                     type: 'error',
                     title: 'Error',
