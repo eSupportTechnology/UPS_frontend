@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import UserLayout from '../../../components/Layouts/userLayout';
 import { Ticket } from '../../../types/ticket.types';
 
-// Dummy data for tickets
 const dummyTickets: Ticket[] = [
     {
         id: 'TK001',
@@ -136,105 +135,140 @@ const AllTickets = () => {
 
     return (
         <UserLayout>
-            {/* Page Header - Full Screen Width */}
-            <div className="relative mb-6 sm:mb-8">
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-screen">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 dark:from-blue-800/20 dark:via-purple-800/20 dark:to-indigo-800/20 backdrop-blur-sm"></div>
-                    <div className="absolute inset-0 bg-white/40 dark:bg-gray-800/40 border-y border-white/30 dark:border-gray-700/30"></div>
+            {/* Content Area */}
+            <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                    {/* Left Side - Ticket Statistics */}
+                    <div className="lg:col-span-4 space-y-6">
+                        {/* Ticket Counts Section */}
+                        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-4 sm:p-6">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                        />
+                                    </svg>
+                                    Ticket Statistics
+                                </h3>
+                            </div>
 
-                    {/* Decorative Elements - Hidden on mobile for cleaner look */}
-                    <div className="hidden sm:block absolute top-4 left-4 w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
-                    <div className="hidden sm:block absolute bottom-4 right-4 w-12 sm:w-16 h-12 sm:h-16 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-xl"></div>
-
-                    <div className="relative text-center py-6 sm:py-8 px-4 sm:px-8">
-                        <div className="mb-4">
-                            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">All Tickets</h1>
-                            <div className="w-16 sm:w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
-                        </div>
-                        <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed px-2">
-                            Manage and track all your support tickets in one place.
-                        </p>
-                    </div>
-                </div>
-                {/* Spacer to maintain layout height */}
-                <div className="h-32 sm:h-40 lg:h-48"></div>
-            </div>
-
-            {/* Content Area with Contained Width */}
-            <div className="w-full max-w-none space-y-4 sm:space-y-6">
-                {/* Search */}
-                <div className="mb-4 sm:mb-6 max-w-sm">
-                    <div>
-                        <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Search Tickets
-                        </label>
-                        <input
-                            type="text"
-                            id="search"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search by title, description, or ticket ID..."
-                            className="w-full px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
-                        />
-                    </div>
-                </div>
-
-                {/* Tickets Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
-                    {filteredTickets.map((ticket) => (
-                        <div key={ticket.id} className="group relative">
-                            {/* Card Background */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-xl sm:rounded-2xl backdrop-blur-sm group-hover:from-blue-500/15 group-hover:via-purple-500/15 group-hover:to-indigo-500/15 transition-all duration-300"></div>
-                            <div className="absolute inset-0 bg-white/60 dark:bg-gray-800/60 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl group-hover:scale-[1.02] sm:group-hover:scale-105 transition-all duration-300 backdrop-blur-sm"></div>
-
-                            {/* Card Content */}
-                            <div className="relative p-4 sm:p-6 h-full flex flex-col">
-                                {/* Header */}
-                                <div className="mb-3 sm:mb-4">
-                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                                        {ticket.title}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">#{ticket.id}</p>
-                                </div>
-
-                                {/* Description */}
-                                <div className="flex-1 mb-3 sm:mb-4">
-                                    <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm leading-relaxed line-clamp-3">{ticket.description}</p>
-                                </div>
-
-                                {/* Footer */}
-                                <div className="border-t border-gray-200/50 dark:border-gray-700/50 pt-3 sm:pt-4">
-                                    <div className="text-center">
-                                        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200 text-sm">
-                                            View Details
-                                        </button>
+                            <div className="space-y-4">
+                                {/* Open Tickets Only */}
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200/50 dark:border-blue-700/30">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="font-medium text-blue-900 dark:text-blue-100">Open Tickets</h4>
+                                            <p className="text-sm text-blue-700 dark:text-blue-300">Currently active</p>
+                                        </div>
+                                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{tickets.filter((ticket) => ticket.status === 'open').length}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-
-                {/* Empty State */}
-                {filteredTickets.length === 0 && (
-                    <div className="text-center py-8 sm:py-12">
-                        <div className="relative inline-block">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
-                            <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-6 sm:p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
-                                <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1}
-                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                        <h3 className="mt-4 sm:mt-6 text-base sm:text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
-                        <p className="mt-2 text-sm sm:text-base text-gray-500 dark:text-gray-400 px-4">{searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any tickets yet."}</p>
                     </div>
-                )}
+
+                    {/* Right Side - Search and Tickets List */}
+                    <div className="lg:col-span-8">
+                        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-4 sm:p-6 lg:p-8">
+                            {/* Header */}
+                            <div className="mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">My Support Tickets</h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">View and manage all your support tickets</p>
+                            </div>
+
+                            {/* Search */}
+                            <div className="mb-6">
+                                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Search Tickets
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        id="search"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="Search by title, description, or ticket ID..."
+                                        className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 dark:text-white transition-all duration-200"
+                                    />
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tickets List */}
+                            <div className="space-y-3">
+                                {filteredTickets.map((ticket) => (
+                                    <div
+                                        key={ticket.id}
+                                        className="group bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-600/50 p-4 hover:bg-white/70 dark:hover:bg-gray-700/70 hover:shadow-md transition-all duration-300"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            {/* Left side - Ticket Info */}
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-3 mb-2">
+                                                    <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                                        {ticket.title}
+                                                    </h3>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">#{ticket.id}</span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(ticket.status)}`}>
+                                                        {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(ticket.priority)}`}>
+                                                        {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-1">{ticket.description}</p>
+                                                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Created: {formatDate(ticket.created_at)}
+                                                </div>
+                                            </div>
+
+                                            {/* Right side - Action */}
+                                            <div className="ml-4">
+                                                <button className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600">
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Empty State */}
+                            {filteredTickets.length === 0 && (
+                                <div className="text-center py-12">
+                                    <div className="relative inline-block">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
+                                        <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                                            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={1}
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <h3 className="mt-6 text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
+                                    <p className="mt-2 text-base text-gray-500 dark:text-gray-400 px-4">
+                                        {searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any tickets yet."}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </UserLayout>
     );
