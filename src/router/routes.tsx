@@ -8,6 +8,7 @@ import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
 import CreateAMCContract from '../pages/SuperAdmin/AMC/CreateAMCContract';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
+import AllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
@@ -132,6 +133,15 @@ export const routes: RouteType[] = [
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
             <AllBranches />
+            </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-tickets',
+        element: (
+            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <AllTickets />
             </ProtectedRoute>
         ),
         layout: 'default',

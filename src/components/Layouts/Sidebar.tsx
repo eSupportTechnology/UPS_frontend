@@ -87,6 +87,12 @@ const Sidebar = () => {
             key: 'contract',
             children: [{ label: t('Add'), link: '/super-admin/create-contract' }],
         },
+        {
+            label: t('Tickets Maintenance'),
+            icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
+            key: 'tickets',
+            children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
+        },
     ];
 
     return (
