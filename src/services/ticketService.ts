@@ -7,15 +7,12 @@ class TicketService {
      */
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
         try {
-            // Create FormData for multipart/form-data request
             const formData = new FormData();
 
-            // Append basic ticket data
             formData.append('customer_id', ticketData.customer_id.toString());
             formData.append('title', ticketData.title);
             formData.append('description', ticketData.description);
 
-            // Append photos if provided
             if (ticketData.photos && ticketData.photos.length > 0) {
                 ticketData.photos.forEach((photo, index) => {
                     formData.append(`photos[${index}]`, photo);
@@ -37,20 +34,17 @@ class TicketService {
             console.error('Create ticket error:', error);
 
             if (error.response) {
-                // Server responded with error status
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to create ticket',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
-                // Request was made but no response received
                 return {
                     success: false,
                     message: 'Network error. Please check your connection and try again.',
                 };
             } else {
-                // Something else happened
                 return {
                     success: false,
                     message: 'An unexpected error occurred. Please try again.',
@@ -66,8 +60,17 @@ class TicketService {
         try {
             const params = new URLSearchParams();
 
+            let endpoint = '';
             if (customerId) {
-                params.append('customer_id', customerId.toString());
+                endpoint = `/tickets-customer/${customerId}`;
+            } else {
+                const userData = localStorage.getItem('user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    endpoint = `/tickets-customer/${user.id}`;
+                } else {
+                    throw new Error('User not authenticated');
+                }
             }
 
             if (filters) {
@@ -89,7 +92,7 @@ class TicketService {
             }
 
             const queryString = params.toString();
-            const url = queryString ? `/tickets?${queryString}` : '/tickets';
+            const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
             const response = await api.get(url);
 
@@ -97,7 +100,7 @@ class TicketService {
                 success: true,
                 message: 'Tickets retrieved successfully',
                 data: {
-                    tickets: response.data.tickets || response.data.data || [],
+                    tickets: response.data.data?.tickets || response.data.tickets || response.data.data || [],
                     pagination: response.data.pagination,
                 },
             };
@@ -296,6 +299,59 @@ class TicketService {
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to upload files',
+                    errors: error.response.data.errors || error.response.data,
+                };
+            } else if (error.request) {
+                return {
+                    success: false,
+                    message: 'Network error. Please check your connection and try again.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'An unexpected error occurred. Please try again.',
+                };
+            }
+        }
+    }
+
+    /**
+     * Get recent tickets for sidebar (last 5)
+     */
+    async getRecentTickets(customerId?: string): Promise<TicketsListResponse> {
+        try {
+            let endpoint = '';
+            if (customerId) {
+                endpoint = `/tickets-customer/${customerId}`;
+            } else {
+                // Get user from localStorage
+                const userData = localStorage.getItem('user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    endpoint = `/tickets-customer/${user.id}`;
+                } else {
+                    throw new Error('User not authenticated');
+                }
+            }
+
+            // Add pagination to get only recent 5
+            const response = await api.get(`${endpoint}?per_page=5&page=1`);
+
+            return {
+                success: true,
+                message: 'Recent tickets retrieved successfully',
+                data: {
+                    tickets: response.data.data?.tickets || response.data.tickets || response.data.data || [],
+                    pagination: response.data.pagination,
+                },
+            };
+        } catch (error: any) {
+            console.error('Get recent tickets error:', error);
+
+            if (error.response) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to retrieve recent tickets',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {

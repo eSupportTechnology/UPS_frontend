@@ -11,12 +11,26 @@ import IconCaretDown from '../Icon/IconCaretDown';
 const ZirconNavbar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const { isLoading } = useSelector((state: IRootState) => state.auth);
+    const { isLoading, user } = useSelector((state: IRootState) => state.auth);
     const semidark = useSelector((state: IRootState) => state.themeConfig.semidark);
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { t } = useTranslation();
+
+    const getUserInitials = (name?: string) => {
+        if (!name) return 'U';
+        const names = name.split(' ');
+        if (names.length >= 2) {
+            return `${names[0][0]}${names[1][0]}`.toUpperCase();
+        }
+        return names[0][0].toUpperCase();
+    };
+
+    const getUserFirstName = (name?: string) => {
+        if (!name) return 'User';
+        return name.split(' ')[0];
+    };
 
     const handleLogout = async () => {
         try {
@@ -70,49 +84,6 @@ const ZirconNavbar = () => {
             link: '/customer/dashboard',
             key: 'home',
         },
-        {
-            label: t('Domains'),
-            key: 'domains',
-            children: [
-                { label: t('Register Domain'), link: '/domains/register' },
-                { label: t('Transfer Domain'), link: '/domains/transfer' },
-                { label: t('Domain Search'), link: '/domains/search' },
-                { label: t('Manage Domains'), link: '/domains/manage' },
-            ],
-        },
-        {
-            label: t('Billing'),
-            // icon: <IconBilling className="group-hover:!text-blue-600 shrink-0" />,
-            key: 'billing',
-            children: [
-                { label: t('My Invoices'), link: '/billing/invoices' },
-                { label: t('Payment Methods'), link: '/billing/payment-methods' },
-                { label: t('Billing History'), link: '/billing/history' },
-            ],
-        },
-        {
-            label: t('Support'),
-            // icon: <IconSupport className="group-hover:!text-blue-600 shrink-0" />,
-            key: 'support',
-            children: [
-                { label: t('Submit Ticket'), link: '/support/create-ticket' },
-                { label: t('My Tickets'), link: '/support/my-tickets' },
-                { label: t('Knowledge Base'), link: '/support/knowledge-base' },
-                { label: t('Contact Us'), link: '/support/contact' },
-            ],
-        },
-        {
-            label: t('Hosting'),
-            // icon: <IconHosting className="group-hover:!text-blue-600 shrink-0" />,
-            key: 'hosting',
-            isHot: true,
-            children: [
-                { label: t('Shared Hosting'), link: '/hosting/shared' },
-                { label: t('VPS Hosting'), link: '/hosting/vps' },
-                { label: t('Dedicated Servers'), link: '/hosting/dedicated' },
-                { label: t('Cloud Hosting'), link: '/hosting/cloud' },
-            ],
-        },
 
         {
             label: t('Tickets'),
@@ -128,7 +99,7 @@ const ZirconNavbar = () => {
     return (
         <div className={semidark ? 'dark' : ''}>
             {/* Top Contact Bar */}
-            <div className="bg-blue-600/80 backdrop-blur-md text-white py-2 px-4 text-sm">
+            <div className="bg-primary/80 backdrop-blur-md text-white py-2 px-4 text-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center space-x-4">
                         <span className="flex items-center">
@@ -146,8 +117,8 @@ const ZirconNavbar = () => {
                             </svg>
                             07777 00 255
                         </span>
-                        <button className="text-white hover:text-blue-200 transition-colors">Support Center</button>
-                        <button className="text-white hover:text-blue-200 transition-colors">Affiliates</button>
+                        <button className="text-white hover:text-primary-light transition-colors">Support Center</button>
+                        <button className="text-white hover:text-primary-light transition-colors">Affiliates</button>
                     </div>
                 </div>
             </div>
@@ -156,9 +127,9 @@ const ZirconNavbar = () => {
             <nav className="bg-transparent shadow-none border-none sticky top-0 z-50">
                 <div className="relative">
                     {/* Subtle Decorative Elements */}
-                    <div className="absolute top-2 left-8 w-8 h-8 bg-blue-100/50 dark:bg-blue-900/30 rounded-full blur-lg"></div>
-                    <div className="absolute top-2 right-8 w-6 h-6 bg-blue-200/50 dark:bg-blue-800/30 rounded-full blur-lg"></div>
-                    <div className="absolute top-4 left-1/2 w-4 h-4 bg-blue-100/30 dark:bg-blue-900/20 rounded-full blur-sm"></div>
+                    <div className="absolute top-2 left-8 w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-full blur-lg"></div>
+                    <div className="absolute top-2 right-8 w-6 h-6 bg-primary/15 dark:bg-primary/25 rounded-full blur-lg"></div>
+                    <div className="absolute top-4 left-1/2 w-4 h-4 bg-primary/8 dark:bg-primary/15 rounded-full blur-sm"></div>
 
                     {/* Content */}
                     <div className="relative z-10">
@@ -170,14 +141,14 @@ const ZirconNavbar = () => {
                                         <div className="relative">
                                             <img className="relative w-8 h-8 flex-none" src="/assets/images/logo.svg" alt="Zircon" />
                                         </div>
-                                        <span className="text-2xl ltr:ml-3 rtl:mr-3 font-bold align-middle lg:inline text-dark dark:text-white group-hover:text-blue-200 dark:group-hover:text-blue-200 transition-colors duration-300">
+                                        <span className="text-2xl ltr:ml-3 rtl:mr-3 font-bold align-middle lg:inline text-dark dark:text-white group-hover:text-primary-light dark:group-hover:text-primary-light transition-colors duration-300">
                                             UPS
                                         </span>
                                     </NavLink>
                                 </div>
 
-                                {/* Navigation Menu */}
-                                <div className="hidden lg:flex items-center space-x-1">
+                                {/* Navigation Menu - Moved more to the right */}
+                                <div className="hidden lg:flex items-center space-x-1 ml-auto mr-8">
                                     {navigationItems.map((item) => (
                                         <div className="relative dropdown-menu" key={item.key}>
                                             {item.children ? (
@@ -210,7 +181,7 @@ const ZirconNavbar = () => {
                                                             <NavLink
                                                                 key={child.link}
                                                                 to={child.link}
-                                                                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border-l-2 border-transparent hover:border-blue-500 ml-2 mr-2 rounded"
+                                                                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200 border-l-2 border-transparent hover:border-primary ml-2 mr-2 rounded"
                                                                 onClick={() => setCurrentMenu('')}
                                                             >
                                                                 {child.label}
@@ -244,12 +215,14 @@ const ZirconNavbar = () => {
                                         <button
                                             type="button"
                                             className={`${
-                                                currentMenu === 'profile' ? 'bg-blue-600 text-white' : 'bg-yellow-300 hover:bg-blue-700 text-dark hover:text-white'
-                                            } px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2`}
+                                                currentMenu === 'profile' ? 'bg-primary-dark text-white' : 'bg-primary text-white hover:bg-primary-dark'
+                                            } px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl`}
                                             onClick={() => toggleMenu('profile')}
                                         >
-                                            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">N</div>
-                                            <span>navod</span>
+                                            <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xs font-bold border border-white/30">
+                                                {getUserInitials(user?.name)}
+                                            </div>
+                                            <span>{getUserFirstName(user?.name)}</span>
                                             <div className={`transition-transform duration-300 ${currentMenu === 'profile' ? 'rotate-180' : ''}`}>
                                                 <IconCaretDown className="w-3 h-3" />
                                             </div>
@@ -257,34 +230,79 @@ const ZirconNavbar = () => {
 
                                         {/* Profile Dropdown */}
                                         <div
-                                            className={`absolute top-full right-0 mt-2 w-48 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 py-2 ${
+                                            className={`absolute top-full right-0 mt-2 w-56 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden ${
                                                 currentMenu === 'profile' ? 'block' : 'hidden'
                                             }`}
                                             style={{ zIndex: 999999 }}
                                         >
-                                            <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                                                <p className="text-sm font-medium text-gray-900 dark:text-white">Navod Perera</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">navod@example.com</p>
+                                            {/* User Info Header */}
+                                            <div className="px-4 py-3 bg-primary/5 dark:bg-primary/10 border-b border-primary/20 dark:border-primary/30">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">{getUserInitials(user?.name)}</div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.name || 'User'}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'user@example.com'}</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <NavLink
-                                                to="/customer/profile"
-                                                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border-l-2 border-transparent hover:border-blue-500 ml-2 mr-2 rounded"
-                                                onClick={() => setCurrentMenu('')}
-                                            >
-                                                <div className="flex items-center">
+
+                                            {/* Menu Items */}
+                                            <div className="py-2">
+                                                <NavLink
+                                                    to="/customer/profile"
+                                                    className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200"
+                                                    onClick={() => setCurrentMenu('')}
+                                                >
                                                     <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
                                                     My Profile
-                                                </div>
-                                            </NavLink>
-                                            <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-1"></div>
-                                            <button
-                                                className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded mx-2 disabled:opacity-50"
-                                                onClick={handleLogout}
-                                                disabled={isLoading}
-                                            >
-                                                <div className="flex items-center">
+                                                </NavLink>
+
+                                                <NavLink
+                                                    to="/customer/settings"
+                                                    className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200"
+                                                    onClick={() => setCurrentMenu('')}
+                                                >
+                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                                        />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    Settings
+                                                </NavLink>
+
+                                                <NavLink
+                                                    to="/customer/help"
+                                                    className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200"
+                                                    onClick={() => setCurrentMenu('')}
+                                                >
+                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                        />
+                                                    </svg>
+                                                    Help & Support
+                                                </NavLink>
+                                            </div>
+
+                                            {/* Separator */}
+                                            <div className="border-t border-gray-200/50 dark:border-gray-700/50"></div>
+
+                                            {/* Logout Button */}
+                                            <div className="py-2">
+                                                <button
+                                                    className="w-full flex items-center px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 disabled:opacity-50"
+                                                    onClick={handleLogout}
+                                                    disabled={isLoading}
+                                                >
                                                     {isLoading ? (
                                                         <svg className="w-4 h-4 mr-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -305,8 +323,8 @@ const ZirconNavbar = () => {
                                                         </svg>
                                                     )}
                                                     {isLoading ? 'Logging Out...' : 'Logout'}
-                                                </div>
-                                            </button>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -355,7 +373,7 @@ const ZirconNavbar = () => {
                                                                 <NavLink
                                                                     key={child.link}
                                                                     to={child.link}
-                                                                    className="block px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
+                                                                    className="block px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300"
                                                                     onClick={() => dispatch(toggleSidebar())}
                                                                 >
                                                                     {child.label}
@@ -370,8 +388,8 @@ const ZirconNavbar = () => {
                                                     className={({ isActive }) =>
                                                         `flex items-center px-3 py-2 rounded-lg transition-all duration-300 ${
                                                             isActive
-                                                                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                                                                : 'text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                                                                ? 'text-primary dark:text-primary-light bg-primary/5 dark:bg-primary/10'
+                                                                : 'text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10'
                                                         }`
                                                     }
                                                     onClick={() => dispatch(toggleSidebar())}
@@ -391,16 +409,16 @@ const ZirconNavbar = () => {
                                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                                         <div className="px-3 py-2">
                                             <div className="flex items-center space-x-3 mb-3">
-                                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">N</div>
+                                                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">{getUserInitials(user?.name)}</div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Navod Perera</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">navod@example.com</p>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.name || 'User'}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'user@example.com'}</p>
                                                 </div>
                                             </div>
                                             <div className="space-y-1">
                                                 <NavLink
                                                     to="/customer/profile"
-                                                    className="block px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
+                                                    className="block px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300"
                                                     onClick={() => dispatch(toggleSidebar())}
                                                 >
                                                     <div className="flex items-center">

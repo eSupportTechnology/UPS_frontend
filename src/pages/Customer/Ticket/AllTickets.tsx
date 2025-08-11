@@ -139,12 +139,12 @@ const AllTickets = () => {
             <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                     {/* Left Side - Ticket Statistics */}
-                    <div className="lg:col-span-4 space-y-6">
+                    <div className="lg:col-span-3 space-y-6">
                         {/* Ticket Counts Section */}
-                        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-4 sm:p-6">
-                            <div className="mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="bg-primary/5 dark:bg-primary/10 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-primary/20 dark:border-primary/30 overflow-hidden">
+                            <div className="bg-primary text-white p-4 sm:p-6">
+                                <h3 className="text-lg font-semibold text-white flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
@@ -156,7 +156,7 @@ const AllTickets = () => {
                                 </h3>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="p-4 sm:p-6 space-y-4">
                                 {/* Open Tickets Only */}
                                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200/50 dark:border-blue-700/30">
                                     <div className="flex items-center justify-between">
@@ -172,100 +172,96 @@ const AllTickets = () => {
                     </div>
 
                     {/* Right Side - Search and Tickets List */}
-                    <div className="lg:col-span-8">
-                        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-4 sm:p-6 lg:p-8">
+                    <div className="lg:col-span-9">
+                        <div className="bg-primary/5 dark:bg-primary/10 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-primary/20 dark:border-primary/30 overflow-hidden">
                             {/* Header */}
-                            <div className="mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
-                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">My Support Tickets</h2>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">View and manage all your support tickets</p>
+                            <div className="bg-primary text-white p-4 sm:p-6 lg:p-8">
+                                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">My Support Tickets</h2>
+                                <p className="text-sm text-white/80">View and manage all your support tickets</p>
                             </div>
 
-                            {/* Search */}
-                            <div className="mb-6">
-                                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Search Tickets
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        id="search"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Search by title, description, or ticket ID..."
-                                        className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 dark:text-white transition-all duration-200"
-                                    />
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tickets List */}
-                            <div className="space-y-3">
-                                {filteredTickets.map((ticket) => (
-                                    <div
-                                        key={ticket.id}
-                                        className="group bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-600/50 p-4 hover:bg-white/70 dark:hover:bg-gray-700/70 hover:shadow-md transition-all duration-300"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            {/* Left side - Ticket Info */}
-                                            <div className="flex-1">
-                                                <div className="flex items-center space-x-3 mb-2">
-                                                    <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                                                        {ticket.title}
-                                                    </h3>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">#{ticket.id}</span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(ticket.status)}`}>
-                                                        {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                                                    </span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(ticket.priority)}`}>
-                                                        {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-1">{ticket.description}</p>
-                                                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    Created: {formatDate(ticket.created_at)}
-                                                </div>
-                                            </div>
-
-                                            {/* Right side - Action */}
-                                            <div className="ml-4">
-                                                <button className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600">
-                                                    View Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Empty State */}
-                            {filteredTickets.length === 0 && (
-                                <div className="text-center py-12">
-                                    <div className="relative inline-block">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
-                                        <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
-                                            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={1}
-                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4"
-                                                />
+                            <div className="p-4 sm:p-6 lg:p-8">
+                                {/* Search */}
+                                <div className="mb-6">
+                                    <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Search Tickets
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            id="search"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder="Search by title, description, or ticket ID..."
+                                            className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300/50 dark:border-gray-600/50 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 dark:text-white transition-all duration-200"
+                                        />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                         </div>
                                     </div>
-                                    <h3 className="mt-6 text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
-                                    <p className="mt-2 text-base text-gray-500 dark:text-gray-400 px-4">
-                                        {searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any tickets yet."}
-                                    </p>
                                 </div>
-                            )}
+
+                                {/* Tickets List */}
+                                <div className="overflow-hidden rounded-lg border border-gray-200/50 dark:border-gray-600/50">
+                                    <table className="w-full divide-y divide-gray-200/50 dark:divide-gray-600/50">
+                                        <thead className="bg-gray-50/80 dark:bg-gray-700/50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ticket</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white/50 dark:bg-gray-800/50 divide-y divide-gray-200/50 dark:divide-gray-600/50">
+                                            {filteredTickets.map((ticket) => (
+                                                <tr key={ticket.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex flex-col">
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">{ticket.title}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                                                            {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(ticket.created_at)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button className="px-3 py-1.5 text-xs font-medium text-primary dark:text-primary-light hover:text-primary-dark dark:hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-all duration-200 border border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60">
+                                                            View Details
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Empty State */}
+                                {filteredTickets.length === 0 && (
+                                    <div className="text-center py-12">
+                                        <div className="relative inline-block">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
+                                            <div className="relative bg-white/60 dark:bg-gray-800/60 rounded-full p-8 shadow-xl border border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                                                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={1}
+                                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <h3 className="mt-6 text-lg font-medium text-gray-900 dark:text-white">No tickets found</h3>
+                                        <p className="mt-2 text-base text-gray-500 dark:text-gray-400 px-4">
+                                            {searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any tickets yet."}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

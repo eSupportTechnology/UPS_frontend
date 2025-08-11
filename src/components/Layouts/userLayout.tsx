@@ -14,9 +14,17 @@ interface UserLayoutProps extends PropsWithChildren {
     showHeader?: boolean;
 }
 
-const UserLayout = ({ children, headerTitle = 'WELCOME BACK, NAVOD', headerSubtitle = 'Low Cost Web Hosting Sri Lanka', showHeader = true }: UserLayoutProps) => {
+const UserLayout = ({ children, headerTitle, headerSubtitle = 'Low Cost Web Hosting Sri Lanka', showHeader = true }: UserLayoutProps) => {
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const { user } = useSelector((state: IRootState) => state.auth);
     const dispatch = useDispatch();
+
+    const getUserFirstName = (name?: string) => {
+        if (!name) return 'USER';
+        return name.split(' ')[0].toUpperCase();
+    };
+
+    const dynamicHeaderTitle = headerTitle || `WELCOME BACK, ${getUserFirstName(user?.name)}`;
 
     const [showLoader, setShowLoader] = useState(true);
     const [showTopButton, setShowTopButton] = useState(false);
@@ -119,33 +127,25 @@ const UserLayout = ({ children, headerTitle = 'WELCOME BACK, NAVOD', headerSubti
                                 {/* Background Image */}
                                 <div className="absolute inset-0">
                                     <img src="/assets/images/header .jpg" alt="Header background" className="w-full h-full object-cover" />
-                                    {/* Overlay for better text readability */}
-                                    <div className="absolute inset-0"></div>
                                 </div>
 
                                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full relative z-10">
-                                    <div className="flex items-end h-full pb-8">
-                                        <div className="max-w-2xl">
-                                            {/* Header content with image background */}
-                                            <div className="mb-6">
-                                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-black mb-2 drop-shadow-lg">
-                                                    {headerTitle.includes('NAVOD') ? (
-                                                        <>
-                                                            {headerTitle.split('NAVOD')[0]}
-                                                            <span className="text-gray-700">NAVOD</span>
-                                                            {headerTitle.split('NAVOD')[1]}
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-gray-700">{headerTitle}</span>
-                                                    )}
-                                                </h1>
-                                            </div>
-                                            <div className="flex flex-col space-y-3 text-lg">
-                                                <span className="text-gray-600 font-medium text-xl drop-shadow">{headerSubtitle}</span>
-                                                <div>
-                                                    <span className="text-black font-semibold bg-gray-200/90 px-4 py-2 rounded-full backdrop-blur-sm border border-gray-300/50 shadow-lg">
-                                                        Client Area
-                                                    </span>
+                                    <div className="flex items-center h-full">
+                                        <div className="max-w-3xl">
+                                            {/* Clean header content */}
+                                            <div className="space-y-6">
+                                                <div className="space-y-4">
+                                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight drop-shadow-lg">
+                                                        <span className="block">WELCOME BACK,</span>
+                                                        <span className="block text-gray-900">{getUserFirstName(user?.name)}</span>
+                                                    </h1>
+
+                                                    <p className="text-xl text-gray-800 font-medium max-w-2xl drop-shadow">{headerSubtitle}</p>
+                                                </div>
+
+                                                {/* Simple badge */}
+                                                <div className="inline-flex items-center">
+                                                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white/90 text-gray-900 shadow-lg">Client Portal</span>
                                                 </div>
                                             </div>
                                         </div>
