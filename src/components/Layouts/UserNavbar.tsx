@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { toggleSidebar } from '../../store/themeConfigSlice';
+import { logoutUser } from '../../store/authSlice';
 import AnimateHeight from 'react-animate-height';
 import { IRootState } from '../../store';
 import { useState, useEffect } from 'react';
@@ -10,10 +11,24 @@ import IconCaretDown from '../Icon/IconCaretDown';
 const ZirconNavbar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+    const { isLoading } = useSelector((state: IRootState) => state.auth);
     const semidark = useSelector((state: IRootState) => state.themeConfig.semidark);
     const location = useLocation();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { t } = useTranslation();
+
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser() as any).unwrap();
+            setCurrentMenu('');
+            navigate('/login', { replace: true });
+        } catch (error: any) {
+            console.error('Logout error:', error);
+            setCurrentMenu('');
+            navigate('/login', { replace: true });
+        }
+    };
 
     const toggleMenu = (value: string) => {
         setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
@@ -52,7 +67,7 @@ const ZirconNavbar = () => {
     const navigationItems: NavItem[] = [
         {
             label: t('Home'),
-            link: '/',
+            link: '/customer/dashboard',
             key: 'home',
         },
         {
@@ -98,22 +113,15 @@ const ZirconNavbar = () => {
                 { label: t('Cloud Hosting'), link: '/hosting/cloud' },
             ],
         },
+
         {
-            label: t('SMS Gateway'),
+            label: t('Tickets'),
             //  icon: <IconSMS className="group-hover:!text-blue-600 shrink-0" />,
-            key: 'sms',
-            isNew: true,
+            key: 'tickets',
             children: [
-                { label: t('Send SMS'), link: '/sms/send' },
-                { label: t('SMS History'), link: '/sms/history' },
-                { label: t('API Documentation'), link: '/sms/api-docs' },
+                { label: t('Create Ticket'), link: '/customer/ticket/create-ticket' },
+                { label: t('All Tickets'), link: '/customer/ticket/all-tickets' },
             ],
-        },
-        {
-            label: t('Web Design'),
-            // icon: <IconWebDesign className="group-hover:!text-blue-600 shrink-0" />,
-            link: '/web-design',
-            key: 'web-design',
         },
     ];
 
@@ -230,9 +238,77 @@ const ZirconNavbar = () => {
                                     ))}
                                 </div>
 
-                                {/* Right Section - Login/Account Button */}
+                                {/* Right Section - User Profile Dropdown */}
                                 <div className="hidden md:flex items-center space-x-4">
-                                    <button className="bg-yellow-300 hover:bg-blue-700 text-dark px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300">navod</button>
+                                    <div className="relative dropdown-menu">
+                                        <button
+                                            type="button"
+                                            className={`${
+                                                currentMenu === 'profile' ? 'bg-blue-600 text-white' : 'bg-yellow-300 hover:bg-blue-700 text-dark hover:text-white'
+                                            } px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2`}
+                                            onClick={() => toggleMenu('profile')}
+                                        >
+                                            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">N</div>
+                                            <span>navod</span>
+                                            <div className={`transition-transform duration-300 ${currentMenu === 'profile' ? 'rotate-180' : ''}`}>
+                                                <IconCaretDown className="w-3 h-3" />
+                                            </div>
+                                        </button>
+
+                                        {/* Profile Dropdown */}
+                                        <div
+                                            className={`absolute top-full right-0 mt-2 w-48 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 py-2 ${
+                                                currentMenu === 'profile' ? 'block' : 'hidden'
+                                            }`}
+                                            style={{ zIndex: 999999 }}
+                                        >
+                                            <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">Navod Perera</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">navod@example.com</p>
+                                            </div>
+                                            <NavLink
+                                                to="/customer/profile"
+                                                className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border-l-2 border-transparent hover:border-blue-500 ml-2 mr-2 rounded"
+                                                onClick={() => setCurrentMenu('')}
+                                            >
+                                                <div className="flex items-center">
+                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                    My Profile
+                                                </div>
+                                            </NavLink>
+                                            <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-1"></div>
+                                            <button
+                                                className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded mx-2 disabled:opacity-50"
+                                                onClick={handleLogout}
+                                                disabled={isLoading}
+                                            >
+                                                <div className="flex items-center">
+                                                    {isLoading ? (
+                                                        <svg className="w-4 h-4 mr-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                            <path
+                                                                className="opacity-75"
+                                                                fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                            />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                                            />
+                                                        </svg>
+                                                    )}
+                                                    {isLoading ? 'Logging Out...' : 'Logout'}
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Mobile Menu Button */}
@@ -311,9 +387,67 @@ const ZirconNavbar = () => {
                                         </div>
                                     ))}
 
-                                    {/* Mobile Login Button */}
+                                    {/* Mobile Profile Section */}
                                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300">navod</button>
+                                        <div className="px-3 py-2">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">N</div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Navod Perera</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">navod@example.com</p>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <NavLink
+                                                    to="/customer/profile"
+                                                    className="block px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
+                                                    onClick={() => dispatch(toggleSidebar())}
+                                                >
+                                                    <div className="flex items-center">
+                                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                            />
+                                                        </svg>
+                                                        My Profile
+                                                    </div>
+                                                </NavLink>
+                                                <button
+                                                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 disabled:opacity-50"
+                                                    onClick={() => {
+                                                        dispatch(toggleSidebar());
+                                                        handleLogout();
+                                                    }}
+                                                    disabled={isLoading}
+                                                >
+                                                    <div className="flex items-center">
+                                                        {isLoading ? (
+                                                            <svg className="w-4 h-4 mr-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                                <path
+                                                                    className="opacity-75"
+                                                                    fill="currentColor"
+                                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                                />
+                                                            </svg>
+                                                        ) : (
+                                                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                                                />
+                                                            </svg>
+                                                        )}
+                                                        {isLoading ? 'Logging Out...' : 'Logout'}
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
