@@ -21,7 +21,7 @@ export interface Ticket {
 }
 
 export interface CreateTicketData {
-    customer_id: number;
+    customer_id: string;
     title: string;
     description: string;
     photos?: File[];
@@ -40,14 +40,17 @@ export interface TicketFilters {
 }
 export interface Ticket {
     id: string;
-    customer_id: number;
+    customer_id: string;
     title: string;
     description: string;
     status: 'open' | 'in-progress' | 'resolved' | 'closed';
     priority: 'low' | 'medium' | 'high' | 'urgent';
+    photo_paths?: string[];
+    assigned_to?: string;
+    accepted_at?: string;
+    completed_at?: string;
     created_at: string;
     updated_at: string;
-    photos?: string[];
 }
 
 export interface TicketResponse {
