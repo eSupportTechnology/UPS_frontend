@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import UserLayout from '../../../components/Layouts/userLayout';
 import { useAlert } from '../../../components/Alert/Alert';
 import ticketService from '../../../services/ticketService';
 import type { CreateTicketData, Ticket } from '../../../types/ticket.types';
 
 function CreateTicket() {
+    const navigate = useNavigate();
     const { showAlert, AlertContainer } = useAlert();
     const [loading, setLoading] = useState(false);
     const [recentTickets, setRecentTickets] = useState<Ticket[]>([]);
@@ -105,11 +107,18 @@ function CreateTicket() {
         setLoading(true);
         try {
             const userData = localStorage.getItem('user');
-            let customerId = '';
+            let customerId: number;
 
             if (userData) {
-                const user = JSON.parse(userData);
-                customerId = user.id;
+                try {
+                    const user = JSON.parse(userData);
+                    if (!user || !user.id) {
+                        throw new Error('Invalid user data');
+                    }
+                    customerId = parseInt(user.id);
+                } catch (parseError) {
+                    throw new Error('Invalid user data format');
+                }
             } else {
                 throw new Error('User not authenticated');
             }
@@ -212,7 +221,12 @@ function CreateTicket() {
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 mx-4 sm:mx-6 mb-4 sm:mb-6">
-                                <button className="w-full text-center text-sm text-primary hover:text-primary-dark font-medium">View All Tickets →</button>
+                                <button 
+                                    onClick={() => navigate('/customer/ticket/all-tickets')}
+                                    className="w-full text-center text-sm text-primary hover:text-primary-dark font-medium transition-colors duration-200"
+                                >
+                                    View All Tickets →
+                                </button>
                             </div>
                         </div>
 
