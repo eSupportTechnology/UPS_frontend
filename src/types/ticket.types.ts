@@ -1,13 +1,13 @@
 export interface CreateTicketData {
-    customer_id: string;
+    customer_id: number;
     title: string;
     description: string;
     photos?: File[];
 }
 
 export interface Ticket {
-    id: string;
-    customer_id: string;
+    id: number;
+    customer_id: number;
     title: string;
     description: string;
     status: 'open' | 'in-progress' | 'resolved' | 'closed';

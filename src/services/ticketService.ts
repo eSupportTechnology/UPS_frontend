@@ -14,7 +14,23 @@ class TicketService {
             formData.append('description', ticketData.description);
 
             if (ticketData.photos && ticketData.photos.length > 0) {
-                ticketData.photos.forEach((photo, index) => {
+                const maxSize = 5 * 1024 * 1024;
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                const validFiles: File[] = [];
+
+                for (const photo of ticketData.photos) {
+                    if (!allowedTypes.includes(photo.type)) {
+                        throw new Error(`File "${photo.name}" is not a valid image type. Only JPEG, JPG, and PNG are allowed.`);
+                    }
+
+                    if (photo.size > maxSize) {
+                        throw new Error(`File "${photo.name}" is too large. Maximum size is 5MB.`);
+                    }
+
+                    validFiles.push(photo);
+                }
+
+                validFiles.forEach((photo, index) => {
                     formData.append(`photos[${index}]`, photo);
                 });
             }
@@ -42,7 +58,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -66,8 +82,15 @@ class TicketService {
             } else {
                 const userData = localStorage.getItem('user');
                 if (userData) {
-                    const user = JSON.parse(userData);
-                    endpoint = `/tickets-customer/${user.id}`;
+                    try {
+                        const user = JSON.parse(userData);
+                        if (!user || !user.id) {
+                            throw new Error('Invalid user data');
+                        }
+                        endpoint = `/tickets-customer/${parseInt(user.id)}`;
+                    } catch (parseError) {
+                        throw new Error('Invalid user data format');
+                    }
                 } else {
                     throw new Error('User not authenticated');
                 }
@@ -96,27 +119,54 @@ class TicketService {
 
             const response = await api.get(url);
 
+            // Standardize response structure - try different API response formats
+            let tickets = [];
+            let pagination = null;
+
+            if (response.data.data?.tickets) {
+                // Format: { data: { tickets: [...], pagination: {...} } }
+                tickets = response.data.data.tickets;
+                pagination = response.data.data.pagination || response.data.pagination;
+            } else if (response.data.tickets) {
+                // Format: { tickets: [...], pagination: {...} }
+                tickets = response.data.tickets;
+                pagination = response.data.pagination;
+            } else if (Array.isArray(response.data.data)) {
+                // Format: { data: [...] }
+                tickets = response.data.data;
+                pagination = response.data.pagination;
+            } else if (Array.isArray(response.data)) {
+                // Format: [...]
+                tickets = response.data;
+            }
+
             return {
                 success: true,
                 message: 'Tickets retrieved successfully',
                 data: {
-                    tickets: response.data.data?.tickets || response.data.tickets || response.data.data || [],
-                    pagination: response.data.pagination,
+                    tickets,
+                    pagination,
                 },
             };
         } catch (error: any) {
             console.error('Get tickets error:', error);
+            console.log('Error details:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
 
             if (error.response) {
                 return {
                     success: false,
-                    message: error.response.data.message || 'Failed to retrieve tickets',
+                    message: error.response.data.message || `API Error ${error.response.status}: Failed to retrieve tickets`,
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -130,28 +180,34 @@ class TicketService {
     /**
      * Get a specific ticket by ID
      */
-    async getTicketById(ticketId: string): Promise<TicketResponse> {
+    async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
             const response = await api.get(`/tickets/${ticketId}`);
 
             return {
                 success: true,
                 message: 'Ticket retrieved successfully',
-                data: response.data.ticket || response.data.data,
+                data: response.data.data?.ticket || response.data.ticket || response.data.data,
             };
         } catch (error: any) {
             console.error('Get ticket error:', error);
+            console.log('Error details:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
 
             if (error.response) {
                 return {
                     success: false,
-                    message: error.response.data.message || 'Failed to retrieve ticket',
+                    message: error.response.data.message || `API Error ${error.response.status}: Failed to retrieve ticket`,
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -188,7 +244,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -225,7 +281,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -259,7 +315,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -304,7 +360,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -327,22 +383,48 @@ class TicketService {
                 // Get user from localStorage
                 const userData = localStorage.getItem('user');
                 if (userData) {
-                    const user = JSON.parse(userData);
-                    endpoint = `/tickets-customer/${user.id}`;
+                    try {
+                        const user = JSON.parse(userData);
+                        if (!user || !user.id) {
+                            throw new Error('Invalid user data');
+                        }
+                        endpoint = `/tickets-customer/${parseInt(user.id)}`;
+                    } catch (parseError) {
+                        throw new Error('Invalid user data format');
+                    }
                 } else {
                     throw new Error('User not authenticated');
                 }
             }
 
-            // Add pagination to get only recent 5
             const response = await api.get(`${endpoint}?per_page=5&page=1`);
+
+            let tickets = [];
+            let pagination = null;
+
+            if (response.data.data?.tickets) {
+                // Format: { data: { tickets: [...], pagination: {...} } }
+                tickets = response.data.data.tickets;
+                pagination = response.data.data.pagination || response.data.pagination;
+            } else if (response.data.tickets) {
+                // Format: { tickets: [...], pagination: {...} }
+                tickets = response.data.tickets;
+                pagination = response.data.pagination;
+            } else if (Array.isArray(response.data.data)) {
+                // Format: { data: [...] }
+                tickets = response.data.data;
+                pagination = response.data.pagination;
+            } else if (Array.isArray(response.data)) {
+                // Format: [...]
+                tickets = response.data;
+            }
 
             return {
                 success: true,
                 message: 'Recent tickets retrieved successfully',
                 data: {
-                    tickets: response.data.data?.tickets || response.data.tickets || response.data.data || [],
-                    pagination: response.data.pagination,
+                    tickets,
+                    pagination,
                 },
             };
         } catch (error: any) {
@@ -357,7 +439,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -393,7 +475,7 @@ class TicketService {
             } else if (error.request) {
                 return {
                     success: false,
-                    message: 'Network error. Please check your connection and try again.',
+                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {
@@ -404,7 +486,5 @@ class TicketService {
         }
     }
 }
-
-// Export a singleton instance
 export const ticketService = new TicketService();
 export default ticketService;
