@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Ticket, TicketFilters } from '../../../types/ticket.types';
 import { PaginationData } from '../../../types/pagination.types';
@@ -8,6 +8,7 @@ import { useAlert } from '../../../components/Alert/Alert';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
+import ViewTicketModal from './view/ViewTicketModal';
 
 const AllTickets: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
@@ -23,124 +24,193 @@ const AllTickets: React.FC = () => {
 
     const [users, setUsers] = useState<any[]>([]);
     const [assigningTickets, setAssigningTickets] = useState<Set<string>>(new Set());
+    const [updatingTickets, setUpdatingTickets] = useState<Set<string>>(new Set());
 
-    // Add ref to prevent multiple simultaneous requests
-    const loadingRef = useRef(false);
-    const initialLoadRef = useRef(false);
-    
-    // Refs to store current values without causing re-renders
-    const filtersRef = useRef(filters);
-    const currentPageRef = useRef(currentPage);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    
-    // Update refs whenever state changes
-    filtersRef.current = filters;
-    currentPageRef.current = currentPage;
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-    // Fetch users for assignment dropdown
     const fetchUsers = useCallback(async () => {
         try {
-            const response = await UserService.getUsers(1, {
-                role: 4, // TECHNICIAN role
-                is_active: true // Active users only
-            });
-            if (response.users?.data) {
-                setUsers(response.users.data);
+            const response = await UserService.getAllTechnicianUsers();
+            if (response.success && response.data && Array.isArray(response.data)) {
+                setUsers(response.data);
+            } else {
+                console.warn('Invalid response for technicians:', response);
+                setUsers([]);
             }
         } catch (error) {
             console.error('Error fetching users:', error);
+            setUsers([]);
         }
     }, []);
 
-    // Handle ticket assignment
-    const handleAssignTicket = useCallback(async (ticketId: string, userId: string) => {
-        if (!userId) return;
+    const handleAssignTicket = useCallback(
+        async (ticketId: string, userId: string) => {
+            if (!userId) return;
 
-        setAssigningTickets(prev => new Set(prev).add(ticketId));
-        
-        try {
-            const response = await TicketService.assignTicket(ticketId, userId);
-            if (response.success) {
-                showAlert({ 
-                    type: 'success', 
-                    title: 'Success', 
-                    message: 'Ticket assigned successfully' 
+            setAssigningTickets((prev) => new Set(prev).add(ticketId));
+
+            try {
+                const response = await TicketService.assignTicket(ticketId, userId);
+                if (response.success) {
+                    showAlert({
+                        type: 'success',
+                        title: 'Success',
+                        message: 'Ticket assigned successfully',
+                    });
+
+                    fetchTickets(currentPage);
+                } else {
+                    showAlert({
+                        type: 'error',
+                        title: 'Error',
+                        message: response.message || 'Failed to assign ticket',
+                    });
+                }
+            } catch (error: any) {
+                console.error('Error assigning ticket:', error);
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Failed to assign ticket',
                 });
-                // Refresh tickets
-                fetchTickets();
-            } else {
-                showAlert({ 
-                    type: 'error', 
-                    title: 'Error', 
-                    message: response.message || 'Failed to assign ticket' 
+            } finally {
+                setAssigningTickets((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(ticketId);
+                    return newSet;
                 });
             }
-        } catch (error: any) {
-            console.error('Error assigning ticket:', error);
-            showAlert({ 
-                type: 'error', 
-                title: 'Error', 
-                message: 'Failed to assign ticket' 
-            });
-        } finally {
-            setAssigningTickets(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(ticketId);
-                return newSet;
-            });
-        }
-    }, [showAlert]);
+        },
+        [showAlert, currentPage],
+    );
 
-    // Stable fetch tickets function using refs - NO DEPENDENCIES
-    const fetchTickets = useCallback(async () => {
-        // Prevent multiple simultaneous requests
-        if (loadingRef.current) {
-            return;
-        }
+    const handlePriorityUpdate = useCallback(
+        async (ticketId: string, newPriority: string) => {
+            if (!newPriority) return;
 
-        loadingRef.current = true;
-        setLoading(true);
-        
-        try {
-            const params = {
-                search: filtersRef.current.search,
-                status: filtersRef.current.status,
-                priority: filtersRef.current.priority,
-                per_page: filtersRef.current.per_page,
-                page: currentPageRef.current,
-            };
+            setUpdatingTickets((prev) => new Set(prev).add(ticketId));
 
-            const response = await TicketService.getAllTickets(params);
-            if (response.success && response.data) {
-                // Transform the response to match PaginationData structure
-                const ticketsData = response.data.tickets || [];
-                const pagination = response.data.pagination || {
-                    current_page: 1,
-                    per_page: 10,
-                    total: ticketsData.length,
-                    last_page: 1
+            try {
+                const currentAssignedTo = tickets?.data.find((t) => t.id === ticketId)?.assigned_to || null;
+                const response = await TicketService.updateTicketPriority(ticketId, newPriority, currentAssignedTo);
+
+                if (response.success) {
+                    showAlert({
+                        type: 'success',
+                        title: 'Success',
+                        message: 'Ticket priority updated successfully',
+                    });
+
+                    fetchTickets(currentPage);
+                } else {
+                    showAlert({
+                        type: 'error',
+                        title: 'Error',
+                        message: response.message || 'Failed to update ticket priority',
+                    });
+                }
+            } catch (error: any) {
+                console.error('Error updating ticket priority:', error);
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Failed to update ticket priority',
+                });
+            } finally {
+                setUpdatingTickets((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(ticketId);
+                    return newSet;
+                });
+            }
+        },
+        [showAlert, tickets, currentPage],
+    );
+
+    const handleViewTicket = useCallback((ticket: Ticket) => {
+        setSelectedTicket(ticket);
+        setViewModalOpen(true);
+    }, []);
+
+    const handleCloseModal = useCallback(() => {
+        setViewModalOpen(false);
+        setSelectedTicket(null);
+    }, []);
+
+    const fetchTickets = useCallback(
+        async (page: number = currentPage) => {
+            setLoading(true);
+            try {
+                const params = {
+                    search: filters.search,
+                    status: filters.status,
+                    priority: filters.priority,
+                    per_page: filters.per_page,
+                    page: page,
                 };
 
-                const paginationData: PaginationData<Ticket> = {
-                    data: Array.isArray(ticketsData) ? ticketsData : [],
-                    current_page: pagination.current_page,
-                    last_page: pagination.last_page,
-                    total: pagination.total,
-                    per_page: pagination.per_page,
-                    first_page_url: '',
-                    from: ((pagination.current_page - 1) * pagination.per_page) + 1,
-                    last_page_url: '',
-                    next_page_url: pagination.current_page < pagination.last_page ? '' : null,
-                    path: '',
-                    prev_page_url: pagination.current_page > 1 ? '' : null,
-                    to: Math.min(pagination.current_page * pagination.per_page, pagination.total),
-                    links: []
-                };
-                
-                setTickets(paginationData);
-            } else {
-                showAlert({ type: 'error', title: 'Error', message: response.message || 'Failed to fetch tickets' });
-                // Set empty data to prevent map error
+                const response = await TicketService.getAllTickets(params);
+                if (response.success && response.data) {
+                    const ticketsData = response.data.tickets || response.data.data || [];
+                    const pagination = response.data.pagination;
+
+                    if (Array.isArray(ticketsData)) {
+                        const paginationData: PaginationData<Ticket> = {
+                            data: ticketsData,
+                            current_page: pagination?.current_page || page,
+                            last_page: pagination?.last_page || 1,
+                            total: pagination?.total || ticketsData.length,
+                            per_page: pagination?.per_page || 10,
+                            first_page_url: '',
+                            from: pagination ? (pagination.current_page - 1) * pagination.per_page + 1 : 1,
+                            last_page_url: '',
+                            next_page_url: pagination && pagination.current_page < pagination.last_page ? `?page=${pagination.current_page + 1}` : null,
+                            path: '',
+                            prev_page_url: pagination && pagination.current_page > 1 ? `?page=${pagination.current_page - 1}` : null,
+                            to: pagination ? Math.min(pagination.current_page * pagination.per_page, pagination.total) : ticketsData.length,
+                            links: [],
+                        };
+                        setTickets(paginationData);
+                        setCurrentPage(page);
+                    } else {
+                        setTickets({
+                            data: [],
+                            current_page: 1,
+                            last_page: 1,
+                            total: 0,
+                            per_page: 10,
+                            first_page_url: '',
+                            from: 0,
+                            last_page_url: '',
+                            next_page_url: null,
+                            path: '',
+                            prev_page_url: null,
+                            to: 0,
+                            links: [],
+                        });
+                    }
+                } else {
+                    showAlert({ type: 'error', title: 'Error', message: response.message || 'Failed to fetch tickets' });
+                    setTickets({
+                        data: [],
+                        current_page: 1,
+                        last_page: 1,
+                        total: 0,
+                        per_page: 10,
+                        first_page_url: '',
+                        from: 0,
+                        last_page_url: '',
+                        next_page_url: null,
+                        path: '',
+                        prev_page_url: null,
+                        to: 0,
+                        links: [],
+                    });
+                }
+            } catch (error: any) {
+                console.error('Error fetching tickets:', error);
+                showAlert({ type: 'error', title: 'Error', message: 'Failed to fetch tickets' });
                 setTickets({
                     data: [],
                     current_page: 1,
@@ -154,145 +224,52 @@ const AllTickets: React.FC = () => {
                     path: '',
                     prev_page_url: null,
                     to: 0,
-                    links: []
+                    links: [],
                 });
+            } finally {
+                setLoading(false);
             }
-        } catch (error: any) {
-            console.error('Error fetching tickets:', error);
-            showAlert({ type: 'error', title: 'Error', message: 'Failed to fetch tickets' });
-            // Set empty data to prevent map error
-            setTickets({
-                data: [],
-                current_page: 1,
-                last_page: 1,
-                total: 0,
-                per_page: 10,
-                first_page_url: '',
-                from: 0,
-                last_page_url: '',
-                next_page_url: null,
-                path: '',
-                prev_page_url: null,
-                to: 0,
-                links: []
-            });
-        } finally {
-            setLoading(false);
-            loadingRef.current = false;
-        }
-    }, []); // EMPTY dependencies - function never recreates
+        },
+        [currentPage, filters, showAlert],
+    );
 
-    // Initial load only - SINGLE useEffect with stable function
     useEffect(() => {
-        if (!initialLoadRef.current) {
-            initialLoadRef.current = true;
-            fetchTickets();
-            fetchUsers(); // Fetch users for assignment dropdown
-        }
-        
-        // Cleanup timeout on unmount
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, []); // EMPTY dependency array
+        fetchTickets(1);
+    }, [filters]);
 
-    // Remove the problematic useEffect that was causing continuous loading
-    // Handle filter and page changes with debounce - ONLY when values actually change from user interaction
-    // useEffect(() => {
-    //     // Skip if initial load hasn't happened yet
-    //     if (!initialLoadRef.current) {
-    //         return;
-    //     }
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
-    //     const timeoutId = setTimeout(() => {
-    //         if (!loadingRef.current) {
-    //             fetchTickets();
-    //         }
-    //     }, 500);
+    const handlePageChange = useCallback(
+        (page: number) => {
+            fetchTickets(page);
+        },
+        [fetchTickets],
+    );
 
-    //     return () => clearTimeout(timeoutId);
-    // }, [currentPage]);
-
-    // Stable event handlers using useCallback with NO dependencies
-    const handleSearch = useCallback((searchTerm: string) => {
-        setFilters(prev => ({
+    const handleFilterChange = useCallback((key: string, value: any) => {
+        setFilters((prev) => ({
             ...prev,
-            search: searchTerm,
+            [key]: value,
         }));
-        setCurrentPage(1);
-        
-        // Clear existing timeout
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        
-        // Debounced fetch for search
-        timeoutRef.current = setTimeout(() => {
-            if (!loadingRef.current && initialLoadRef.current) {
-                fetchTickets();
-            }
-        }, 500);
-    }, []); // NO dependencies
-
-    const handleFilterChange = useCallback((filterName: string, value: string) => {
-        setFilters(prev => ({
-            ...prev,
-            [filterName]: value,
-        }));
-        setCurrentPage(1);
-        
-        // Clear existing timeout
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        
-        // Immediate fetch for filter changes
-        timeoutRef.current = setTimeout(() => {
-            if (!loadingRef.current && initialLoadRef.current) {
-                fetchTickets();
-            }
-        }, 100);
-    }, []); // NO dependencies
+    }, []);
 
     const handlePerPageChange = useCallback((perPage: number) => {
-        setFilters(prev => ({
+        setFilters((prev) => ({
             ...prev,
             per_page: perPage,
         }));
-        setCurrentPage(1);
-        
-        // Clear existing timeout
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        
-        // Immediate fetch for per page changes
-        timeoutRef.current = setTimeout(() => {
-            if (!loadingRef.current && initialLoadRef.current) {
-                fetchTickets();
-            }
-        }, 100);
-    }, []); // NO dependencies
+    }, []);
 
-    const handlePageChange = useCallback((page: number) => {
-        setCurrentPage(page);
-        
-        // Clear existing timeout
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        
-        // Immediate fetch for page changes
-        timeoutRef.current = setTimeout(() => {
-            if (!loadingRef.current && initialLoadRef.current) {
-                fetchTickets();
-            }
-        }, 100);
-    }, []); // NO dependencies
+    const handleSearch = useCallback(
+        (e: React.FormEvent) => {
+            e.preventDefault();
+            fetchTickets(1);
+        },
+        [fetchTickets],
+    );
 
-    // Status badge component
     const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
         const getStatusColor = (status: string) => {
             switch (status.toLowerCase()) {
@@ -309,14 +286,9 @@ const AllTickets: React.FC = () => {
             }
         };
 
-        return (
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)} capitalize`}>
-                {status.replace('-', ' ')}
-            </span>
-        );
+        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)} capitalize`}>{status.replace('-', ' ')}</span>;
     };
 
-    // Priority badge component
     const PriorityBadge: React.FC<{ priority: string }> = ({ priority }) => {
         const getPriorityColor = (priority: string) => {
             switch (priority.toLowerCase()) {
@@ -333,88 +305,163 @@ const AllTickets: React.FC = () => {
             }
         };
 
-        return (
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(priority)} capitalize`}>
-                {priority}
-            </span>
-        );
+        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(priority)} capitalize`}>{priority}</span>;
     };
 
-    // Table columns
-    const columns = useMemo(() => [
-        {
-            key: 'title',
-            label: 'Title',
-            sortable: true,
-            render: (value: string, ticket: Ticket) => (
-                <div className="font-medium text-gray-900">
-                    {value}
-                </div>
-            ),
-        },
-        {
-            key: 'customer_id',
-            label: 'Customer ID',
-            render: (value: number) => (
-                <div className="text-sm text-gray-600">
-                    #{value}
-                </div>
-            ),
-        },
-        {
-            key: 'status',
-            label: 'Status',
-            render: (value: string) => <StatusBadge status={value} />,
-        },
-        {
-            key: 'priority',
-            label: 'Priority',
-            render: (value: string) => <PriorityBadge priority={value} />,
-        },
-        {
-            key: 'created_at',
-            label: 'Created At',
-            sortable: true,
-            render: (value: string) => (
-                <div className="text-sm text-gray-600">
-                    {new Date(value).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    })}
-                </div>
-            ),
-        },
-        {
-            key: 'actions',
-            label: 'Assign To',
-            render: (_: any, ticket: Ticket) => (
-                <div className="flex items-center space-x-2">
-                    <select
-                        value=""
-                        onChange={(e) => handleAssignTicket(ticket.id, e.target.value)}
-                        disabled={assigningTickets.has(ticket.id)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <option value="">
-                            {assigningTickets.has(ticket.id) ? 'Assigning...' : 'Select Technician'}
-                        </option>
-                        {users.map((user: any) => (
-                            <option key={user.id} value={user.id}>
-                                {user.name} ({user.email})
+    const columns = useMemo(
+        () => [
+            {
+                key: 'title',
+                label: 'Title',
+                sortable: true,
+                render: (value: string, ticket: Ticket) => <div className="font-medium text-gray-900">{value}</div>,
+            },
+            {
+                key: 'customer_name',
+                label: 'Customer Name',
+                render: (value: string, ticket: Ticket) => <div className="text-sm text-gray-900">{value || 'N/A'}</div>,
+            },
+            {
+                key: 'status',
+                label: 'Status',
+                render: (value: string, ticket: Ticket) => {
+                    const displayStatus = value || 'open';
+
+                    const getStatusStyle = (status: string) => {
+                        switch (status.toLowerCase()) {
+                            case 'open':
+                                return 'bg-blue-50 text-blue-700 border-blue-200';
+                            case 'assigned':
+                                return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+                            case 'accepted':
+                                return 'bg-orange-50 text-orange-700 border-orange-200';
+                            case 'completed':
+                                return 'bg-green-50 text-green-700 border-green-200';
+                            default:
+                                return 'bg-gray-50 text-gray-700 border-gray-200';
+                        }
+                    };
+
+                    return <div className={`px-3 py-2 text-sm font-medium rounded-lg border-2 shadow-sm ${getStatusStyle(displayStatus)} capitalize`}>{displayStatus}</div>;
+                },
+            },
+            {
+                key: 'priority',
+                label: 'Priority',
+                render: (value: string, ticket: Ticket) => {
+                    const getPriorityStyle = (priority: string) => {
+                        switch (priority.toLowerCase()) {
+                            case 'low':
+                                return 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200 focus:ring-green-500';
+                            case 'medium':
+                                return 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 focus:ring-yellow-500';
+                            case 'high':
+                                return 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200 focus:ring-red-500';
+                            default:
+                                return 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200 focus:ring-gray-500';
+                        }
+                    };
+
+                    const getPriorityBgColor = (priority: string) => {
+                        switch (priority.toLowerCase()) {
+                            case 'low':
+                                return '#dcfce7';
+                            case 'medium':
+                                return '#fef3c7';
+                            case 'high':
+                                return '#fecaca';
+                            default:
+                                return '#f3f4f6';
+                        }
+                    };
+
+                    return (
+                        <select
+                            value={value}
+                            onChange={(e) => handlePriorityUpdate(ticket.id, e.target.value)}
+                            disabled={updatingTickets.has(ticket.id)}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg border-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${getPriorityStyle(value)}`}
+                            style={{ backgroundColor: getPriorityBgColor(value) }}
+                        >
+                            <option value="low" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
+                                Low
                             </option>
-                        ))}
-                    </select>
-                </div>
-            ),
-        },
-    ], [users, assigningTickets, handleAssignTicket]);
+                            <option value="medium" style={{ backgroundColor: '#fef3c7', color: '#a16207' }}>
+                                Medium
+                            </option>
+                            <option value="high" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>
+                                High
+                            </option>
+                        </select>
+                    );
+                },
+            },
+            {
+                key: 'actions',
+                label: 'Assign To',
+                render: (_: any, ticket: Ticket) => {
+                    const currentTechnician = ticket.assigned_to ? users.find((user) => user.id === ticket.assigned_to) : null;
+
+                    return (
+                        <div className="flex flex-col space-y-2">
+                            <select
+                                value={ticket.assigned_to || ''}
+                                onChange={(e) => handleAssignTicket(ticket.id, e.target.value)}
+                                disabled={assigningTickets.has(ticket.id)}
+                                className="px-4 py-2 text-sm font-medium bg-purple-50 text-purple-700 border-2 border-purple-200 rounded-lg transition-all duration-200 cursor-pointer hover:bg-purple-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            >
+                                <option value="" className="text-purple-600">
+                                    {assigningTickets.has(ticket.id) ? 'Assigning...' : 'Select Technician'}
+                                </option>
+                                {Array.isArray(users) &&
+                                    users.map((user: any) => (
+                                        <option key={user.id} value={user.id} className="text-gray-800">
+                                            {user.name}
+                                        </option>
+                                    ))}
+                            </select>
+                            {currentTechnician && (
+                                <div className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200 shadow-sm">Assigned: {currentTechnician.name}</div>
+                            )}
+                        </div>
+                    );
+                },
+            },
+            {
+                key: 'view',
+                label: 'View',
+                render: (_: any, ticket: Ticket) => (
+                    <button
+                        className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all duration-200 shadow-sm hover:shadow-md"
+                        onClick={() => handleViewTicket(ticket)}
+                    >
+                        View
+                    </button>
+                ),
+            },
+        ],
+        [users, assigningTickets, updatingTickets, handleAssignTicket, handlePriorityUpdate, handleViewTicket],
+    );
+
+    const paginationMeta = useMemo(() => {
+        if (!tickets) return null;
+        return {
+            current_page: tickets.current_page,
+            last_page: tickets.last_page,
+            per_page: tickets.per_page,
+            total: tickets.total,
+            from: tickets.from,
+            to: tickets.to,
+        };
+    }, [tickets]);
+
+    const tableData = useMemo(() => tickets?.data || [], [tickets]);
 
     return (
         <div>
             <AlertContainer />
+
+            <ViewTicketModal open={viewModalOpen} onClose={handleCloseModal} ticket={selectedTicket} />
 
             <div className="mb-6">
                 <ul className="flex space-x-2 rtl:space-x-reverse text-sm">
@@ -434,11 +481,10 @@ const AllTickets: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Tickets</h1>
                     <p className="text-gray-600">Manage and view all customer support tickets</p>
                 </div>
-                
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <form onSubmit={(e) => { e.preventDefault(); fetchTickets(); }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
                             Search
@@ -447,7 +493,7 @@ const AllTickets: React.FC = () => {
                             type="text"
                             id="search"
                             value={filters.search}
-                            onChange={(e) => handleSearch(e.target.value)}
+                            onChange={(e) => handleFilterChange('search', e.target.value)}
                             placeholder="Search tickets..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         />
@@ -465,9 +511,9 @@ const AllTickets: React.FC = () => {
                         >
                             <option value="">All Statuses</option>
                             <option value="open">Open</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
+                            <option value="in-progress">Assigned</option>
+                            <option value="resolved">Accepted</option>
+                            <option value="closed">Completed</option>
                         </select>
                     </div>
 
@@ -485,7 +531,6 @@ const AllTickets: React.FC = () => {
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
                         </select>
                     </div>
 
@@ -502,41 +547,14 @@ const AllTickets: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <PerPageSelector 
-                    value={filters.per_page || 10} 
-                    onChange={handlePerPageChange} 
-                    loading={loading} 
-                />
+                <PerPageSelector value={filters.per_page || 10} onChange={handlePerPageChange} loading={loading} />
 
-                {tickets && (
-                    <div className="text-sm text-gray-600">
-                        Total: {tickets.total} tickets
-                    </div>
-                )}
+                {tickets && <div className="text-sm text-gray-600">Total: {tickets.total} tickets</div>}
             </div>
 
-            <Table 
-                data={Array.isArray(tickets?.data) ? tickets.data : []} 
-                columns={columns} 
-                loading={loading} 
-                emptyMessage="No tickets found" 
-                className="mb-6" 
-            />
+            <Table data={tableData} columns={columns} loading={loading} emptyMessage="No tickets found" className="mb-6" />
 
-            {tickets && tickets.total > 0 && (
-                <Pagination
-                    meta={{
-                        current_page: tickets.current_page,
-                        last_page: tickets.last_page,
-                        per_page: tickets.per_page,
-                        total: tickets.total,
-                        from: tickets.from,
-                        to: tickets.to
-                    }}
-                    onPageChange={handlePageChange}
-                    loading={loading}
-                />
-            )}
+            {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
         </div>
     );
 };

@@ -61,7 +61,6 @@ export class UserService {
     }
     static async updateUser(id: number, userData: Partial<CreateUserFormData>): Promise<CreateUserResponse> {
         try {
-            // Only send allowed fields
             const payload: Partial<CreateUserFormData> = {
                 name: userData.name,
                 email: userData.email,
@@ -133,5 +132,37 @@ export class UserService {
 
     static async toggleUserStatus(id: number, isActive: boolean): Promise<{ status: string; message: string }> {
         return isActive ? this.deactivateUser(id) : this.activateUser(id);
+    }
+
+    static async getAllTechnicianUsers(): Promise<{ success: boolean; message: string; data?: any[] }> {
+        try {
+            const response = await api.get('/all-technician-users');
+
+            if (response.data && response.data.users) {
+                return {
+                    success: true,
+                    message: 'Technicians retrieved successfully',
+                    data: response.data.users,
+                };
+            } else {
+                console.warn('Unexpected response format:', response.data);
+                return {
+                    success: false,
+                    message: 'Invalid response format',
+                };
+            }
+        } catch (error: any) {
+            console.error('Error fetching technicians:', error);
+            if (error.response?.data) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to retrieve technicians',
+                };
+            }
+            return {
+                success: false,
+                message: 'Network error. Please try again.',
+            };
+        }
     }
 }
