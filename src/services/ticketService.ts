@@ -7,15 +7,12 @@ class TicketService {
      */
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
         try {
-            // Create FormData for multipart/form-data request
             const formData = new FormData();
 
-            // Append basic ticket data
             formData.append('customer_id', ticketData.customer_id.toString());
             formData.append('title', ticketData.title);
             formData.append('description', ticketData.description);
 
-            // Append photos if provided
             if (ticketData.photos && ticketData.photos.length > 0) {
                 ticketData.photos.forEach((photo, index) => {
                     formData.append(`photos[${index}]`, photo);
@@ -37,20 +34,17 @@ class TicketService {
             console.error('Create ticket error:', error);
 
             if (error.response) {
-                // Server responded with error status
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to create ticket',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
-                // Request was made but no response received
                 return {
                     success: false,
                     message: 'Network error. Please check your connection and try again.',
                 };
             } else {
-                // Something else happened
                 return {
                     success: false,
                     message: 'An unexpected error occurred. Please try again.',
@@ -318,7 +312,7 @@ class TicketService {
     async getAllTickets(filters: TicketFilters = {}): Promise<TicketsListResponse> {
         try {
             const params = new URLSearchParams();
-            
+
             if (filters.search) params.append('search', filters.search);
             if (filters.status) params.append('status', filters.status);
             if (filters.priority) params.append('priority', filters.priority);
@@ -327,11 +321,27 @@ class TicketService {
 
             const response = await api.get(`/all-tickets?${params.toString()}`);
 
-            return {
-                success: true,
-                message: 'Tickets retrieved successfully',
-                data: response.data,
-            };
+            if (response.data && response.data.tickets) {
+                return {
+                    success: true,
+                    message: 'Tickets retrieved successfully',
+                    data: {
+                        tickets: response.data.tickets.data || [],
+                        data: response.data.tickets.data || [],
+                        pagination: {
+                            current_page: response.data.tickets.current_page || 1,
+                            last_page: response.data.tickets.last_page || 1,
+                            per_page: response.data.tickets.per_page || 10,
+                            total: response.data.tickets.total || 0,
+                        },
+                    },
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Invalid response format',
+                };
+            }
         } catch (error: any) {
             console.error('Get all tickets error:', error);
 
@@ -395,8 +405,9 @@ class TicketService {
      */
     async assignTicket(ticketId: string, technicianId: string): Promise<TicketResponse> {
         try {
-            const response = await api.put(`/assign-ticket/${ticketId}`, {
-                assigned_to: technicianId
+            const response = await api.post('/assign-ticket', {
+                ticket_id: ticketId,
+                assigned_to: technicianId,
             });
 
             return {
@@ -411,6 +422,45 @@ class TicketService {
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to assign ticket',
+                    errors: error.response.data.errors || error.response.data,
+                };
+            } else if (error.request) {
+                return {
+                    success: false,
+                    message: 'Network error. Please check your connection and try again.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'An unexpected error occurred. Please try again.',
+                };
+            }
+        }
+    }
+
+    /**
+     * Update ticket priority using assign endpoint (Super Admin)
+     */
+    async updateTicketPriority(ticketId: string, priority: string, currentAssignedTo?: number | null): Promise<TicketResponse> {
+        try {
+            const response = await api.post('/assign-ticket', {
+                ticket_id: ticketId,
+                assigned_to: currentAssignedTo || null,
+                priority: priority,
+            });
+
+            return {
+                success: true,
+                message: 'Ticket priority updated successfully',
+                data: response.data.ticket,
+            };
+        } catch (error: any) {
+            console.error('Update ticket priority error:', error);
+
+            if (error.response) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to update ticket priority',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
@@ -464,7 +514,6 @@ class TicketService {
     }
 }
 
-// Export a singleton instance
 const ticketServiceInstance = new TicketService();
 export { ticketServiceInstance as TicketService };
 export default ticketServiceInstance;
