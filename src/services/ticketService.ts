@@ -118,6 +118,8 @@ class TicketService {
             const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
             const response = await api.get(url);
+            console.log('Raw API response:', response);
+            console.log('Raw response data:', response.data);
 
             // Standardize response structure - try different API response formats
             let tickets = [];
@@ -128,9 +130,21 @@ class TicketService {
                 tickets = response.data.data.tickets;
                 pagination = response.data.data.pagination || response.data.pagination;
             } else if (response.data.tickets) {
-                // Format: { tickets: [...], pagination: {...} }
-                tickets = response.data.tickets;
-                pagination = response.data.pagination;
+                // Check if it's a Laravel paginated object
+                if (response.data.tickets.data) {
+                    // Format: { tickets: { data: [...], current_page: ..., etc } }
+                    tickets = response.data.tickets.data;
+                    pagination = {
+                        current_page: response.data.tickets.current_page,
+                        per_page: response.data.tickets.per_page,
+                        total: response.data.tickets.total,
+                        last_page: response.data.tickets.last_page,
+                    };
+                } else if (Array.isArray(response.data.tickets)) {
+                    // Format: { tickets: [...], pagination: {...} }
+                    tickets = response.data.tickets;
+                    pagination = response.data.pagination;
+                }
             } else if (Array.isArray(response.data.data)) {
                 // Format: { data: [...] }
                 tickets = response.data.data;
@@ -139,6 +153,9 @@ class TicketService {
                 // Format: [...]
                 tickets = response.data;
             }
+
+            console.log('Parsed tickets:', tickets);
+            console.log('Parsed pagination:', pagination);
 
             return {
                 success: true,
@@ -407,9 +424,21 @@ class TicketService {
                 tickets = response.data.data.tickets;
                 pagination = response.data.data.pagination || response.data.pagination;
             } else if (response.data.tickets) {
-                // Format: { tickets: [...], pagination: {...} }
-                tickets = response.data.tickets;
-                pagination = response.data.pagination;
+                // Check if it's a Laravel paginated object
+                if (response.data.tickets.data) {
+                    // Format: { tickets: { data: [...], current_page: ..., etc } }
+                    tickets = response.data.tickets.data;
+                    pagination = {
+                        current_page: response.data.tickets.current_page,
+                        per_page: response.data.tickets.per_page,
+                        total: response.data.tickets.total,
+                        last_page: response.data.tickets.last_page,
+                    };
+                } else if (Array.isArray(response.data.tickets)) {
+                    // Format: { tickets: [...], pagination: {...} }
+                    tickets = response.data.tickets;
+                    pagination = response.data.pagination;
+                }
             } else if (Array.isArray(response.data.data)) {
                 // Format: { data: [...] }
                 tickets = response.data.data;

@@ -20,13 +20,10 @@ const AllTickets = () => {
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Load tickets from API
     const loadTickets = async () => {
         try {
             setLoading(true);
             const response = await ticketService.getCustomerTickets(undefined, {
-                search: searchTerm.trim() || undefined,
-                status: statusFilter !== 'all' ? statusFilter : undefined,
                 page: currentPage,
                 per_page: perPage,
             });
@@ -38,6 +35,7 @@ const AllTickets = () => {
                     setTotalTickets(response.data.pagination.total || 0);
                 }
             } else {
+                console.error('Response not successful:', response);
                 throw new Error(response.message || 'Failed to load tickets');
             }
         } catch (error: any) {
@@ -65,19 +63,7 @@ const AllTickets = () => {
 
     useEffect(() => {
         loadTickets();
-    }, [currentPage, statusFilter]);
-
-    useEffect(() => {
-        const delayedSearch = setTimeout(() => {
-            if (currentPage === 1) {
-                loadTickets();
-            } else {
-                setCurrentPage(1);
-            }
-        }, 500);
-
-        return () => clearTimeout(delayedSearch);
-    }, [searchTerm]);
+    }, [currentPage]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -119,7 +105,32 @@ const AllTickets = () => {
         });
     };
 
-    const filteredTickets = Array.isArray(tickets) ? tickets : [];
+    const filteredTickets = Array.isArray(tickets)
+        ? tickets.filter((ticket) => {
+              if (searchTerm.trim()) {
+                  const searchLower = searchTerm.toLowerCase();
+                  const matchesSearch = ticket.title?.toLowerCase().includes(searchLower) || ticket.description?.toLowerCase().includes(searchLower) || ticket.id?.toString().includes(searchLower);
+
+                  if (!matchesSearch) return false;
+              }
+
+              if (statusFilter !== 'all' && ticket.status !== statusFilter) {
+                  return false;
+              }
+
+              return true;
+          })
+        : [];
+
+    const totalFilteredTickets = filteredTickets.length;
+    const startIndex = (currentPage - 1) * perPage;
+    const endIndex = startIndex + perPage;
+    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(totalFilteredTickets / perPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
 
     const handleSearch = () => {
         if (currentPage === 1) {
@@ -221,7 +232,7 @@ const AllTickets = () => {
                                             <p className="text-sm text-blue-700 dark:text-blue-300">Currently active</p>
                                         </div>
                                         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                            {Array.isArray(tickets) ? tickets.filter((ticket) => ticket.status === 'open').length : 0}
+                                            {Array.isArray(filteredTickets) ? filteredTickets.filter((ticket) => ticket.status === 'open').length : 0}
                                         </div>
                                     </div>
                                 </div>
@@ -240,9 +251,9 @@ const AllTickets = () => {
 
                             <div className="p-4 sm:p-6 lg:p-8">
                                 {/* Search and Filters */}
-                                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                                     {/* Search */}
-                                    <div className="md:col-span-1">
+                                    <div className="md:col-span-2">
                                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Search Tickets
                                         </label>
@@ -286,6 +297,20 @@ const AllTickets = () => {
                                             <option value="closed">Closed</option>
                                         </select>
                                     </div>
+
+                                    {/* Search Button */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action</label>
+                                        <button
+                                            onClick={handleSearch}
+                                            className="w-full px-4 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <span className="text-sm font-medium">Search</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Tickets List */}
@@ -295,12 +320,12 @@ const AllTickets = () => {
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ticket</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
                                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white/50 dark:bg-gray-800/50 divide-y divide-gray-200/50 dark:divide-gray-600/50">
-                                            {filteredTickets.map((ticket) => (
+                                            {paginatedTickets.map((ticket) => (
                                                 <tr key={ticket.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors duration-200">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex flex-col">
@@ -312,7 +337,11 @@ const AllTickets = () => {
                                                             {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(ticket.created_at)}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                        <div className="max-w-xs truncate" title={ticket.description}>
+                                                            {ticket.description}
+                                                        </div>
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <button
                                                             onClick={() => openTicketModal(ticket.id)}
@@ -328,7 +357,7 @@ const AllTickets = () => {
                                 </div>
 
                                 {/* Empty State */}
-                                {filteredTickets.length === 0 && !loading && (
+                                {paginatedTickets.length === 0 && !loading && (
                                     <div className="text-center py-12">
                                         <div className="relative inline-block">
                                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full backdrop-blur-sm"></div>
@@ -351,10 +380,10 @@ const AllTickets = () => {
                                 )}
 
                                 {/* Pagination */}
-                                {totalTickets > perPage && (
+                                {totalFilteredTickets > perPage && (
                                     <div className="mt-6 flex items-center justify-between">
                                         <div className="text-sm text-gray-700 dark:text-gray-300">
-                                            Showing {Math.min((currentPage - 1) * perPage + 1, totalTickets)} to {Math.min(currentPage * perPage, totalTickets)} of {totalTickets} results
+                                            Showing {Math.min(startIndex + 1, totalFilteredTickets)} to {Math.min(endIndex, totalFilteredTickets)} of {totalFilteredTickets} results
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <button
@@ -365,11 +394,11 @@ const AllTickets = () => {
                                                 Previous
                                             </button>
                                             <span className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Page {currentPage} of {Math.ceil(totalTickets / perPage)}
+                                                Page {currentPage} of {totalPages}
                                             </span>
                                             <button
-                                                onClick={() => setCurrentPage(Math.min(Math.ceil(totalTickets / perPage), currentPage + 1))}
-                                                disabled={currentPage >= Math.ceil(totalTickets / perPage) || loading}
+                                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                                disabled={currentPage >= totalPages || loading}
                                                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
                                             >
                                                 Next
