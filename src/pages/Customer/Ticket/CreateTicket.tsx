@@ -204,13 +204,6 @@ function CreateTicket() {
                                                     {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{ticket.description}</p>
-                                            <div className="flex items-center text-xs text-gray-500 dark:text-gray-500">
-                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                {formatDate(ticket.created_at)}
-                                            </div>
                                         </div>
                                     ))
                                 ) : (
@@ -221,7 +214,7 @@ function CreateTicket() {
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 mx-4 sm:mx-6 mb-4 sm:mb-6">
-                                <button 
+                                <button
                                     onClick={() => navigate('/customer/ticket/all-tickets')}
                                     className="w-full text-center text-sm text-primary hover:text-primary-dark font-medium transition-colors duration-200"
                                 >
