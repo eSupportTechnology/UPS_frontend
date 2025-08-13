@@ -1,179 +1,187 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { setPageTitle } from '../../store/themeConfigSlice';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../store';
+import UserLayout from '../../components/Layouts/userLayout';
 
-const CustomerDashboard: React.FC = () => {
-    const dispatch = useDispatch();
+function Dashboard() {
+    const { user } = useSelector((state: IRootState) => state.auth);
 
-    useEffect(() => {
-        dispatch(setPageTitle('Customer Dashboard'));
-    }, [dispatch]);
+    const getUserInitials = (name?: string) => {
+        if (!name) return 'U';
+        const names = name.split(' ');
+        if (names.length >= 2) {
+            return `${names[0][0]}${names[1][0]}`.toUpperCase();
+        }
+        return names[0][0].toUpperCase();
+    };
 
+    const formatCustomerSince = (dateString?: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    };
     return (
-        <div>
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Customer Dashboard</h1>
-                <p className="text-gray-600">Track your service requests and maintenance history.</p>
-            </div>
+        <UserLayout>
+            <div className="space-y-6">
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Side - User Information Card */}
+                    <div className="group relative lg:col-span-1">
+                        <div className="absolute inset-0 bg-primary/5 rounded-2xl backdrop-blur-sm group-hover:bg-primary/10 transition-all duration-300"></div>
+                        <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div className="ml-4">
-                            <h2 className="text-sm font-medium text-gray-600">Active Requests</h2>
-                            <p className="text-2xl font-bold text-gray-900">3</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-green-100 text-green-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div className="ml-4">
-                            <h2 className="text-sm font-medium text-gray-600">Completed</h2>
-                            <p className="text-2xl font-bold text-gray-900">28</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div className="ml-4">
-                            <h2 className="text-sm font-medium text-gray-600">Pending</h2>
-                            <p className="text-2xl font-bold text-gray-900">1</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                />
-                            </svg>
-                        </div>
-                        <div className="ml-4">
-                            <h2 className="text-sm font-medium text-gray-600">Rating</h2>
-                            <p className="text-2xl font-bold text-gray-900">4.8</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Recent Service Requests</h3>
-                        <button className="px-4 py-2 bg-primary text-white text-sm rounded-md hover:bg-primary-dark transition-colors">New Request</button>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium text-gray-900">Air Conditioning Issue</h4>
-                                <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">In Progress</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Unit not cooling properly in living room</p>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Submitted: 2 days ago</span>
-                                <span className="text-blue-600">Technician assigned</span>
-                            </div>
-                        </div>
-
-                        <div className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium text-gray-900">Plumbing Repair</h4>
-                                <span className="px-2 py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full">Completed</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Leaky faucet in kitchen</p>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Completed: 1 week ago</span>
-                                <span className="text-green-600">Rated: 5 stars</span>
-                            </div>
-                        </div>
-
-                        <div className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium text-gray-900">Electrical Inspection</h4>
-                                <span className="px-2 py-1 text-xs font-medium text-yellow-600 bg-yellow-100 rounded-full">Scheduled</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Annual safety inspection</p>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Scheduled: Next Monday</span>
-                                <span className="text-yellow-600">Awaiting visit</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Service History</h3>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <h4 className="font-medium text-gray-900">HVAC Maintenance</h4>
-                                <p className="text-sm text-gray-500">January 15, 2025</p>
-                            </div>
-                            <div className="text-right">
+                        <div className="relative overflow-hidden rounded-2xl">
+                            {/* Header with Primary Blue Background */}
+                            <div className="bg-primary px-8 py-6">
                                 <div className="flex items-center">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <svg key={star} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                    ))}
+                                    <div className="relative">
+                                        <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-2xl font-bold shadow-lg border-2 border-white/30">
+                                            {getUserInitials(user?.name)}
+                                        </div>
+                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                                    </div>
+                                    <div className="ml-6">
+                                        <h2 className="text-2xl font-bold text-white">{user?.name || 'User Name'}</h2>
+                                        <p className="text-white/80">Premium Customer</p>
+                                        <div className="flex items-center mt-2">
+                                            <span className={`px-3 py-1 text-xs font-medium rounded-full ${user?.is_active ? 'bg-green-100/90 text-green-800' : 'bg-red-100/90 text-red-800'}`}>
+                                                {user?.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-gray-500">Perfect!</p>
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="p-8 bg-white/50 dark:bg-gray-800/50">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between py-3 border-b border-primary/20 dark:border-primary-light/20">
+                                        <span className="text-primary/60 dark:text-primary-light/60">Email:</span>
+                                        <span className="font-medium text-primary-dark dark:text-primary-light">{user?.email || 'user@example.com'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between py-3 border-b border-primary/20 dark:border-primary-light/20">
+                                        <span className="text-primary/60 dark:text-primary-light/60">Phone:</span>
+                                        <span className="font-medium text-primary-dark dark:text-primary-light">{user?.phone || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between py-3 border-b border-primary/20 dark:border-primary-light/20">
+                                        <span className="text-primary/60 dark:text-primary-light/60">Customer Since:</span>
+                                        <span className="font-medium text-primary-dark dark:text-primary-light">{formatCustomerSince(user?.created_at)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between py-3 border-b border-primary/20 dark:border-primary-light/20">
+                                        <span className="text-primary/60 dark:text-primary-light/60">Account Type:</span>
+                                        <span className="font-medium text-primary dark:text-primary-light">Premium</span>
+                                    </div>
+                                    <div className="flex items-center justify-between py-3">
+                                        <span className="text-primary/60 dark:text-primary-light/60">Status:</span>
+                                        <span className={`font-medium ${user?.is_active ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                            {user?.is_active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button className="w-full mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    Update Profile
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-6">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h4>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button className="p-3 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <svg className="w-6 h-6 text-blue-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                <span className="text-sm font-medium text-gray-900">New Request</span>
-                            </button>
+                    {/* Right Side - Ticket Counts and WhatsApp QR */}
+                    <div className="space-y-6 lg:col-span-2">
+                        {/* Ticket Counts Card */}
+                        <div className="group relative">
+                            <div className="absolute inset-0 bg-primary/5 rounded-2xl backdrop-blur-sm group-hover:bg-primary/10 transition-all duration-300"></div>
+                            <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
 
-                            <button className="p-3 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <svg className="w-6 h-6 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                </svg>
-                                <span className="text-sm font-medium text-gray-900">View History</span>
-                            </button>
+                            <div className="relative overflow-hidden rounded-2xl">
+                                {/* Header with Primary Blue Background */}
+                                <div className="bg-primary px-6 py-4">
+                                    <div className="flex items-center">
+                                        <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-white ml-3">Support Tickets</h3>
+                                    </div>
+                                </div>
+
+                                {/* Content Area */}
+                                <div className="p-6 bg-white/50 dark:bg-gray-800/50">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="text-center p-4 rounded-xl bg-white/70 dark:bg-gray-700/50 backdrop-blur-sm border border-primary/10">
+                                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">5</div>
+                                            <div className="text-sm text-primary/60 dark:text-primary-light/60 mt-1">Resolved</div>
+                                        </div>
+                                        <div className="text-center p-4 rounded-xl bg-white/70 dark:bg-gray-700/50 backdrop-blur-sm border border-primary/10">
+                                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">2</div>
+                                            <div className="text-sm text-primary/60 dark:text-primary-light/60 mt-1">In Progress</div>
+                                        </div>
+                                        <div className="text-center p-4 rounded-xl bg-white/70 dark:bg-gray-700/50 backdrop-blur-sm border border-primary/10">
+                                            <div className="text-2xl font-bold text-primary dark:text-primary-light">1</div>
+                                            <div className="text-sm text-primary/60 dark:text-primary-light/60 mt-1">Open</div>
+                                        </div>
+                                        <div className="text-center p-4 rounded-xl bg-white/70 dark:bg-gray-700/50 backdrop-blur-sm border border-primary/10">
+                                            <div className="text-2xl font-bold text-primary-dark dark:text-primary-light">8</div>
+                                            <div className="text-sm text-primary/60 dark:text-primary-light/60 mt-1">Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* WhatsApp QR Code Card */}
+                        <div className="group relative">
+                            <div className="absolute inset-0 bg-green-500/5 rounded-2xl backdrop-blur-sm group-hover:bg-green-500/10 transition-all duration-300"></div>
+                            <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/30 group-hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"></div>
+
+                            <div className="relative overflow-hidden rounded-2xl">
+                                {/* Header with Primary Blue Background */}
+                                <div className="bg-primary px-6 py-4">
+                                    <div className="flex items-center">
+                                        <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-white ml-3">Join Our WhatsApp Group</h3>
+                                    </div>
+                                </div>
+
+                                {/* Content Area */}
+                                <div className="p-6 bg-white/50 dark:bg-gray-800/50">
+                                    <div className="text-center">
+                                        {/* QR Code */}
+                                        <div className="bg-white p-4 rounded-xl shadow-inner mx-auto w-fit mb-4 border border-primary/10">
+                                            <img src="/assets/images/qr.png" alt="WhatsApp Group QR Code" className="w-32 h-32 rounded-lg" />
+                                        </div>
+
+                                        <p className="text-sm text-primary/60 dark:text-primary-light/60 mb-4">
+                                            Scan the QR code to join our WhatsApp support group for instant updates and assistance.
+                                        </p>
+
+                                        <button className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                            <div className="flex items-center justify-center">
+                                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
+                                                </svg>
+                                                Join WhatsApp Group
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </UserLayout>
     );
-};
+}
 
-export default CustomerDashboard;
+export default Dashboard;
