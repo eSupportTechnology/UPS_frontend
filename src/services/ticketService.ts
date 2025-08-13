@@ -121,18 +121,14 @@ class TicketService {
             console.log('Raw API response:', response);
             console.log('Raw response data:', response.data);
 
-            // Standardize response structure - try different API response formats
             let tickets = [];
             let pagination = null;
 
             if (response.data.data?.tickets) {
-                // Format: { data: { tickets: [...], pagination: {...} } }
                 tickets = response.data.data.tickets;
                 pagination = response.data.data.pagination || response.data.pagination;
             } else if (response.data.tickets) {
-                // Check if it's a Laravel paginated object
                 if (response.data.tickets.data) {
-                    // Format: { tickets: { data: [...], current_page: ..., etc } }
                     tickets = response.data.tickets.data;
                     pagination = {
                         current_page: response.data.tickets.current_page,
@@ -141,16 +137,13 @@ class TicketService {
                         last_page: response.data.tickets.last_page,
                     };
                 } else if (Array.isArray(response.data.tickets)) {
-                    // Format: { tickets: [...], pagination: {...} }
                     tickets = response.data.tickets;
                     pagination = response.data.pagination;
                 }
             } else if (Array.isArray(response.data.data)) {
-                // Format: { data: [...] }
                 tickets = response.data.data;
                 pagination = response.data.pagination;
             } else if (Array.isArray(response.data)) {
-                // Format: [...]
                 tickets = response.data;
             }
 
@@ -195,17 +188,40 @@ class TicketService {
     }
 
     /**
-     * Get a specific ticket by ID
+     * Get a specific ticket by ID - using customer tickets endpoint
      */
     async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
-            const response = await api.get(`/tickets/${ticketId}`);
+            const targetTicketId = typeof ticketId === 'string' ? parseInt(ticketId) : ticketId;
 
-            return {
-                success: true,
-                message: 'Ticket retrieved successfully',
-                data: response.data.data?.ticket || response.data.ticket || response.data.data,
-            };
+            const customerTicketsResponse = await this.getCustomerTickets();
+
+            if (customerTicketsResponse.success && customerTicketsResponse.data && customerTicketsResponse.data.tickets) {
+                const tickets = Array.isArray(customerTicketsResponse.data.tickets) ? customerTicketsResponse.data.tickets : [];
+
+                const foundTicket = tickets.find((ticket) => {
+                    const ticketIdNum = typeof ticket.id === 'string' ? parseInt(ticket.id) : ticket.id;
+                    return ticketIdNum === targetTicketId;
+                });
+
+                if (foundTicket) {
+                    return {
+                        success: true,
+                        message: 'Ticket retrieved successfully',
+                        data: foundTicket,
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Ticket not found or you do not have access to this ticket',
+                    };
+                }
+            } else {
+                return {
+                    success: false,
+                    message: customerTicketsResponse.message || 'Failed to retrieve customer tickets',
+                };
+            }
         } catch (error: any) {
             console.error('Get ticket error:', error);
             console.log('Error details:', {
@@ -397,7 +413,6 @@ class TicketService {
             if (customerId) {
                 endpoint = `/tickets-customer/${customerId}`;
             } else {
-                // Get user from localStorage
                 const userData = localStorage.getItem('user');
                 if (userData) {
                     try {
@@ -420,13 +435,10 @@ class TicketService {
             let pagination = null;
 
             if (response.data.data?.tickets) {
-                // Format: { data: { tickets: [...], pagination: {...} } }
                 tickets = response.data.data.tickets;
                 pagination = response.data.data.pagination || response.data.pagination;
             } else if (response.data.tickets) {
-                // Check if it's a Laravel paginated object
                 if (response.data.tickets.data) {
-                    // Format: { tickets: { data: [...], current_page: ..., etc } }
                     tickets = response.data.tickets.data;
                     pagination = {
                         current_page: response.data.tickets.current_page,
@@ -435,16 +447,13 @@ class TicketService {
                         last_page: response.data.tickets.last_page,
                     };
                 } else if (Array.isArray(response.data.tickets)) {
-                    // Format: { tickets: [...], pagination: {...} }
                     tickets = response.data.tickets;
                     pagination = response.data.pagination;
                 }
             } else if (Array.isArray(response.data.data)) {
-                // Format: { data: [...] }
                 tickets = response.data.data;
                 pagination = response.data.pagination;
             } else if (Array.isArray(response.data)) {
-                // Format: [...]
                 tickets = response.data;
             }
 
