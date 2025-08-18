@@ -2,9 +2,6 @@ import api from '../config/api.config';
 import type { CreateTicketData, Ticket, TicketResponse, TicketsListResponse, TicketStatsResponse, TicketFilters } from '../types/ticket.types';
 
 class TicketService {
-    /**
-     * Create a new ticket
-     */
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
         try {
             
@@ -72,9 +69,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get all tickets for a customer
-     */
     async getCustomerTickets(customerId?: number, filters?: TicketFilters): Promise<TicketsListResponse> {
         try {
             const params = new URLSearchParams();
@@ -190,9 +184,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get a specific ticket by ID - using customer tickets endpoint
-     */
     async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
             const targetTicketId = typeof ticketId === 'string' ? parseInt(ticketId) : ticketId;
