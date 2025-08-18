@@ -322,8 +322,6 @@ class TicketService {
             }
         }
     }
-
-   
 }
 export const ticketService = new TicketService();
 export default ticketService;
