@@ -45,6 +45,7 @@ class TicketService {
             };
         } catch (error: any) {
             // ...existing code...
+            console.error('Create ticket error:', error);
 
             if (error.response) {
                 return {
@@ -160,6 +161,13 @@ class TicketService {
                     status: error.response?.status,
                 },
             };
+            console.error('Get tickets error:', error);
+            console.log('Error details:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
 
             if (error.response) {
                 return {
@@ -480,6 +488,7 @@ class TicketService {
             };
         } catch (error: any) {
             // ...existing code...
+            console.error('Get recent tickets error:', error);
 
             if (error.response) {
                 return {

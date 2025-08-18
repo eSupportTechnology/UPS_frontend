@@ -16,7 +16,6 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
     const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
-
     useEffect(() => {
         if (ticketId) {
             loadTicket(ticketId);
@@ -46,7 +45,6 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         if (!ticket?.photo_paths) return [];
 
         let photos: string[] = [];
-
         try {
             if (typeof ticket.photo_paths === 'string') {
                 try {
