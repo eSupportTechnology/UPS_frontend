@@ -2,9 +2,6 @@ import api from '../config/api.config';
 import type { CreateTicketData, Ticket, TicketResponse, TicketsListResponse, TicketStatsResponse, TicketFilters } from '../types/ticket.types';
 
 class TicketService {
-    /**
-     * Create a new ticket
-     */
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
         try {
             const formData = new FormData();
@@ -69,9 +66,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get all tickets for a customer
-     */
     async getCustomerTickets(customerId?: number, filters?: TicketFilters): Promise<TicketsListResponse> {
         try {
             const params = new URLSearchParams();
@@ -187,9 +181,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get a specific ticket by ID - using customer tickets endpoint
-     */
     async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
             const targetTicketId = typeof ticketId === 'string' ? parseInt(ticketId) : ticketId;
@@ -251,162 +242,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Update ticket status
-     */
-    async updateTicketStatus(ticketId: string, status: string): Promise<TicketResponse> {
-        try {
-            const response = await api.patch(`/tickets/${ticketId}/status`, {
-                status: status,
-            });
-
-            return {
-                success: true,
-                message: response.data.message || 'Ticket status updated successfully',
-                data: response.data.ticket,
-            };
-        } catch (error: any) {
-            console.error('Update ticket status error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to update ticket status',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Add a comment to a ticket
-     */
-    async addTicketComment(ticketId: string, comment: string): Promise<TicketResponse> {
-        try {
-            const response = await api.post(`/tickets/${ticketId}/comments`, {
-                comment: comment,
-            });
-
-            return {
-                success: true,
-                message: response.data.message || 'Comment added successfully',
-                data: response.data.ticket,
-            };
-        } catch (error: any) {
-            console.error('Add comment error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to add comment',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Delete a ticket
-     */
-    async deleteTicket(ticketId: string): Promise<TicketResponse> {
-        try {
-            const response = await api.delete(`/tickets/${ticketId}`);
-
-            return {
-                success: true,
-                message: response.data.message || 'Ticket deleted successfully',
-            };
-        } catch (error: any) {
-            console.error('Delete ticket error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to delete ticket',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Upload additional files to an existing ticket
-     */
-    async uploadTicketFiles(ticketId: string, files: File[]): Promise<TicketResponse> {
-        try {
-            const formData = new FormData();
-
-            files.forEach((file, index) => {
-                formData.append(`files[${index}]`, file);
-            });
-
-            const response = await api.post(`/tickets/${ticketId}/files`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            return {
-                success: true,
-                message: response.data.message || 'Files uploaded successfully',
-                data: response.data.ticket,
-            };
-        } catch (error: any) {
-            console.error('Upload files error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to upload files',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Get recent tickets for sidebar (last 5)
-     */
     async getRecentTickets(customerId?: string): Promise<TicketsListResponse> {
         try {
             let endpoint = '';
@@ -488,41 +323,7 @@ class TicketService {
         }
     }
 
-    /**
-     * Get ticket statistics for dashboard
-     */
-    async getTicketStats(customerId?: number): Promise<TicketStatsResponse> {
-        try {
-            const params = customerId ? `?customer_id=${customerId}` : '';
-            const response = await api.get(`/tickets/stats${params}`);
-
-            return {
-                success: true,
-                message: 'Statistics retrieved successfully',
-                data: response.data.stats || response.data.data,
-            };
-        } catch (error: any) {
-            console.error('Get ticket stats error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to retrieve statistics',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
+   
 }
 export const ticketService = new TicketService();
 export default ticketService;
