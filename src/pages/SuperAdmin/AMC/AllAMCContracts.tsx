@@ -1,45 +1,45 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import ViewBranchModal from '../Branch/view/ViewBranchModal';
-import EditBranchModal from '../Branch/view/EditBranchModal';
-import DeleteBranchModal from '../Branch/view/DeleteBranchModal';
-import { Branch } from '../../../types/branch.types';
-import { PaginationData } from '../../../types/pagination.types';
-import { BranchService } from '../../../services/branchService';
+import ViewAMCContractModal from './view/ViewAMCContractModal';
+import EditAMCContractModal from './view/EditAMCContractModal';
+import DeleteAMCContractModal from './view/DeleteAMCContractModal';
+import { AMCContract } from '../../../types/amcContract.types';
+import { AMCContractService } from '../../../services/amcContractService';
 import { useAlert } from '../../../components/Alert/Alert';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
 
-const AllBranches: React.FC = () => {
+const AllAMCContracts: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
-    const [branches, setBranches] = useState<PaginationData<Branch> | null>(null);
+    const [contracts, setContracts] = useState<{ data: AMCContract[]; total: number; current_page: number; last_page: number; per_page: number; from: number; to: number } | null>(null);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState<any>({
         search: '',
-        country: '',
-        state: '',
-        city: '',
+        status: '',
+        contract_type: '',
         per_page: 10,
     });
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+    const [selectedContract, setSelectedContract] = useState<AMCContract | null>(null);
+    const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
 
-    const fetchBranches = useCallback(
+    const fetchContracts = useCallback(
         async (page: number = currentPage) => {
             setLoading(true);
             try {
-                const data = await BranchService.getBranches(page, filters);
-                setBranches(data);
+                const data = await AMCContractService.getContracts(page, filters);
+                setContracts(data);
                 setCurrentPage(page);
             } catch (error: any) {
+                console.error('Error fetching contracts:', error);
                 showAlert({
                     type: 'error',
                     title: 'Error',
-                    message: error.message || 'Failed to fetch branches',
+                    message: error.message || 'Failed to fetch contracts',
                 });
             } finally {
                 setLoading(false);
@@ -49,78 +49,82 @@ const AllBranches: React.FC = () => {
     );
 
     useEffect(() => {
-        fetchBranches(1);
-    }, [filters]);
+        fetchContracts(1);
+    }, []);
 
     const handlePageChange = useCallback(
         (page: number) => {
-            fetchBranches(page);
+            fetchContracts(page);
         },
-        [fetchBranches],
+        [fetchContracts],
     );
 
     const handleFilterChange = useCallback((key: string, value: any) => {
-        setFilters((prev: any) => ({
-            ...prev,
-            [key]: value,
-        }));
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
     }, []);
 
     const handleSearch = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
-            fetchBranches(1);
+            fetchContracts(1);
         },
-        [fetchBranches],
+        [fetchContracts, filters],
     );
 
-    const handleStatusToggle = async (branch: Branch) => {
-        try {
-            let response;
-            if (branch.is_active) {
-                response = await BranchService.deactivateBranch(branch.id);
-            } else {
-                response = await BranchService.activateBranch(branch.id);
+    const handleStatusToggle = useCallback(
+        async (contract: AMCContract, currentStatus: boolean) => {
+            setStatusUpdating(contract.id);
+            try {
+                if (currentStatus) {
+                    await AMCContractService.deactivateContract(contract.id);
+                } else {
+                    await AMCContractService.activateContract(contract.id);
+                }
+
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: `Contract ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+                });
+
+                fetchContracts(currentPage);
+            } catch (error: any) {
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: error.message || 'Failed to update contract status',
+                });
+            } finally {
+                setStatusUpdating(null);
             }
-            fetchBranches(currentPage);
-            showAlert({
-                type: 'success',
-                title: 'Status Updated',
-                message: response.message || `Branch status updated to ${!branch.is_active ? 'Active' : 'Inactive'}.`,
-                duration: 4000,
-            });
-        } catch (err: any) {
-            showAlert({
-                type: 'error',
-                title: 'Error',
-                message: err?.message || 'Failed to update status',
-                duration: 4000,
-            });
-        }
-    };
+        },
+        [showAlert, fetchContracts, currentPage],
+    );
 
     const columns = useMemo(
         () => [
-            { key: 'name', label: 'Branch Name' },
-            { key: 'branch_code', label: 'Branch Code' },
-            { key: 'type', label: 'Type' },
-            { key: 'country', label: 'Country' },
-            { key: 'state', label: 'State' },
-            { key: 'city', label: 'City' },
-            { key: 'contact_person', label: 'Contact Person' },
+            { key: 'contract_type', label: 'Contract Type' },
+            { key: 'branch', label: 'Branch', render: (v: any, row: AMCContract) => row.branch?.name || '-' },
+            { key: 'customer', label: 'Customer', render: (v: any, row: AMCContract) => row.customer?.name || '-' },
+            { key: 'purchase_date', label: 'Purchase Date' },
+            { key: 'warranty_end_date', label: 'Warranty End Date' },
+            { key: 'contract_amount', label: 'Amount', render: (v: any) => (v != null ? `Rs ${v}` : '-') },
             {
                 key: 'is_active',
                 label: 'Status',
-                render: (v: boolean, row: Branch) => (
+                render: (v: boolean, row: AMCContract) => (
                     <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${v ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{v ? 'Active' : 'Inactive'}</span>
                         <button
                             type="button"
-                            className={`ml-2 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${v ? 'bg-green-500' : 'bg-gray-300'}`}
-                            onClick={() => handleStatusToggle(row)}
+                            className={`ml-2 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${v ? 'bg-green-500' : 'bg-gray-300'} ${statusUpdating === row.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => handleStatusToggle(row, v)}
                             title="Toggle Status"
+                            disabled={statusUpdating === row.id || loading}
                         >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${v ? 'translate-x-6' : 'translate-x-1'} ${statusUpdating === row.id ? 'animate-pulse' : ''}`}
+                            />
                         </button>
                     </div>
                 ),
@@ -128,13 +132,13 @@ const AllBranches: React.FC = () => {
             {
                 key: 'actions',
                 label: 'Actions',
-                render: (v: any, row: Branch) => (
+                render: (v: any, row: AMCContract) => (
                     <div className="flex space-x-2">
                         <button
                             type="button"
                             className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                             onClick={() => {
-                                setSelectedBranch(row);
+                                setSelectedContract(row);
                                 setViewModalOpen(true);
                             }}
                         >
@@ -144,7 +148,7 @@ const AllBranches: React.FC = () => {
                             type="button"
                             className="text-green-600 hover:text-green-900 text-sm font-medium"
                             onClick={() => {
-                                setSelectedBranch(row);
+                                setSelectedContract(row);
                                 setEditModalOpen(true);
                             }}
                         >
@@ -154,8 +158,7 @@ const AllBranches: React.FC = () => {
                             type="button"
                             className="text-red-600 hover:text-red-900 text-sm font-medium"
                             onClick={() => {
-                                console.log('DeleteBranchModal open, branchId:', row.id);
-                                setSelectedBranch(row);
+                                setSelectedContract(row);
                                 setDeleteModalOpen(true);
                             }}
                         >
@@ -165,22 +168,22 @@ const AllBranches: React.FC = () => {
                 ),
             },
         ],
-        [fetchBranches, showAlert, currentPage],
+        [handleStatusToggle, statusUpdating, loading],
     );
 
     const paginationMeta = useMemo(() => {
-        if (!branches) return null;
+        if (!contracts) return null;
         return {
-            current_page: branches.current_page,
-            last_page: branches.last_page,
-            per_page: branches.per_page,
-            total: branches.total,
-            from: branches.from,
-            to: branches.to,
+            current_page: contracts.current_page,
+            last_page: contracts.last_page,
+            per_page: contracts.per_page,
+            total: contracts.total,
+            from: contracts.from,
+            to: contracts.to,
         };
-    }, [branches]);
+    }, [contracts]);
 
-    const tableData = useMemo(() => branches?.data || [], [branches]);
+    const tableData = useMemo(() => contracts?.data || [], [contracts]);
 
     return (
         <div>
@@ -193,20 +196,20 @@ const AllBranches: React.FC = () => {
                         </Link>
                     </li>
                     <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2 text-gray-500">
-                        <span>Branches</span>
+                        <span>AMC Contracts</span>
                     </li>
                 </ul>
             </div>
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Branchers</h1>
-                    <p className="text-gray-600">Manage Braanchers</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">AMC Contracts</h1>
+                    <p className="text-gray-600">Manage AMC contracts</p>
                 </div>
-                <Link to="/super-admin/create-branch" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
+                <Link to="/super-admin/create-contract" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Create Branch
+                    Create AMC Contract
                 </Link>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -220,35 +223,37 @@ const AllBranches: React.FC = () => {
                             id="search"
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
-                            placeholder="Search by name, code, or contact..."
+                            placeholder="Search by contract, customer, branch..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         />
                     </div>
                     <div>
-                        <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                            State
+                        <label htmlFor="contract_type" className="block text-sm font-medium text-gray-700 mb-2">
+                            Contract Type
                         </label>
                         <input
                             type="text"
-                            id="state"
-                            value={filters.state}
-                            onChange={(e) => handleFilterChange('state', e.target.value)}
-                            placeholder="State"
+                            id="contract_type"
+                            value={filters.contract_type}
+                            onChange={(e) => handleFilterChange('contract_type', e.target.value)}
+                            placeholder="Contract Type"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         />
                     </div>
                     <div>
-                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                            City
+                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                            Status
                         </label>
-                        <input
-                            type="text"
-                            id="city"
-                            value={filters.city}
-                            onChange={(e) => handleFilterChange('city', e.target.value)}
-                            placeholder="City"
+                        <select
+                            id="status"
+                            value={filters.status}
+                            onChange={(e) => handleFilterChange('status', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                        />
+                        >
+                            <option value="">All Status</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
                     </div>
                     <div className="flex items-end">
                         <button
@@ -263,58 +268,40 @@ const AllBranches: React.FC = () => {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <PerPageSelector value={filters.per_page || 10} onChange={(value) => handleFilterChange('per_page', value)} loading={loading} />
-                {branches && <div className="text-sm text-gray-600">Total: {branches.total} branches</div>}
+                {contracts && <div className="text-sm text-gray-600">Total: {contracts.total} contracts</div>}
             </div>
-            <Table data={tableData} columns={columns} loading={loading} emptyMessage="No branches found" className="mb-6" />
+            <Table data={tableData} columns={columns} loading={loading} emptyMessage="No AMC contracts found" className="mb-6" />
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
 
-            {/* Modals */}
-            <ViewBranchModal
-                open={viewModalOpen}
-                onClose={() => {
-                    setViewModalOpen(false);
-                    setSelectedBranch(null);
-                }}
-                branch={selectedBranch}
-            />
-            <EditBranchModal
+            <ViewAMCContractModal open={viewModalOpen} onClose={() => setViewModalOpen(false)} contract={selectedContract} />
+            <EditAMCContractModal
                 open={editModalOpen}
-                onClose={() => {
-                    setEditModalOpen(false);
-                    setSelectedBranch(null);
-                }}
-                branch={selectedBranch}
-                onUpdated={() => {
-                    fetchBranches(currentPage);
+                onClose={() => setEditModalOpen(false)}
+                contract={selectedContract}
+                onUpdated={() => fetchContracts(currentPage)}
+                onShowAlert={(type, message) =>
                     showAlert({
-                        type: 'success',
-                        title: 'Branch Updated',
-                        message: 'Branch updated successfully.',
-                        duration: 5000,
-                    });
-                }}
+                        type,
+                        title: type === 'success' ? 'Success' : 'Error',
+                        message,
+                    })
+                }
             />
-            <DeleteBranchModal
+            <DeleteAMCContractModal
                 open={deleteModalOpen}
-                onClose={() => {
-                    setDeleteModalOpen(false);
-                    setSelectedBranch(null);
-                }}
-                branchId={selectedBranch?.id ?? null}
-                onDeleted={() => {
-                    fetchBranches(currentPage);
-                    setDeleteModalOpen(false);
-                    setSelectedBranch(null);
+                onClose={() => setDeleteModalOpen(false)}
+                contractId={selectedContract?.id ?? null}
+                onDeleted={() => fetchContracts(currentPage)}
+                onShowAlert={(type, message) =>
                     showAlert({
-                        type: 'success',
-                        title: 'Branch Deleted',
-                        message: 'Branch deleted successfully.',
-                        duration: 5000,
-                    });
-                }}
+                        type,
+                        title: type === 'success' ? 'Success' : 'Error',
+                        message,
+                    })
+                }
             />
         </div>
     );
 };
 
-export default AllBranches;
+export default AllAMCContracts;

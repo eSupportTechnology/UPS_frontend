@@ -49,13 +49,12 @@ export interface TicketsListResponse {
     success: boolean;
     message: string;
     data?: {
-        tickets?: Ticket[];
-        data?: Ticket[];
+        tickets: Ticket[];
         pagination?: {
             current_page: number;
-            last_page: number;
             per_page: number;
             total: number;
+            last_page: number;
         };
     };
     errors?: any;

@@ -152,7 +152,7 @@ const AllTickets: React.FC = () => {
 
                 const response = await TicketService.getAllTickets(params);
                 if (response.success && response.data) {
-                    const ticketsData = response.data.tickets || response.data.data || [];
+                    const ticketsData = response.data.tickets || [];
                     const pagination = response.data.pagination;
 
                     if (Array.isArray(ticketsData)) {
