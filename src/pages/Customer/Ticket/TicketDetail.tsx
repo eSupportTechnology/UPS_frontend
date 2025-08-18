@@ -16,7 +16,7 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
     const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
-    
+
     useEffect(() => {
         if (ticketId) {
             loadTicket(ticketId);
@@ -46,7 +46,7 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         if (!ticket?.photo_paths) return [];
 
         let photos: string[] = [];
-        
+
         try {
             if (typeof ticket.photo_paths === 'string') {
                 try {
@@ -62,57 +62,55 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
             } else if (Array.isArray(ticket.photo_paths)) {
                 photos = ticket.photo_paths;
             } else {
-                console.warn('Unexpected photo_paths format:', typeof ticket.photo_paths);
                 return [];
             }
 
             return photos
-                .filter(photo => photo && typeof photo === 'string' && photo.trim() !== '')
-                .filter(photo => {
+                .filter((photo) => photo && typeof photo === 'string' && photo.trim() !== '')
+                .filter((photo) => {
                     const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
                     const lowerPath = photo.toLowerCase();
-                    return validExtensions.some(ext => lowerPath.includes(ext)) || photo.startsWith('http');
+                    return validExtensions.some((ext) => lowerPath.includes(ext)) || photo.startsWith('http');
                 })
                 .slice(0, 20);
-
         } catch (error) {
-            console.error('Error processing photo paths:', error);
             return [];
         }
     }, [ticket?.photo_paths]);
 
     const handleImageError = useCallback((index: number) => {
-        setImageErrors(prev => new Set([...prev, index]));
+        setImageErrors((prev) => new Set([...prev, index]));
     }, []);
 
-    const ImageFallback = useCallback(() => (
-        <div className="flex items-center justify-center h-full bg-gray-200">
-            <div className="text-center p-4">
-                <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-xs text-gray-500">Failed to load</p>
+    const ImageFallback = useCallback(
+        () => (
+            <div className="flex items-center justify-center h-full bg-gray-200">
+                <div className="text-center p-4">
+                    <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                    </svg>
+                    <p className="text-xs text-gray-500">Failed to load</p>
+                </div>
             </div>
-        </div>
-    ), []);
+        ),
+        [],
+    );
 
     const loadTicket = async (ticketId: string) => {
         try {
             setLoading(true);
-            console.log('Loading ticket with ID:', ticketId);
-            
             const response = await ticketService.getTicketById(ticketId);
-            console.log('Ticket API response:', response);
-            
             if (response.success && response.data) {
-                console.log('Ticket data loaded successfully');
                 setTicket(response.data);
             } else {
-                console.log('Ticket not found or error:', response);
                 throw new Error(response.message || 'Failed to load ticket');
             }
         } catch (error: any) {
-            console.error('Error loading ticket:', error);
             showAlert({
                 type: 'error',
                 title: 'Error',
@@ -142,37 +140,32 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         if (!dateString || dateString === 'null' || dateString === 'undefined') {
             return 'Not Available';
         }
-        
+
         try {
             let parsedDate: Date;
-            
+
             if (dateString.includes('T') && dateString.includes('Z')) {
                 parsedDate = new Date(dateString);
-            }
-            else if (dateString.includes(' ') && dateString.includes('-')) {
+            } else if (dateString.includes(' ') && dateString.includes('-')) {
                 parsedDate = new Date(dateString.replace(' ', 'T') + 'Z');
-            }
-            else if (dateString.includes('-') && !dateString.includes(' ')) {
+            } else if (dateString.includes('-') && !dateString.includes(' ')) {
                 parsedDate = new Date(dateString + 'T00:00:00Z');
-            }
-            else {
+            } else {
                 parsedDate = new Date(dateString);
             }
-            
+
             if (isNaN(parsedDate.getTime())) {
                 return 'Invalid Date';
             }
-            
             return parsedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
             });
         } catch (error) {
-            console.error('Date formatting error:', error);
             return 'Date unavailable';
         }
     };
@@ -187,19 +180,22 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         setSelectedImageIndex(0);
     }, []);
 
-    const navigateImage = useCallback((direction: 'prev' | 'next', validPhotos: string[]) => {
-        if (!validPhotos.length) return;
-        
-        let newIndex = selectedImageIndex;
-        if (direction === 'prev') {
-            newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : validPhotos.length - 1;
-        } else {
-            newIndex = selectedImageIndex < validPhotos.length - 1 ? selectedImageIndex + 1 : 0;
-        }
-        
-        setSelectedImageIndex(newIndex);
-        setSelectedImage(getImageUrl(validPhotos[newIndex]));
-    }, [selectedImageIndex, getImageUrl]);
+    const navigateImage = useCallback(
+        (direction: 'prev' | 'next', validPhotos: string[]) => {
+            if (!validPhotos.length) return;
+
+            let newIndex = selectedImageIndex;
+            if (direction === 'prev') {
+                newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : validPhotos.length - 1;
+            } else {
+                newIndex = selectedImageIndex < validPhotos.length - 1 ? selectedImageIndex + 1 : 0;
+            }
+
+            setSelectedImageIndex(newIndex);
+            setSelectedImage(getImageUrl(validPhotos[newIndex]));
+        },
+        [selectedImageIndex, getImageUrl],
+    );
 
     if (loading) {
         return (
@@ -245,14 +241,11 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center p-4 border-b border-gray-200 sticky top-0 bg-white">
                     <h2 className="text-xl font-bold text-gray-800">Ticket Details</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-                    >
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl font-bold">
                         ×
                     </button>
                 </div>
-                
+
                 <div className="p-6">
                     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                         <div className="bg-primary text-white p-4">
@@ -263,7 +256,6 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
                                         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-white/20 text-white border border-white/30">
                                             {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                                         </span>
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -277,170 +269,176 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
                                 </div>
                             </div>
 
-                        {validPhotos.length > 0 && (
-                            <div>
-                                <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center">
-                                    <svg className="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Attachments ({validPhotos.length})
-                                </h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                    {validPhotos.map((photo, index) => {
-                                        const imageUrl = getImageUrl(photo);
-                                        const hasError = imageErrors.has(index);
+                            {validPhotos.length > 0 && (
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center">
+                                        <svg className="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                        Attachments ({validPhotos.length})
+                                    </h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                        {validPhotos.map((photo, index) => {
+                                            const imageUrl = getImageUrl(photo);
+                                            const hasError = imageErrors.has(index);
 
-                                        return (
-                                            <div 
-                                                key={index} 
-                                                className="relative group cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
-                                                onClick={() => openImageModal(imageUrl, index)}
-                                            >
-                                                <div className="aspect-square bg-gray-100 relative">
-                                                    {hasError ? (
-                                                        <ImageFallback />
-                                                    ) : (
-                                                        <img
-                                                            src={imageUrl}
-                                                            alt={`Attachment ${index + 1} - ${ticket.title}`}
-                                                            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                                                            onError={() => handleImageError(index)}
-                                                            loading="lazy"
-                                                        />
-                                                    )}
-                                                    
-                                                    {!hasError && (
-                                                        <>
-                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
-                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-2">
-                                                                    <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                                    </svg>
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="relative group cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+                                                    onClick={() => openImageModal(imageUrl, index)}
+                                                >
+                                                    <div className="aspect-square bg-gray-100 relative">
+                                                        {hasError ? (
+                                                            <ImageFallback />
+                                                        ) : (
+                                                            <img
+                                                                src={imageUrl}
+                                                                alt={`Attachment ${index + 1} - ${ticket.title}`}
+                                                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                                                onError={() => handleImageError(index)}
+                                                                loading="lazy"
+                                                            />
+                                                        )}
+
+                                                        {!hasError && (
+                                                            <>
+                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
+                                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-2">
+                                                                        <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                                        </svg>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            
-                                                            <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-medium">
-                                                                {index + 1}
-                                                            </div>
-                                                        </>
+
+                                                                <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-medium">{index + 1}</div>
+                                                            </>
+                                                        )}
+                                                    </div>
+
+                                                    {!hasError && (
+                                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                            <p className="text-white text-xs font-medium text-center">Click to view full size</p>
+                                                        </div>
                                                     )}
                                                 </div>
-                                                
-                                                {!hasError && (
-                                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                        <p className="text-white text-xs font-medium text-center">
-                                                            Click to view full size
-                                                        </p>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p className="text-xs font-medium text-blue-700">
+                                                {validPhotos.length} image{validPhotos.length !== 1 ? 's' : ''} attached • Click any image to view in full size
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {selectedImage && (
+                                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closeImageModal}>
+                                            <div className="relative max-w-7xl max-h-full flex items-center justify-center">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        closeImageModal();
+                                                    }}
+                                                    className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200"
+                                                >
+                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+
+                                                {validPhotos.length > 1 && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigateImage('prev', validPhotos);
+                                                        }}
+                                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+
+                                                {validPhotos.length > 1 && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigateImage('next', validPhotos);
+                                                        }}
+                                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+
+                                                {validPhotos.length > 1 && (
+                                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                                                        {selectedImageIndex + 1} / {validPhotos.length}
                                                     </div>
                                                 )}
+
+                                                <img
+                                                    src={selectedImage}
+                                                    alt={`Full size view - Attachment ${selectedImageIndex + 1}`}
+                                                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                                
-                                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <p className="text-xs font-medium text-blue-700">
-                                            {validPhotos.length} image{validPhotos.length !== 1 ? 's' : ''} attached • Click any image to view in full size
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {selectedImage && (
-                                    <div 
-                                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                                        onClick={closeImageModal}
-                                    >
-                                        <div className="relative max-w-7xl max-h-full flex items-center justify-center">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    closeImageModal();
-                                                }}
-                                                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200"
-                                            >
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-
-                                            {validPhotos.length > 1 && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        navigateImage('prev', validPhotos);
-                                                    }}
-                                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
-                                                >
-                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                                    </svg>
-                                                </button>
-                                            )}
-
-                                            {validPhotos.length > 1 && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        navigateImage('next', validPhotos);
-                                                    }}
-                                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
-                                                >
-                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                    </svg>
-                                                </button>
-                                            )}
-
-                                            {validPhotos.length > 1 && (
-                                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                                                    {selectedImageIndex + 1} / {validPhotos.length}
-                                                </div>
-                                            )}
-
-                                            <img
-                                                src={selectedImage}
-                                                alt={`Full size view - Attachment ${selectedImageIndex + 1}`}
-                                                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div>
-                            <h3 className="text-base font-semibold text-gray-900 mb-2">Ticket Information</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                    <div className="text-xs text-gray-500 mb-1">Status</div>
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
-                                        {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                                    </span>
+                                    )}
                                 </div>
-
-                                {(ticket.technician_name || ticket.assigned_to) && (
+                            )}
+                            <div>
+                                <h3 className="text-base font-semibold text-gray-900 mb-2">Ticket Information</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                     <div className="bg-gray-50 rounded-lg p-3">
-                                        <div className="text-xs text-gray-500 mb-1">Technician</div>
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {ticket.technician_name || `Technician ID: ${ticket.assigned_to}`}
+                                        <div className="text-xs text-gray-500 mb-1">Ticket ID</div>
+                                        <div className="text-sm font-medium text-gray-900">{ticket.id}</div>
+                                    </div>
+
+                                    <div className="bg-gray-50 rounded-lg p-3">
+                                        <div className="text-xs text-gray-500 mb-1">Status</div>
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                                            {ticket.status.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                        </span>
+                                    </div>
+
+                                    {(ticket.technician_name || ticket.assigned_to) && (
+                                        <div className="bg-gray-50 rounded-lg p-3">
+                                            <div className="text-xs text-gray-500 mb-1">Technician</div>
+                                            <div className="text-sm font-medium text-gray-900">{ticket.technician_name || `Technician ID: ${ticket.assigned_to}`}</div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                               
+                                    {ticket.accepted_at && (
+                                        <div className="bg-gray-50 rounded-lg p-3">
+                                            <div className="text-xs text-gray-500 mb-1">Accepted At</div>
+                                            <div className="text-sm font-medium text-gray-900">{formatDate(ticket.accepted_at)}</div>
+                                        </div>
+                                    )}
 
-                                {ticket.completed_at && (
-                                    <div className="bg-gray-50 rounded-lg p-3">
-                                        <div className="text-xs text-gray-500 mb-1">Completed At</div>
-                                        <div className="text-sm font-medium text-gray-900">{formatDate(ticket.completed_at)}</div>
-                                    </div>
-                                )}
+                                    {ticket.completed_at && (
+                                        <div className="bg-gray-50 rounded-lg p-3">
+                                            <div className="text-xs text-gray-500 mb-1">Completed At</div>
+                                            <div className="text-sm font-medium text-gray-900">{formatDate(ticket.completed_at)}</div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>

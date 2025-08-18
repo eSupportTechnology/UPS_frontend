@@ -4,9 +4,6 @@ import type { CreateTicketData, Ticket, TicketResponse, TicketsListResponse, Tic
 class TicketService {
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
         try {
-            
-
-            // Create FormData for multipart/form-data request
             const formData = new FormData();
 
             formData.append('customer_id', ticketData.customer_id.toString());
@@ -47,7 +44,7 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Create ticket error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -115,8 +112,7 @@ class TicketService {
             const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
             const response = await api.get(url);
-            console.log('Raw API response:', response);
-            console.log('Raw response data:', response.data);
+            // ...existing code...
 
             let tickets = [];
             let pagination = null;
@@ -144,8 +140,7 @@ class TicketService {
                 tickets = response.data;
             }
 
-            console.log('Parsed tickets:', tickets);
-            console.log('Parsed pagination:', pagination);
+            // ...existing code...
 
             return {
                 success: true,
@@ -156,13 +151,15 @@ class TicketService {
                 },
             };
         } catch (error: any) {
-            console.error('Get tickets error:', error);
-            console.log('Error details:', {
-                message: error.message,
-                code: error.code,
-                response: error.response?.data,
-                status: error.response?.status,
-            });
+            return {
+                success: false,
+                message: error.message || 'Failed to retrieve tickets',
+                errors: {
+                    code: error.code,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                },
+            };
 
             if (error.response) {
                 return {
@@ -186,7 +183,7 @@ class TicketService {
 
     async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
-            const targetTicketId = typeof ticketId === 'string' ? parseInt(ticketId) : ticketId;
+            const targetTicketId = String(ticketId);
 
             const customerTicketsResponse = await this.getCustomerTickets();
 
@@ -194,8 +191,7 @@ class TicketService {
                 const tickets = Array.isArray(customerTicketsResponse.data.tickets) ? customerTicketsResponse.data.tickets : [];
 
                 const foundTicket = tickets.find((ticket) => {
-                    const ticketIdNum = typeof ticket.id === 'string' ? parseInt(ticket.id) : ticket.id;
-                    return ticketIdNum === targetTicketId;
+                    return String(ticket.id) === targetTicketId;
                 });
 
                 if (foundTicket) {
@@ -217,13 +213,15 @@ class TicketService {
                 };
             }
         } catch (error: any) {
-            console.error('Get ticket error:', error);
-            console.log('Error details:', {
-                message: error.message,
-                code: error.code,
-                response: error.response?.data,
-                status: error.response?.status,
-            });
+            return {
+                success: false,
+                message: error.message || 'Failed to retrieve ticket',
+                errors: {
+                    code: error.code,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                },
+            };
 
             if (error.response) {
                 return {
@@ -260,83 +258,12 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Update ticket status error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
                     success: false,
                     message: error.response.data.message || 'Failed to update ticket status',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Add a comment to a ticket
-     */
-    async addTicketComment(ticketId: string, comment: string): Promise<TicketResponse> {
-        try {
-            const response = await api.post(`/tickets/${ticketId}/comments`, {
-                comment: comment,
-            });
-
-            return {
-                success: true,
-                message: response.data.message || 'Comment added successfully',
-                data: response.data.ticket,
-            };
-        } catch (error: any) {
-            console.error('Add comment error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to add comment',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Delete a ticket
-     */
-    async deleteTicket(ticketId: string): Promise<TicketResponse> {
-        try {
-            const response = await api.delete(`/tickets/${ticketId}`);
-
-            return {
-                success: true,
-                message: response.data.message || 'Ticket deleted successfully',
-            };
-        } catch (error: any) {
-            console.error('Delete ticket error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to delete ticket',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
@@ -376,7 +303,7 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Upload files error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -419,7 +346,6 @@ class TicketService {
                     message: 'Tickets retrieved successfully',
                     data: {
                         tickets: response.data.tickets.data || [],
-                        data: response.data.tickets.data || [],
                         pagination: {
                             current_page: response.data.tickets.current_page || 1,
                             last_page: response.data.tickets.last_page || 1,
@@ -435,7 +361,7 @@ class TicketService {
                 };
             }
         } catch (error: any) {
-            console.error('Get all tickets error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -470,7 +396,7 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Update ticket error:', error);
+            // ...existing code...
             if (error.response) {
                 return {
                     success: false,
@@ -553,7 +479,7 @@ class TicketService {
                 },
             };
         } catch (error: any) {
-            console.error('Get recent tickets error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -591,7 +517,7 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Assign ticket error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -613,9 +539,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Update ticket priority using assign endpoint (Super Admin)
-     */
     async updateTicketPriority(ticketId: string, priority: string, currentAssignedTo?: number | null): Promise<TicketResponse> {
         try {
             const response = await api.post('/assign-ticket', {
@@ -630,7 +553,7 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            console.error('Update ticket priority error:', error);
+            // ...existing code...
 
             if (error.response) {
                 return {
@@ -642,42 +565,6 @@ class TicketService {
                 return {
                     success: false,
                     message: 'Network error. Please check your connection and try again.',
-                };
-            } else {
-                return {
-                    success: false,
-                    message: 'An unexpected error occurred. Please try again.',
-                };
-            }
-        }
-    }
-
-    /**
-     * Get ticket statistics for dashboard
-     */
-    async getTicketStats(customerId?: number): Promise<TicketStatsResponse> {
-        try {
-            const params = customerId ? `?customer_id=${customerId}` : '';
-            const response = await api.get(`/tickets/stats${params}`);
-
-            return {
-                success: true,
-                message: 'Statistics retrieved successfully',
-                data: response.data.stats || response.data.data,
-            };
-        } catch (error: any) {
-            console.error('Get ticket stats error:', error);
-
-            if (error.response) {
-                return {
-                    success: false,
-                    message: error.response.data.message || 'Failed to retrieve statistics',
-                    errors: error.response.data.errors || error.response.data,
-                };
-            } else if (error.request) {
-                return {
-                    success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
                 };
             } else {
                 return {

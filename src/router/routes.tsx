@@ -9,7 +9,8 @@ import CreateAMCContract from '../pages/SuperAdmin/AMC/CreateAMCContract';
 import AllAMCContracts from '../pages/SuperAdmin/AMC/AllAMCContracts';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
-import AllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
+import SuperAdminAllTickets from '../pages/SuperAdmin/Ticket/AllTickets'; 
+
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
@@ -154,7 +155,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/all-tickets',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <AllTickets />
+            <SuperAdminAllTickets />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -200,7 +201,7 @@ export const routes: RouteType[] = [
         path: '/customer/ticket/:id',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
-                <TicketDetail />
+                <TicketDetail ticketId="" onClose={() => {}} />
             </ProtectedRoute>
         ),
         layout: 'blank',

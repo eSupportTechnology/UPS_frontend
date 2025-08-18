@@ -18,7 +18,7 @@ const AllTickets = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalTickets, setTotalTickets] = useState(0);
     const [perPage, setPerPage] = useState(10);
-    const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
 
     const loadTickets = async () => {
@@ -36,12 +36,9 @@ const AllTickets = () => {
                     setTotalTickets(response.data.pagination.total || 0);
                 }
             } else {
-                console.error('Response not successful:', response);
                 throw new Error(response.message || 'Failed to load tickets');
             }
         } catch (error: any) {
-            console.error('Error loading tickets:', error);
-
             if (error.message?.includes('422') || error.message?.includes('validation')) {
                 showAlert({
                     type: 'warning',
@@ -141,8 +138,10 @@ const AllTickets = () => {
         }
     };
 
-    const handleViewDetails = (ticketId: number) => {
-        console.log('Opening ticket detail modal:', ticketId);
+    const handleViewDetails = (ticketId: string) => {
+        if (!ticketId || ticketId.trim() === '') {
+            return;
+        }
         setSelectedTicketId(ticketId);
         setShowModal(true);
     };
@@ -377,14 +376,9 @@ const AllTickets = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Ticket Detail Modal */}
-            {showModal && selectedTicketId && (
-                <TicketDetailModal 
-                    ticketId={selectedTicketId.toString()} 
-                    onClose={handleCloseModal} 
-                />
-            )}
+            {showModal && selectedTicketId && <TicketDetailModal ticketId={selectedTicketId} onClose={handleCloseModal} />}
         </UserLayout>
     );
 };

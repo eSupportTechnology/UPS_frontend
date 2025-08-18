@@ -36,24 +36,6 @@ export interface TicketFilters {
     per_page?: number;
     sort_by?: string;
     sort_direction?: 'asc' | 'desc';
-
-}
-export interface Ticket {
-    id: number;
-    customer_id: number;
-    title: string;
-    description: string;
-    status: 'open' | 'in-progress' | 'resolved' | 'closed';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    photo_paths?: string[];
-    assigned_to?: string;
-    technician_name?: string;
-    technician_email?: string;
-    technician_phone?: string;
-    accepted_at?: string;
-    completed_at?: string;
-    created_at: string;
-    updated_at: string;
 }
 
 export interface TicketResponse {

@@ -31,7 +31,7 @@ function CreateTicket() {
                 setRecentTickets(response.data.tickets);
             }
         } catch (error) {
-            console.error('Failed to load recent tickets:', error);
+            // ...existing code...
         } finally {
             setLoadingTickets(false);
         }
@@ -150,7 +150,7 @@ function CreateTicket() {
                 throw new Error(response.message || 'Failed to create ticket');
             }
         } catch (error: any) {
-            console.error('Error creating ticket:', error);
+            // ...existing code...
             showAlert({
                 type: 'error',
                 title: 'Error',
