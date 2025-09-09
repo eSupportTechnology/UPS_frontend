@@ -1,5 +1,5 @@
 import api from '../config/api.config';
-import type { CreateTicketData, Ticket, TicketResponse, TicketsListResponse, TicketStatsResponse, TicketFilters } from '../types/ticket.types';
+import type { CreateTicketData, Ticket, TicketResponse, TicketsListResponse, TicketStatsResponse, TicketFilters, GNDivisionModule } from '../types/ticket.types';
 
 class TicketService {
     async createTicket(ticketData: CreateTicketData): Promise<TicketResponse> {
@@ -44,7 +44,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
             console.error('Create ticket error:', error);
 
             if (error.response) {
@@ -113,7 +112,6 @@ class TicketService {
             const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
             const response = await api.get(url);
-            // ...existing code...
 
             let tickets = [];
             let pagination = null;
@@ -140,8 +138,6 @@ class TicketService {
             } else if (Array.isArray(response.data)) {
                 tickets = response.data;
             }
-
-            // ...existing code...
 
             return {
                 success: true,
@@ -251,9 +247,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Update ticket status
-     */
     async updateTicketStatus(ticketId: string, status: string): Promise<TicketResponse> {
         try {
             const response = await api.patch(`/tickets/${ticketId}/status`, {
@@ -266,8 +259,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
-
             if (error.response) {
                 return {
                     success: false,
@@ -288,9 +279,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Upload additional files to an existing ticket
-     */
     async uploadTicketFiles(ticketId: string, files: File[]): Promise<TicketResponse> {
         try {
             const formData = new FormData();
@@ -311,8 +299,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
-
             if (error.response) {
                 return {
                     success: false,
@@ -333,9 +319,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get all tickets (Super Admin)
-     */
     async getAllTickets(filters: TicketFilters = {}): Promise<TicketsListResponse> {
         try {
             const params = new URLSearchParams();
@@ -369,8 +352,6 @@ class TicketService {
                 };
             }
         } catch (error: any) {
-            // ...existing code...
-
             if (error.response) {
                 return {
                     success: false,
@@ -391,9 +372,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Update a ticket (Super Admin)
-     */
     async updateTicket(ticketId: string, ticketData: any): Promise<TicketResponse> {
         try {
             const response = await api.put(`/update-ticket/${ticketId}`, ticketData);
@@ -404,7 +382,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
             if (error.response) {
                 return {
                     success: false,
@@ -425,9 +402,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Get recent tickets for a customer
-     */
     async getRecentTickets(customerId?: string): Promise<TicketsListResponse> {
         try {
             let endpoint = '';
@@ -487,7 +461,6 @@ class TicketService {
                 },
             };
         } catch (error: any) {
-            // ...existing code...
             console.error('Get recent tickets error:', error);
 
             if (error.response) {
@@ -510,9 +483,6 @@ class TicketService {
         }
     }
 
-    /**
-     * Assign a ticket to a technician (Super Admin)
-     */
     async assignTicket(ticketId: string, technicianId: string): Promise<TicketResponse> {
         try {
             const response = await api.post('/assign-ticket', {
@@ -526,8 +496,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
-
             if (error.response) {
                 return {
                     success: false,
@@ -562,8 +530,6 @@ class TicketService {
                 data: response.data.ticket,
             };
         } catch (error: any) {
-            // ...existing code...
-
             if (error.response) {
                 return {
                     success: false,
@@ -582,6 +548,12 @@ class TicketService {
                 };
             }
         }
+    }
+
+    async loadGNDivisionModule(): Promise<GNDivisionModule> {
+        const gnModule = await import('@rdilshan/gn-division');
+        const mod = gnModule.default ? gnModule.default : gnModule;
+        return mod as any as GNDivisionModule;
     }
 }
 

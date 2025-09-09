@@ -4,6 +4,7 @@ import UserLayout from '../../../components/Layouts/userLayout';
 import { useAlert } from '../../../components/Alert/Alert';
 import ticketService from '../../../services/ticketService';
 import type { CreateTicketData, Ticket } from '../../../types/ticket.types';
+import { GNDivisionModule } from '../../../types/ticket.types';
 
 function CreateTicket() {
     const navigate = useNavigate();
@@ -12,16 +13,53 @@ function CreateTicket() {
     const [recentTickets, setRecentTickets] = useState<Ticket[]>([]);
     const [loadingTickets, setLoadingTickets] = useState(true);
 
+    const [districts, setDistricts] = useState<string[]>([]);
+    const [cities, setCities] = useState<string[]>([]);
+    const [gnDivisions, setGnDivisions] = useState<string[]>([]);
+    const [loadingDistricts, setLoadingDistricts] = useState<boolean>(true);
+    const [loadingCities, setLoadingCities] = useState<boolean>(false);
+    const [loadingGnDivisions, setLoadingGnDivisions] = useState<boolean>(false);
+    const gnModuleRef = React.useRef<GNDivisionModule | null>(null);
+
     const [ticketForm, setTicketForm] = useState({
         title: '',
         description: '',
+        district: '',
+        city: '',
+        gnDivision: '',
     });
 
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     useEffect(() => {
         loadRecentTickets();
+        ticketService
+            .loadGNDivisionModule()
+            .then((module: GNDivisionModule) => {
+                gnModuleRef.current = module;
+                loadDistricts();
+            })
+            .catch((error: Error) => {
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Failed to load location data. Please refresh the page.',
+                });
+            });
     }, []);
+
+    const loadDistricts = () => {
+        setLoadingDistricts(true);
+        try {
+            if (!gnModuleRef.current) return;
+            const districts = gnModuleRef.current.getDistricts();
+            setDistricts(districts);
+        } catch {
+            setDistricts([]);
+        } finally {
+            setLoadingDistricts(false);
+        }
+    };
 
     const loadRecentTickets = async () => {
         try {
@@ -65,6 +103,42 @@ function CreateTicket() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setTicketForm((prev) => ({ ...prev, [name]: value }));
+        if (name === 'district') {
+            setTicketForm((prev) => ({ ...prev, city: '', gnDivision: '' }));
+            setCities([]);
+            setGnDivisions([]);
+            if (value) handleDistrictChange(value);
+        } else if (name === 'city') {
+            setTicketForm((prev) => ({ ...prev, gnDivision: '' }));
+            setGnDivisions([]);
+            if (value) handleCityChange(value);
+        }
+    };
+    const handleDistrictChange = (district: string) => {
+        setLoadingCities(true);
+        try {
+            if (!district || !gnModuleRef.current) {
+                setCities([]);
+                return;
+            }
+            setCities(gnModuleRef.current.getCities(district));
+        } catch {
+            setCities([]);
+        }
+        setLoadingCities(false);
+    };
+    const handleCityChange = (city: string) => {
+        setLoadingGnDivisions(true);
+        try {
+            if (!city || !ticketForm.district || !gnModuleRef.current) {
+                setGnDivisions([]);
+                return;
+            }
+            setGnDivisions(gnModuleRef.current.getDNDivisions(ticketForm.district, city));
+        } catch {
+            setGnDivisions([]);
+        }
+        setLoadingGnDivisions(false);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +147,7 @@ function CreateTicket() {
 
             const validFiles = files.filter((file) => {
                 const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-                const maxSize = 5 * 1024 * 1024; // 5MB
+                const maxSize = 5 * 1024 * 1024;
                 return validTypes.includes(file.type) && file.size <= maxSize;
             });
 
@@ -127,6 +201,9 @@ function CreateTicket() {
                 customer_id: customerId,
                 title: ticketForm.title,
                 description: ticketForm.description,
+                district: ticketForm.district,
+                city: ticketForm.city,
+                gn_division: ticketForm.gnDivision,
                 photos: selectedFiles.length > 0 ? selectedFiles : undefined,
             };
 
@@ -139,12 +216,10 @@ function CreateTicket() {
                     message: response.message || 'Support ticket created successfully! We will get back to you soon.',
                 });
 
-                setTicketForm({
-                    title: '',
-                    description: '',
-                });
+                setTicketForm({ title: '', description: '', district: '', city: '', gnDivision: '' });
                 setSelectedFiles([]);
-
+                setCities([]);
+                setGnDivisions([]);
                 loadRecentTickets();
             } else {
                 throw new Error(response.message || 'Failed to create ticket');
@@ -165,7 +240,6 @@ function CreateTicket() {
         <UserLayout>
             <AlertContainer />
 
-            {/* Content Area */}
             <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                     {/* Left Side - Recent Tickets & Support Section */}
@@ -223,7 +297,6 @@ function CreateTicket() {
                             </div>
                         </div>
 
-                        {/* Support Section */}
                         <div className="bg-primary/5 dark:bg-primary/10 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-xl border border-primary/20 dark:border-primary/30 overflow-hidden">
                             <div className="bg-primary text-white p-4 sm:p-6">
                                 <h3 className="text-lg font-semibold text-white mb-0 flex items-center">
@@ -291,18 +364,14 @@ function CreateTicket() {
                         </div>
                     </div>
 
-                    {/* Right Side - Create Ticket Form */}
                     <div className="lg:col-span-8">
-                        {/* Enhanced Create Ticket Form */}
                         <div className="bg-primary/5 dark:bg-primary/10 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-2xl border border-primary/20 dark:border-primary/30 overflow-hidden">
-                            {/* Form Header */}
                             <div className="bg-primary text-white p-4 sm:p-6 lg:p-8">
                                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Create Support Ticket</h2>
                                 <p className="text-sm text-white/80">Describe your issue and we'll get back to you as soon as possible</p>
                             </div>
 
                             <form onSubmit={handleSubmitTicket} className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-                                {/* Title Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="title" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         Issue Title *
@@ -331,7 +400,76 @@ function CreateTicket() {
                                     </div>
                                 </div>
 
-                                {/* File Upload Section */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <label htmlFor="district" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            District
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                id="district"
+                                                name="district"
+                                                value={ticketForm.district}
+                                                onChange={handleInputChange}
+                                                className="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border border-gray-300/50 dark:border-gray-600/50 rounded-lg sm:rounded-xl shadow-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 dark:bg-gray-700/50 dark:text-white transition-all duration-200 backdrop-blur-sm bg-white/50"
+                                            >
+                                                <option value="">{loadingDistricts ? 'Loading districts...' : 'Select District'}</option>
+                                                {districts.map((district, idx) => (
+                                                    <option key={district + '-' + idx} value={district}>
+                                                        {district}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label htmlFor="city" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            City
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                id="city"
+                                                name="city"
+                                                value={ticketForm.city}
+                                                onChange={handleInputChange}
+                                                disabled={!ticketForm.district}
+                                                className="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border border-gray-300/50 dark:border-gray-600/50 rounded-lg sm:rounded-xl shadow-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 dark:bg-gray-700/50 dark:text-white transition-all duration-200 backdrop-blur-sm bg-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                                            >
+                                                <option value="">{ticketForm.district ? (loadingCities ? 'Loading cities...' : 'Select City') : 'Select District First'}</option>
+                                                {cities.map((city, idx) => (
+                                                    <option key={city + '-' + idx} value={city}>
+                                                        {city}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label htmlFor="gnDivision" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Grama Niladhari Division
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                id="gnDivision"
+                                                name="gnDivision"
+                                                value={ticketForm.gnDivision}
+                                                onChange={handleInputChange}
+                                                disabled={!ticketForm.city}
+                                                className="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border border-gray-300/50 dark:border-gray-600/50 rounded-lg sm:rounded-xl shadow-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 dark:bg-gray-700/50 dark:text-white transition-all duration-200 backdrop-blur-sm bg-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                                            >
+                                                <option value="">{ticketForm.city ? (loadingGnDivisions ? 'Loading divisions...' : 'Select GN Division') : 'Select City First'}</option>
+                                                {gnDivisions.map((gnDivision, idx) => (
+                                                    <option key={gnDivision + '-' + idx} value={gnDivision}>
+                                                        {gnDivision}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-3 sm:space-y-4">
                                     <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Attachments (Optional)</label>
                                     <div className="relative">
@@ -357,7 +495,6 @@ function CreateTicket() {
                                         </label>
                                     </div>
 
-                                    {/* Display selected files */}
                                     {selectedFiles.length > 0 && (
                                         <div className="mt-3 sm:mt-4">
                                             <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selected Files:</h4>
@@ -388,7 +525,6 @@ function CreateTicket() {
                                     )}
                                 </div>
 
-                                {/* Enhanced Description */}
                                 <div className="space-y-2">
                                     <label htmlFor="description" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         Issue Description *
@@ -417,7 +553,6 @@ function CreateTicket() {
                                     </div>
                                 </div>
 
-                                {/* Enhanced Submit Button */}
                                 <div className="flex justify-center sm:justify-end pt-4 sm:pt-6 border-t border-primary/20 dark:border-primary/30">
                                     <button
                                         type="submit"

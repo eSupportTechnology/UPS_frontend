@@ -24,6 +24,9 @@ export interface CreateTicketData {
     customer_id: number;
     title: string;
     description: string;
+    district?: string;
+    city?: string;
+    gn_division?: string;
     photos?: File[];
 }
 
@@ -76,4 +79,16 @@ export interface TicketStatsResponse {
 export interface AssignTicketData {
     ticket_id: string;
     assigned_to: number;
+}
+
+export interface GNDivisionModule {
+    getDistricts: () => string[];
+    getCities: (districtName: string) => string[];
+    getDNDivisions: (districtName: string, cityName: string) => string[];
+}
+
+declare module '@rdilshan/gn-division' {
+    export function getDistricts(): string[];
+    export function getCities(districtName: string): string[];
+    export function getDNDivisions(districtName: string, cityName: string): string[];
 }
