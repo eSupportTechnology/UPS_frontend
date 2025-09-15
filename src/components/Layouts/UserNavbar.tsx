@@ -8,7 +8,7 @@ import { IRootState } from '../../store';
 import { useState, useEffect } from 'react';
 import IconCaretDown from '../Icon/IconCaretDown';
 
-const ZirconNavbar = () => {
+const Navbar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
     const { isLoading, user } = useSelector((state: IRootState) => state.auth);
@@ -477,4 +477,4 @@ const ZirconNavbar = () => {
     );
 };
 
-export default ZirconNavbar;
+export default Navbar;
