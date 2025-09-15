@@ -18,6 +18,9 @@ export interface Ticket {
     technician_name?: string;
     technician_email?: string;
     technician_phone?: string;
+    district?: string;
+    city?: string;
+    gramsewa_division?: string;
 }
 
 export interface CreateTicketData {

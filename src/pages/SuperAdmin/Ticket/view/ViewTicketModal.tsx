@@ -259,6 +259,33 @@ const ViewTicketModal: React.FC<ViewTicketModalProps> = ({ open, onClose, ticket
                                                 </div>
                                             </div>
 
+                                            {/* Location Information */}
+                                            {(displayTicket.district || displayTicket.city || displayTicket.gramsewa_division) && (
+                                                <div className="space-y-4">
+                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Location Information</h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        {displayTicket.district && (
+                                                            <div>
+                                                                <strong className="text-gray-700">District:</strong>
+                                                                <p className="mt-1 text-gray-900">{displayTicket.district}</p>
+                                                            </div>
+                                                        )}
+                                                        {displayTicket.city && (
+                                                            <div>
+                                                                <strong className="text-gray-700">City:</strong>
+                                                                <p className="mt-1 text-gray-900">{displayTicket.city}</p>
+                                                            </div>
+                                                        )}
+                                                        {displayTicket.gramsewa_division && (
+                                                            <div>
+                                                                <strong className="text-gray-700">Grama Niladhari Division:</strong>
+                                                                <p className="mt-1 text-gray-900">{displayTicket.gramsewa_division}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {validPhotos.length > 0 && (
                                                 <div className="space-y-4">
                                                     <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Ticket Images</h3>
