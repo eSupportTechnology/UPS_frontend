@@ -10,6 +10,10 @@ class TicketService {
             formData.append('title', ticketData.title);
             formData.append('description', ticketData.description);
 
+            if (ticketData.district) formData.append('district', ticketData.district);
+            if (ticketData.city) formData.append('city', ticketData.city);
+            if (ticketData.gn_division) formData.append('gramsewa_division', ticketData.gn_division);
+
             if (ticketData.photos && ticketData.photos.length > 0) {
                 const maxSize = 5 * 1024 * 1024;
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
