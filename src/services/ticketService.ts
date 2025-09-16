@@ -554,6 +554,145 @@ class TicketService {
         }
     }
 
+    async getTicketsByAssignedTo(technicianId: number, filters: TicketFilters = {}): Promise<TicketsListResponse> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.priority) params.append('priority', filters.priority);
+            if (filters.page) params.append('page', filters.page.toString());
+            if (filters.per_page) params.append('per_page', filters.per_page.toString());
+
+            const response = await api.get(`/tickets/assigned/${technicianId}?${params.toString()}`);
+            if (response.data) {
+                if (response.data.tickets) {
+                    return {
+                        success: true,
+                        message: 'Assigned tickets retrieved successfully',
+                        data: {
+                            tickets: response.data.tickets.data || response.data.tickets || [],
+                            pagination: {
+                                current_page: response.data.tickets.current_page || 1,
+                                last_page: response.data.tickets.last_page || 1,
+                                per_page: response.data.tickets.per_page || 10,
+                                total: response.data.tickets.total || 0,
+                            },
+                        },
+                    };
+                }
+                else if (response.data.data || Array.isArray(response.data)) {
+                    return {
+                        success: true,
+                        message: 'Assigned tickets retrieved successfully',
+                        data: {
+                            tickets: response.data.data || response.data || [],
+                            pagination: {
+                                current_page: response.data.current_page || 1,
+                                last_page: response.data.last_page || 1,
+                                per_page: response.data.per_page || 10,
+                                total: response.data.total || 0,
+                            },
+                        },
+                    };
+                }
+                else if (response.data.status && response.data.message) {
+                    return {
+                        success: false,
+                        message: response.data.message,
+                    };
+                }
+            }
+
+            return {
+                success: false,
+                message: 'Invalid response format',
+            };
+        } catch (error: any) {
+            if (error.response) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to retrieve assigned tickets',
+                    errors: error.response.data.errors || error.response.data,
+                };
+            } else if (error.request) {
+                return {
+                    success: false,
+                    message: 'Network error. Please check your connection and try again.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'An unexpected error occurred. Please try again.',
+                };
+            }
+        }
+    }
+
+    async acceptTicket(ticketId: string): Promise<TicketResponse> {
+        try {
+            const response = await api.post('/accept-ticket', {
+                ticket_id: ticketId,
+            });
+
+            return {
+                success: true,
+                message: 'Ticket accepted successfully',
+                data: response.data.ticket,
+            };
+        } catch (error: any) {
+            if (error.response) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to accept ticket',
+                    errors: error.response.data.errors || error.response.data,
+                };
+            } else if (error.request) {
+                return {
+                    success: false,
+                    message: 'Network error. Please check your connection and try again.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'An unexpected error occurred. Please try again.',
+                };
+            }
+        }
+    }
+
+    async completeTicket(ticketId: string): Promise<TicketResponse> {
+        try {
+            const response = await api.post('/complete-ticket', {
+                ticket_id: ticketId,
+            });
+
+            return {
+                success: true,
+                message: 'Ticket completed successfully',
+                data: response.data.ticket,
+            };
+        } catch (error: any) {
+            if (error.response) {
+                return {
+                    success: false,
+                    message: error.response.data.message || 'Failed to complete ticket',
+                    errors: error.response.data.errors || error.response.data,
+                };
+            } else if (error.request) {
+                return {
+                    success: false,
+                    message: 'Network error. Please check your connection and try again.',
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'An unexpected error occurred. Please try again.',
+                };
+            }
+        }
+    }
+
     async loadGNDivisionModule(): Promise<GNDivisionModule> {
         const gnModule = await import('@rdilshan/gn-division');
         const mod = gnModule.default ? gnModule.default : gnModule;

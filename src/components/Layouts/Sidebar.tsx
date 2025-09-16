@@ -52,51 +52,92 @@ const Sidebar = () => {
             dispatch(toggleSidebar());
         }
     }, [location]);
+    const getUserRole = () => {
+        try {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user.role?.toLowerCase() || 'user';
+            }
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+        }
+        return 'user';
+    };
 
-    const sidebarItems = [
-        {
-            label: t('Users'),
-            icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
-            key: 'users',
-            children: [
-                { label: t('Add'), link: '/super-admin/user-create' },
-                { label: t('All'), link: '/super-admin/all-user' },
-            ],
-        },
-        {
-            label: t('Inventory'),
-            icon: <IconMenuInventory className="group-hover:!text-primary shrink-0" />,
-            key: 'inventory',
-            children: [
-                { label: t('Add'), link: '/super-admin/inventory-create' },
-                { label: t('All'), link: '/super-admin/all-inventory' },
-            ],
-        },
-        {
-            label: t('Branches'),
-            icon: <IconMenuBranch className="group-hover:!text-primary shrink-0" />,
-            key: 'branches',
-            children: [
-                { label: t('Add'), link: '/super-admin/create-branch' },
-                { label: t('All'), link: '/super-admin/all-branches' },
-            ],
-        },
-        {
-            label: t('Contract'),
-            icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
-            key: 'contract',
-            children: [
-                { label: t('Add'), link: '/super-admin/create-contract' },
-                { label: t('All'), link: '/super-admin/all-contracts' },
-            ],
-        },
-        {
-            label: t('Tickets Maintenance'),
-            icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
-            key: 'tickets',
-            children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
-        },
-    ];
+    const userRole = getUserRole();
+
+
+    const getSidebarItems = () => {
+        if (userRole === 'technician') {
+            return [
+                {
+                    label: t('Dashboard'),
+                    icon: <IconMenuDashboard className="group-hover:!text-primary shrink-0" />,
+                    key: 'dashboard',
+                    children: [
+                        { label: t('Overview'), link: '/technician/dashboard' },
+                    ],
+                },
+                {
+                    label: t('My Tickets'),
+                    icon: <IconMenuChat className="group-hover:!text-primary shrink-0" />,
+                    key: 'tickets',
+                    children: [
+                        { label: t('Assigned Tickets'), link: '/technician/assigned-tickets' },
+                    ],
+                },
+            ];
+        } else {
+
+            return [
+                {
+                    label: t('Users'),
+                    icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+                    key: 'users',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/user-create' },
+                        { label: t('All'), link: '/super-admin/all-user' },
+                    ],
+                },
+                {
+                    label: t('Inventory'),
+                    icon: <IconMenuInventory className="group-hover:!text-primary shrink-0" />,
+                    key: 'inventory',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/inventory-create' },
+                        { label: t('All'), link: '/super-admin/all-inventory' },
+                    ],
+                },
+                {
+                    label: t('Branches'),
+                    icon: <IconMenuBranch className="group-hover:!text-primary shrink-0" />,
+                    key: 'branches',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/create-branch' },
+                        { label: t('All'), link: '/super-admin/all-branches' },
+                    ],
+                },
+                {
+                    label: t('Contract'),
+                    icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
+                    key: 'contract',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/create-contract' },
+                        { label: t('All'), link: '/super-admin/all-contracts' },
+                    ],
+                },
+                {
+                    label: t('Tickets Maintenance'),
+                    icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
+                    key: 'tickets',
+                    children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
+                },
+            ];
+        }
+    };
+
+    const sidebarItems = getSidebarItems();
 
     return (
         <div className={semidark ? 'dark' : ''}>
