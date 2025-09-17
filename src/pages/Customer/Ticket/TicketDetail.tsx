@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAlert } from '../../../components/Alert/Alert';
+import { API_BASE_URL } from '../../../config/api.config';
 import ticketService from '../../../services/ticketService';
 import type { Ticket } from '../../../types/ticket.types';
 
@@ -27,18 +28,15 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
             return photoPath;
         }
 
-        // Use the hosted backend URL with storage path
-        const baseUrl = 'https://ups.moratumullamethodistchurch.com';
-
         if (photoPath.startsWith('cdn/') || photoPath.startsWith('uploads/')) {
-            return `${baseUrl}/${photoPath}`;
+            return `${API_BASE_URL}/${photoPath}`;
         }
 
         if (photoPath.startsWith('storage/')) {
-            return `${baseUrl}/${photoPath}`;
+            return `${API_BASE_URL}/${photoPath}`;
         }
 
-        return `${baseUrl}/storage/${photoPath}`;
+        return `${API_BASE_URL}/storage/${photoPath}`;
     }, []);
 
     const validPhotos = useMemo(() => {
