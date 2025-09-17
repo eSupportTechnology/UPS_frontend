@@ -57,16 +57,14 @@ const ViewTicketModal: React.FC<ViewTicketModalProps> = ({ open, onClose, ticket
             return photoPath;
         }
 
+        // Use the hosted backend URL
+        const baseUrl = 'https://ups.moratumullamethodistchurch.com';
+
         if (photoPath.includes('storage/')) {
-            const baseUrl = import.meta.env.VITE_CDN_URL || import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
             return `${baseUrl}/${photoPath}`;
         } else {
-            const baseUrl = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
             return `${baseUrl}/storage/${photoPath}`;
         }
-
-        const baseUrl = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
-        return `${baseUrl}/storage/${photoPath}`;
     }, []);
 
     const validPhotos = useMemo(() => {
