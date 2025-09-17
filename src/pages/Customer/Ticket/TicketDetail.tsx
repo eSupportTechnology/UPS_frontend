@@ -27,17 +27,17 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
             return photoPath;
         }
 
+        // Use the hosted backend URL with storage path
+        const baseUrl = 'https://ups.moratumullamethodistchurch.com';
+
         if (photoPath.startsWith('cdn/') || photoPath.startsWith('uploads/')) {
-            const baseUrl = import.meta.env.VITE_CDN_URL || import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
             return `${baseUrl}/${photoPath}`;
         }
 
         if (photoPath.startsWith('storage/')) {
-            const baseUrl = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
             return `${baseUrl}/${photoPath}`;
         }
 
-        const baseUrl = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
         return `${baseUrl}/storage/${photoPath}`;
     }, []);
 
