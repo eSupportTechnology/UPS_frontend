@@ -97,58 +97,73 @@ const Navbar = () => {
     ];
 
     return (
-        <div className={semidark ? 'dark' : ''}>
-            {/* Top Contact Bar */}
-            <div className="bg-primary/80 backdrop-blur-md text-white py-2 px-4 text-sm">
+        <div className={`${semidark ? 'dark' : ''} sticky top-0 z-50`}>
+            {/* Professional Top Contact Bar */}
+            <div className="bg-gradient-to-r from-primary via-primary-dark to-primary bg-opacity-95 backdrop-blur-md text-white py-2 px-4 text-sm shadow-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center space-x-4">
-                        <span className="flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
-                            contact@yourdomain.com
-                        </span>
+                    <div className="flex items-center space-x-6">
+                        <div className="flex items-center group cursor-pointer">
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-2 group-hover:bg-white/20 transition-colors">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                </svg>
+                            </div>
+                            <span className="font-medium">support@ups.lk</span>
+                        </div>
+                        <div className="hidden md:flex items-center">
+                            <div className="w-1 h-1 rounded-full bg-white/40 mx-3"></div>
+                            <span className="text-white/80 text-xs">Available 24/7</span>
+                        </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                        <span className="flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                            </svg>
-                            07777 00 255
-                        </span>
-                        <button className="text-white hover:text-primary-light transition-colors">Support Center</button>
-                        <button className="text-white hover:text-primary-light transition-colors">Affiliates</button>
+                    <div className="hidden lg:flex items-center space-x-6">
+                        <div className="flex items-center group cursor-pointer">
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-2 group-hover:bg-white/20 transition-colors">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                </svg>
+                            </div>
+                            <span className="font-medium">077 77 00 255</span>
+                        </div>
+                        <div className="h-4 w-px bg-white/20"></div>
+                        <button className="px-3 py-1 text-white/90 hover:text-white transition-colors font-medium text-sm">
+                            Support Center
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Main Navigation */}
-            <nav className="bg-transparent shadow-none border-none sticky top-0 z-50">
+            {/* Enhanced Main Navigation */}
+            <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg shadow-lg border-none">
                 <div className="relative">
-                    {/* Subtle Decorative Elements */}
-                    <div className="absolute top-2 left-8 w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-full blur-lg"></div>
-                    <div className="absolute top-2 right-8 w-6 h-6 bg-primary/15 dark:bg-primary/25 rounded-full blur-lg"></div>
-                    <div className="absolute top-4 left-1/2 w-4 h-4 bg-primary/8 dark:bg-primary/15 rounded-full blur-sm"></div>
+                    {/* Elegant gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 via-white/10 to-purple-50/20 dark:from-gray-800/20 dark:via-gray-900/10 dark:to-gray-800/20"></div>
+
+                    {/* Subtle decorative elements */}
+                    <div className="absolute top-3 left-12 w-6 h-6 bg-primary/5 rounded-full blur-xl"></div>
+                    <div className="absolute top-1 right-16 w-8 h-8 bg-primary/8 rounded-full blur-lg"></div>
 
                     {/* Content */}
                     <div className="relative z-10">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex justify-between items-center h-16">
-                                {/* Logo Section */}
+                            <div className="flex justify-between items-center h-16 py-2">
+                                {/* Clean Logo Section */}
                                 <div className="flex items-center">
                                     <NavLink to="/" className="main-logo flex items-center shrink-0 group">
-                                        <div className="relative">
-                                            <img className="relative w-8 h-8 flex-none" src="/assets/images/logo.svg" alt="Zircon" />
+                                        <img className="w-8 h-8 flex-none" src="/assets/images/logo.svg" alt="UPS" />
+                                        <div className="ltr:ml-4 rtl:mr-4">
+                                            <div className="text-2xl font-bold align-middle lg:inline text-gray-800 dark:text-white group-hover:text-primary transition-colors duration-300">
+                                                UPS
+                                            </div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-none">
+                                                Client Portal
+                                            </div>
                                         </div>
-                                        <span className="text-2xl ltr:ml-3 rtl:mr-3 font-bold align-middle lg:inline text-dark dark:text-white group-hover:text-primary-light dark:group-hover:text-primary-light transition-colors duration-300">
-                                            UPS
-                                        </span>
                                     </NavLink>
                                 </div>
 
-                                {/* Navigation Menu - Moved more to the right */}
-                                <div className="hidden lg:flex items-center space-x-1 ml-auto mr-8">
+                                {/* Professional Navigation Menu */}
+                                <div className="hidden lg:flex items-center space-x-2 ml-auto mr-8">
                                     {navigationItems.map((item) => (
                                         <div className="relative dropdown-menu" key={item.key}>
                                             {item.children ? (
@@ -157,8 +172,10 @@ const Navbar = () => {
                                                     <button
                                                         type="button"
                                                         className={`${
-                                                            currentMenu === item.key ? 'text-white bg-white/20' : 'text-white/90 hover:text-white'
-                                                        } flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white/10 relative`}
+                                                            currentMenu === item.key
+                                                                ? 'text-primary bg-primary/10 border-primary/20 shadow-sm'
+                                                                : 'text-gray-700 dark:text-gray-200 hover:text-primary hover:bg-primary/5'
+                                                        } flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 border border-transparent hover:border-primary/10 hover:shadow-sm relative`}
                                                         onClick={() => toggleMenu(item.key)}
                                                     >
                                                         {item.icon && <div className="w-4 h-4 mr-2">{item.icon}</div>}
@@ -194,8 +211,10 @@ const Navbar = () => {
                                                 <NavLink
                                                     to={item.link!}
                                                     className={({ isActive }) =>
-                                                        `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative ${
-                                                            isActive ? 'text-white bg-white/20' : 'text-white/90 hover:text-white hover:bg-white/10'
+                                                        `flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 border border-transparent hover:border-primary/10 hover:shadow-sm relative ${
+                                                            isActive
+                                                                ? 'text-primary bg-primary/10 border-primary/20 shadow-sm'
+                                                                : 'text-gray-700 dark:text-gray-200 hover:text-primary hover:bg-primary/5'
                                                         }`
                                                     }
                                                 >
@@ -209,17 +228,15 @@ const Navbar = () => {
                                     ))}
                                 </div>
 
-                                {/* Right Section - User Profile Dropdown */}
+                                {/* Clean User Profile Section */}
                                 <div className="hidden md:flex items-center space-x-4">
                                     <div className="relative dropdown-menu">
                                         <button
                                             type="button"
-                                            className={`${
-                                                currentMenu === 'profile' ? 'bg-primary-dark text-white' : 'bg-primary text-white hover:bg-primary-dark'
-                                            } px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl`}
+                                            className="text-gray-700 dark:text-gray-200 hover:text-primary transition-colors duration-300 flex items-center space-x-2 text-sm font-medium"
                                             onClick={() => toggleMenu('profile')}
                                         >
-                                            <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xs font-bold border border-white/30">
+                                            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
                                                 {getUserInitials(user?.name)}
                                             </div>
                                             <span>{getUserFirstName(user?.name)}</span>
@@ -257,39 +274,6 @@ const Navbar = () => {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
                                                     My Profile
-                                                </NavLink>
-
-                                                <NavLink
-                                                    to="/customer/settings"
-                                                    className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200"
-                                                    onClick={() => setCurrentMenu('')}
-                                                >
-                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                                                        />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    Settings
-                                                </NavLink>
-
-                                                <NavLink
-                                                    to="/customer/help"
-                                                    className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200"
-                                                    onClick={() => setCurrentMenu('')}
-                                                >
-                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                        />
-                                                    </svg>
-                                                    Help & Support
                                                 </NavLink>
                                             </div>
 
