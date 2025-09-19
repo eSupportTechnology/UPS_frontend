@@ -17,6 +17,7 @@ import IconMenuComponents from '../Icon/Menu/IconMenuComponents';
 import IconMenuContract from '../Icon/Menu/IconMenuContract';
 import IconMenuInventory from '../Icon/Menu/IconMenuInventory';
 import IconMenuBranch from '../Icon/Menu/IconMenuBranch';
+import IconMapPin from '../Icon/IconMapPin';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -132,6 +133,12 @@ const Sidebar = () => {
                     icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
                     key: 'tickets',
                     children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
+                },
+                {
+                    label: String(t('Technician Track')),
+                    icon: <IconMapPin className="group-hover:!text-primary shrink-0" />,
+                    key: 'technician-track',
+                    children: [{ label: String(t('Live Tracking')), link: '/super-admin/technician-track' }],
                 },
             ];
         }
