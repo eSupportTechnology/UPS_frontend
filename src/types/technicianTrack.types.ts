@@ -1,18 +1,22 @@
 export interface TechnicianLocation {
     id: number;
-    technician_id: number;
+    technician_id: string;
     technician_name: string;
     email: string;
     phone?: string;
     latitude: number;
     longitude: number;
     last_updated: string;
+    lat: number;
+    lng: number;
     is_online: boolean;
     status: 'active' | 'idle' | 'offline';
     current_ticket_id?: number;
     current_ticket_title?: string;
     current_ticket_priority?: 'low' | 'medium' | 'high' | 'urgent';
 }
+
+
 
 export interface TechnicianTrackResponse {
     success: boolean;
