@@ -25,6 +25,7 @@
         "axios": "^1.10.0",
         "get-srilanka-districts-cities": "^1.0.3",
         "laravel-echo": "^2.2.3",
+        "lucide-react": "^0.544.0",
         "pusher-js": "^8.4.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

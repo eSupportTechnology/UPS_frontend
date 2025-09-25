@@ -3,13 +3,9 @@ import api from '../config/api.config';
 
 export const trackService = {
     async getAllJobs(): Promise<Job[]> {
-        const res = await api.get("/all-tickets");
+        const res = await api.get("/jobs");
         if (Array.isArray(res.data)) {
             return res.data;
-        } else if (res.data?.data && Array.isArray(res.data.data)) {
-            return res.data.data;
-        } else if (res.data?.jobs && Array.isArray(res.data.jobs)) {
-            return res.data.jobs;
         }
         return [];
     },
@@ -28,4 +24,10 @@ export const trackService = {
         const res = await api.post(`/tracks/${trackId}/end`);
         return res.data;
     },
+
+    async getTrackByJob(jobId: string): Promise<Track> {
+        const res = await api.get(`/jobs/${jobId}/track`);
+        return res.data;
+    }
+
 };
