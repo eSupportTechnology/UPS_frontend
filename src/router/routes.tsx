@@ -10,7 +10,7 @@ import AllAMCContracts from '../pages/SuperAdmin/AMC/AllAMCContracts';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 import SuperAdminAllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
-import TechnicianLiveTrack from '../pages/SuperAdmin/TechnicianTrack/TechnicianLiveTrack'; 
+import JobSelector from '../pages/SuperAdmin/TechnicianTrack/JobSelector';
 
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
@@ -184,7 +184,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/technician-track',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-                <TechnicianLiveTrack />
+                <JobSelector />
             </ProtectedRoute>
         ),
         layout: 'default',
