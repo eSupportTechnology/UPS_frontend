@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import IconX from '../../../../components/Icon/IconX';
-import { AMCContract, MaintenanceData } from '../../../../types/amcContract.types';
+import { AMCContract } from '../../../../types/amcContract.types';
 import { User } from '../../../../types/user.types';
 import { UserService } from '../../../../services/userService';
 import { AMCContractService } from '../../../../services/amcContractService';
@@ -35,7 +35,6 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                 setTechnicians(response.data);
             }
         } catch (error) {
-            console.error('Failed to fetch technicians:', error);
         } finally {
             setIsLoadingTechnicians(false);
         }
@@ -45,10 +44,9 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
         setAssigningMaintenance(maintenanceId);
         try {
             const response = await AMCContractService.assignTechnicianToMaintenance(maintenanceId, technicianId);
-            if (response.status === 200 || response.message.includes('successfully')) {
-                // Update local contract state immediately
+            if (response.status === 'success' || response.message.includes('successfully')) {
                 if (localContract) {
-                    const selectedTechnician = technicians.find(t => t.id.toString() === technicianId);
+                    const selectedTechnician = technicians.find(t => t.id.toString() === technicianId.toString());
                     const updatedContract = {
                         ...localContract,
                         maintenances: localContract.maintenances?.map(m =>
@@ -69,7 +67,6 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                     setLocalContract(updatedContract);
                 }
 
-                // Trigger parent refresh to get updated data from backend
                 if (onUpdate) {
                     onUpdate();
                 }
@@ -197,21 +194,22 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                                                                                             'Assigning...'
                                                                                         ) : (() => {
                                                                                             const assignedId = maintenance.assigned_to || maintenance.assigned_technician_id;
+
                                                                                             if (!assignedId) {
                                                                                                 return 'Select Technician';
                                                                                             }
 
-                                                                                            // Use backend-provided technician data first, then fallback to search
                                                                                             if (maintenance.assigned_technician?.name) {
                                                                                                 return `👤 ${maintenance.assigned_technician.name}`;
                                                                                             }
 
                                                                                             // Fallback: search in current technicians list
-                                                                                            const assignedTechnician = technicians.find(t =>
-                                                                                                t.id.toString() === assignedId ||
-                                                                                                t.id === assignedId ||
-                                                                                                t.id === parseInt(assignedId || '0')
-                                                                                            );
+                                                                                            const assignedTechnician = technicians.find(t => {
+                                                                                                const techId = t.id.toString();
+                                                                                                const assignedIdStr = assignedId?.toString() || '';
+                                                                                                const match = techId === assignedIdStr;
+                                                                                                return match;
+                                                                                            });
 
                                                                                             if (assignedTechnician) {
                                                                                                 return `👤 ${assignedTechnician.name}`;
