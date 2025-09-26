@@ -20,9 +20,7 @@ export class AMCContractService {
                 delete params.per_page;
             }
 
-            console.log('API Request params:', params);
             const response = await api.get<ContractListResponse>('/all-contract', { params });
-            console.log('Raw API response:', response.data);
 
             const contracts = response.data.contracts;
             return {
@@ -35,7 +33,6 @@ export class AMCContractService {
                 to: contracts.to,
             };
         } catch (error: any) {
-            console.error('API Error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to fetch contracts' };
         }
     }
@@ -68,11 +65,9 @@ export class AMCContractService {
                 }
             });
 
-            console.log('Sending update data:', cleanData);
             const response = await api.put(`/update-amc-contract/${id}`, cleanData);
             return response.data;
         } catch (error: any) {
-            console.error('Update error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to update contract' };
         }
     }
@@ -91,7 +86,6 @@ export class AMCContractService {
             const response = await api.post<{ status: string; message: string }>(`/amc-contracts-activate/${id}`);
             return response.data;
         } catch (error: any) {
-            console.error('Activate error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to activate contract' };
         }
     }
@@ -101,7 +95,6 @@ export class AMCContractService {
             const response = await api.post<{ status: string; message: string }>(`/amc-contracts-deactivate/${id}`);
             return response.data;
         } catch (error: any) {
-            console.error('Deactivate error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to deactivate contract' };
         }
     }
@@ -111,7 +104,6 @@ export class AMCContractService {
             const response = await api.put<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance/${maintenanceId}/status`, { status });
             return response.data;
         } catch (error: any) {
-            console.error('Update maintenance status error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to update maintenance status' };
         }
     }
@@ -121,7 +113,6 @@ export class AMCContractService {
             const response = await api.post<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance`, maintenance);
             return response.data;
         } catch (error: any) {
-            console.error('Add maintenance error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to add maintenance' };
         }
     }
@@ -131,8 +122,29 @@ export class AMCContractService {
             const response = await api.delete<{ status: string; message: string }>(`/amc-contract/${contractId}/maintenance/${maintenanceId}`);
             return response.data;
         } catch (error: any) {
-            console.error('Delete maintenance error:', error.response?.data || error.message);
             throw error.response?.data || { message: 'Failed to delete maintenance' };
+        }
+    }
+
+    static async assignTechnicianToMaintenance(maintenanceId: string, technicianId: string): Promise<{ status: string; message: string }> {
+        try {
+            const response = await api.post<{ status: string; message: string }>('/assign-maintenance', {
+                maintenance_id: maintenanceId,
+                assigned_to: technicianId
+            });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to assign technician to maintenance' };
+        }
+    }
+
+    static async getMaintenanceDetails(contractId: string): Promise<any> {
+        try {
+
+            const response = await api.get(`/amc-contract/${contractId}/maintenances`);
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to get maintenance details' };
         }
     }
 }
