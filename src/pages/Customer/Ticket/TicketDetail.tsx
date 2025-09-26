@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAlert } from '../../../components/Alert/Alert';
-import { API_BASE_URL } from '../../../config/api.config';
 import ticketService from '../../../services/ticketService';
 import type { Ticket } from '../../../types/ticket.types';
 
@@ -29,14 +28,14 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         }
 
         if (photoPath.startsWith('cdn/') || photoPath.startsWith('uploads/')) {
-            return `${API_BASE_URL}/${photoPath}`;
+            return `${import.meta.env.VITE_API_URL}/${photoPath}`;
         }
 
         if (photoPath.startsWith('storage/')) {
-            return `${API_BASE_URL}/${photoPath}`;
+            return `${import.meta.env.VITE_API_URL}/${photoPath}`;
         }
 
-        return `${API_BASE_URL}/storage/${photoPath}`;
+        return `${import.meta.env.VITE_API_URL}/storage/${photoPath}`;
     }, []);
 
     const validPhotos = useMemo(() => {
