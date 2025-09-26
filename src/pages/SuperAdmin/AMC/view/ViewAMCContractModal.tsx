@@ -1,10 +1,11 @@
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useRef } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import IconX from '../../../../components/Icon/IconX';
 import { AMCContract } from '../../../../types/amcContract.types';
 import { User } from '../../../../types/user.types';
 import { UserService } from '../../../../services/userService';
 import { AMCContractService } from '../../../../services/amcContractService';
+import { useAlert } from '../../../../components/Alert/Alert';
 
 interface ViewAMCContractModalProps {
     open: boolean;
@@ -14,6 +15,7 @@ interface ViewAMCContractModalProps {
 }
 
 const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClose, contract, onUpdate }) => {
+    const { showAlert } = useAlert();
     const [technicians, setTechnicians] = useState<User[]>([]);
     const [isLoadingTechnicians, setIsLoadingTechnicians] = useState(false);
     const [assigningMaintenance, setAssigningMaintenance] = useState<string | null>(null);
@@ -71,10 +73,10 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                     onUpdate();
                 }
             } else {
-                alert('Failed to assign technician: ' + response.message);
+                showAlert('error', 'Failed to assign technician: ' + response.message);
             }
         } catch (error: any) {
-            alert('Failed to assign technician. Please try again.');
+            showAlert('error', 'Failed to assign technician. Please try again.');
         } finally {
             setAssigningMaintenance(null);
         }
@@ -86,7 +88,7 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
             <TransitionChild as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                 <div className="fixed inset-0 bg-[black]/60" />
             </TransitionChild>
-            <div className="fixed inset-0 overflow-y-auto">
+            <div className="fixed inset-0 overflow-hidden">
                 <div className="flex min-h-full items-center justify-center px-4 py-8">
                     <TransitionChild
                         as={Fragment}
@@ -97,12 +99,12 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
-                        <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-4xl max-h-[90vh] text-black dark:text-white-dark">
+                        <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-5xl max-h-[95vh] text-black dark:text-white-dark scrollbar-none">
                             <button type="button" onClick={onClose} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 outline-none">
                                 <IconX />
                             </button>
                             <div className="text-lg font-medium bg-[#fbfbfb] ltr:pl-5 py-3 ltr:pr-[50px]">{localContract ? `View: ${localContract.contract_type}` : 'View AMC Contract'}</div>
-                            <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
+                            <div className="p-5 overflow-hidden max-h-[calc(95vh-80px)]">
                                 {localContract && (
                                     <>
                                         {/* Contract Details Section */}
@@ -143,7 +145,17 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                                         <div className="mb-6">
                                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Maintenance Schedule</h3>
                                             {localContract.maintenances && localContract.maintenances.length > 0 ? (
-                                                <div className="overflow-x-auto">
+                                                <div
+                                                    className="overflow-hidden"
+                                                    onWheel={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    onScroll={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                >
                                                     <table className="w-full text-sm text-left text-gray-500">
                                                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                                                             <tr>
@@ -224,7 +236,17 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                                                                                         </svg>
                                                                                     </span>
                                                                                 </ListboxButton>
-                                                                                <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                                                <ListboxOptions
+                                                                                    className="listbox-options absolute z-50 mt-1 w-full overflow-y-scroll overflow-x-hidden rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+                                                                                    style={{
+                                                                                        maxHeight: '120px',
+                                                                                        scrollbarWidth: '8px',
+                                                                                        scrollbarColor: '#9CA3AF #F3F4F6'
+                                                                                    }}
+                                                                                    onWheel={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                    }}
+                                                                                >
                                                                                     {isLoadingTechnicians ? (
                                                                                         <ListboxOption value="" disabled className="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-500">
                                                                                             Loading technicians...
