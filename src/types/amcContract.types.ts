@@ -3,7 +3,14 @@ export interface MaintenanceData {
     amc_contract_id?: string;
     scheduled_date: string;
     note: string;
-    status: 'pending' | 'completed' | 'missed';
+    status: 'pending' | 'completed' | 'missed' | 'assigned';
+    assigned_to?: string;
+    assigned_technician_id?: string;
+    assigned_technician?: {
+        id: string;
+        name: string;
+        email: string;
+    };
     created_at?: string;
     updated_at?: string;
 }
