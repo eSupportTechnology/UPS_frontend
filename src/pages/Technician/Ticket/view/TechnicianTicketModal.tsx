@@ -4,6 +4,7 @@ import IconX from '../../../../components/Icon/IconX';
 import { Ticket } from '../../../../types/ticket.types';
 import { TicketService } from '../../../../services/ticketService';
 import { useAlert } from '../../../../components/Alert/Alert';
+import { processTicketPhotos } from '../../../../utils/imageUtils';
 
 interface TechnicianTicketModalProps {
     open: boolean;
@@ -54,47 +55,9 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
 
     const displayTicket = fullTicketData || ticket;
 
-    const getImageUrl = useCallback((photoPath: string): string => {
-        if (!photoPath) return '';
-
-        if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
-            return photoPath;
-        }
-
-        // Use the hosted backend URL
-        const baseUrl = 'https://ups.moratumullamethodistchurch.com';
-
-        if (photoPath.includes('storage/')) {
-            return `${baseUrl}/${photoPath}`;
-        } else {
-            return `${baseUrl}/storage/${photoPath}`;
-        }
-    }, []);
-
     const validPhotos = useMemo(() => {
-        if (!displayTicket?.photo_paths) return [];
-
-        let photos: string[] = [];
-
-        if (typeof displayTicket.photo_paths === 'string') {
-            try {
-                const parsed = JSON.parse(displayTicket.photo_paths);
-                photos = Array.isArray(parsed) ? parsed : [displayTicket.photo_paths];
-            } catch {
-                photos = [displayTicket.photo_paths];
-            }
-        } else if (Array.isArray(displayTicket.photo_paths)) {
-            photos = displayTicket.photo_paths;
-        }
-
-        return photos
-            .filter((photo) => photo && photo.trim() !== '')
-            .filter((photo) => {
-                const ext = photo.split('.').pop()?.toLowerCase();
-                return ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
-            })
-            .map((photo) => getImageUrl(photo));
-    }, [displayTicket?.photo_paths, getImageUrl]);
+        return processTicketPhotos(displayTicket?.photo_paths);
+    }, [displayTicket?.photo_paths]);
 
     const handleImageError = useCallback((index: number) => {
         setImageErrors((prev) => ({ ...prev, [index]: true }));
