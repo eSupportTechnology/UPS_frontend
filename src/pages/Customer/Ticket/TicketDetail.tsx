@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAlert } from '../../../components/Alert/Alert';
 import ticketService from '../../../services/ticketService';
 import type { Ticket } from '../../../types/ticket.types';
+import { processTicketPhotos } from '../../../utils/imageUtils';
 
 interface TicketDetailModalProps {
     ticketId: string | null;
@@ -22,55 +23,8 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
         }
     }, [ticketId]);
 
-    const getImageUrl = useCallback((photoPath: string): string => {
-        if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
-            return photoPath;
-        }
-
-        if (photoPath.startsWith('cdn/') || photoPath.startsWith('uploads/')) {
-            return `${import.meta.env.VITE_API_URL}/${photoPath}`;
-        }
-
-        if (photoPath.startsWith('storage/')) {
-            return `${import.meta.env.VITE_API_URL}/${photoPath}`;
-        }
-
-        return `${import.meta.env.VITE_API_URL}/storage/${photoPath}`;
-    }, []);
-
     const validPhotos = useMemo(() => {
-        if (!ticket?.photo_paths) return [];
-
-        let photos: string[] = [];
-        try {
-            if (typeof ticket.photo_paths === 'string') {
-                try {
-                    const parsed = JSON.parse(ticket.photo_paths);
-                    if (Array.isArray(parsed)) {
-                        photos = parsed;
-                    } else if (typeof parsed === 'string') {
-                        photos = [parsed];
-                    }
-                } catch {
-                    photos = [ticket.photo_paths];
-                }
-            } else if (Array.isArray(ticket.photo_paths)) {
-                photos = ticket.photo_paths;
-            } else {
-                return [];
-            }
-
-            return photos
-                .filter((photo) => photo && typeof photo === 'string' && photo.trim() !== '')
-                .filter((photo) => {
-                    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-                    const lowerPath = photo.toLowerCase();
-                    return validExtensions.some((ext) => lowerPath.includes(ext)) || photo.startsWith('http');
-                })
-                .slice(0, 20);
-        } catch (error) {
-            return [];
-        }
+        return processTicketPhotos(ticket?.photo_paths);
     }, [ticket?.photo_paths]);
 
     const handleImageError = useCallback((index: number) => {
@@ -187,9 +141,9 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
             }
 
             setSelectedImageIndex(newIndex);
-            setSelectedImage(getImageUrl(validPhotos[newIndex]));
+            setSelectedImage(validPhotos[newIndex]);
         },
-        [selectedImageIndex, getImageUrl],
+        [selectedImageIndex, validPhotos],
     );
 
     if (loading) {
@@ -279,21 +233,20 @@ function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
                                     </h3>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                         {validPhotos.map((photo, index) => {
-                                            const imageUrl = getImageUrl(photo);
                                             const hasError = imageErrors.has(index);
 
                                             return (
                                                 <div
                                                     key={index}
                                                     className="relative group cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
-                                                    onClick={() => openImageModal(imageUrl, index)}
+                                                    onClick={() => openImageModal(photo, index)}
                                                 >
                                                     <div className="aspect-square bg-gray-100 relative">
                                                         {hasError ? (
                                                             <ImageFallback />
                                                         ) : (
                                                             <img
-                                                                src={imageUrl}
+                                                                src={photo}
                                                                 alt={`Attachment ${index + 1} - ${ticket.title}`}
                                                                 className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                                                                 onError={() => handleImageError(index)}
