@@ -4,6 +4,10 @@ import IconX from '../../../../components/Icon/IconX';
 import { Ticket } from '../../../../types/ticket.types';
 import { TicketService } from '../../../../services/ticketService';
 import { useAlert } from '../../../../components/Alert/Alert';
+import InventoryUsageModal from './InventoryUsageModal';
+import InventoryReturnModal from './InventoryReturnModal';
+import { InventoryService } from '../../../../services/inventoryService';
+import { InventoryUsageItem } from '../../../../types/inventory.types';
 import { processTicketPhotos } from '../../../../utils/imageUtils';
 
 interface TechnicianTicketModalProps {
@@ -20,6 +24,8 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+    const [showInventoryUsageModal, setShowInventoryUsageModal] = useState(false);
+    const [showInventoryReturnModal, setShowInventoryReturnModal] = useState(false);
 
     useEffect(() => {
         const fetchTicketDetails = async () => {
@@ -147,24 +153,41 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
 
     const handleAcceptTicket = async () => {
         if (!displayTicket?.id) return;
+        setShowInventoryUsageModal(true);
+    };
+
+    const handleCompleteTicket = async () => {
+        if (!displayTicket?.id) return;
+        setShowInventoryReturnModal(true);
+    };
+
+    const handleInventoryUsage = async (usages: InventoryUsageItem[], notes: string) => {
+        if (!displayTicket?.id) return;
 
         try {
             setActionLoading(true);
+
+            await InventoryService.createInventoryUsage({
+                reference_id: displayTicket.id,
+                usage_type: 'maintenance',
+                usages,
+                usage_date: new Date().toISOString().split('T')[0],
+                notes,
+            });
+
             const response = await TicketService.acceptTicket(displayTicket.id);
 
             if (response.success) {
                 showAlert({
                     type: 'success',
                     title: 'Success',
-                    message: 'Ticket accepted successfully!',
+                    message: 'Inventory usage recorded and ticket accepted successfully!',
                 });
 
-                // Update the ticket status locally
                 if (fullTicketData) {
                     setFullTicketData({ ...fullTicketData, status: 'accepted' });
                 }
 
-                // Close modal and refresh parent component
                 setTimeout(() => {
                     onClose();
                 }, 1000);
@@ -175,25 +198,34 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
             showAlert({
                 type: 'error',
                 title: 'Error',
-                message: error.message || 'Failed to accept ticket. Please try again.',
+                message: error.message || 'Failed to process inventory usage and accept ticket',
             });
         } finally {
             setActionLoading(false);
         }
     };
 
-    const handleCompleteTicket = async () => {
+    const handleInventoryReturn = async (returns: InventoryUsageItem[], notes: string) => {
         if (!displayTicket?.id) return;
 
         try {
             setActionLoading(true);
+
+            await InventoryService.returnInventoryItems({
+                reference_id: displayTicket.id,
+                usage_type: 'maintenance',
+                usages: returns,
+                return_date: new Date().toISOString().split('T')[0],
+                notes,
+            });
+
             const response = await TicketService.completeTicket(displayTicket.id);
 
             if (response.success) {
                 showAlert({
                     type: 'success',
                     title: 'Success',
-                    message: 'Ticket completed successfully!',
+                    message: 'Inventory return recorded and ticket completed successfully!',
                 });
 
                 // Update the ticket status locally
@@ -212,11 +244,16 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
             showAlert({
                 type: 'error',
                 title: 'Error',
-                message: error.message || 'Failed to complete ticket. Please try again.',
+                message: error.message || 'Failed to process inventory return and complete ticket',
             });
         } finally {
             setActionLoading(false);
         }
+    };
+
+    const handleCloseInventoryModals = () => {
+        setShowInventoryUsageModal(false);
+        setShowInventoryReturnModal(false);
     };
 
     const canAccept = displayTicket?.status === 'assigned';
@@ -224,6 +261,7 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
     const isCompleted = displayTicket?.status === 'completed';
 
     return (
+        <>
         <Transition appear show={open} as={Fragment}>
             <Dialog as="div" open={open} onClose={onClose} className="relative z-[51]">
                 <TransitionChild as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -474,6 +512,29 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
                 </div>
             </Dialog>
         </Transition>
+
+        {/* Inventory Usage Modal */}
+        {showInventoryUsageModal && displayTicket && (
+            <InventoryUsageModal
+                open={showInventoryUsageModal}
+                onClose={handleCloseInventoryModals}
+                onSubmit={handleInventoryUsage}
+                ticketId={displayTicket.id}
+                loading={actionLoading}
+            />
+        )}
+
+        {/* Inventory Return Modal */}
+        {showInventoryReturnModal && displayTicket && (
+            <InventoryReturnModal
+                open={showInventoryReturnModal}
+                onClose={handleCloseInventoryModals}
+                onSubmit={handleInventoryReturn}
+                ticketId={displayTicket.id}
+                loading={actionLoading}
+            />
+        )}
+        </>
     );
 };
 

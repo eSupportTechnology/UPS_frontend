@@ -1,5 +1,5 @@
 import api from '../config/api.config';
-import { InventoryFormData, CreateInventoryResponse, Inventory } from '../types/inventory.types';
+import { InventoryFormData, CreateInventoryResponse, Inventory, InventoryUsageData, InventoryReturnData, InventoryUsageResponse, RawInventoryItem } from '../types/inventory.types';
 import { PaginationData } from '../types/pagination.types';
 
 export class InventoryService {
@@ -82,6 +82,81 @@ export class InventoryService {
                 status: 'error',
                 message: 'Network error. Please try again.',
                 error: error.message,
+            };
+        }
+    }
+
+    static async getAllInventoriesRaw(): Promise<RawInventoryItem[]> {
+        try {
+            const response = await api.get('/shop-inventories-all');
+
+            // Handle the correct response format: {status: 200, inventories: [...]}
+            if (response.data.inventories) {
+                return response.data.inventories;
+            }
+
+            // Fallback for other formats
+            if (response.data.success && response.data.data) {
+                return response.data.data.inventories || response.data.data || [];
+            }
+
+            if (Array.isArray(response.data)) {
+                return response.data;
+            }
+
+            return [];
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            throw {
+                status: 'error',
+                message: 'Network error. Please try again.',
+                error: error.message,
+            };
+        }
+    }
+
+    static async createInventoryUsage(data: InventoryUsageData): Promise<InventoryUsageResponse> {
+        try {
+            const response = await api.post('/inventory-usages', data);
+            return {
+                success: true,
+                message: response.data.message || 'Inventory usage recorded successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw {
+                    success: false,
+                    message: error.response.data.message || 'Failed to record inventory usage',
+                };
+            }
+            throw {
+                success: false,
+                message: 'Network error. Please try again.',
+            };
+        }
+    }
+
+    static async returnInventoryItems(data: InventoryReturnData): Promise<InventoryUsageResponse> {
+        try {
+            const response = await api.post('/inventory-returns', data);
+            return {
+                success: true,
+                message: response.data.message || 'Inventory return recorded successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw {
+                    success: false,
+                    message: error.response.data.message || 'Failed to record inventory return',
+                };
+            }
+            throw {
+                success: false,
+                message: 'Network error. Please try again.',
             };
         }
     }

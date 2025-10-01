@@ -8,6 +8,10 @@ import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PaginationData } from '../../../types/pagination.types';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
+import InventoryUsageModal from './view/InventoryUsageModal';
+import InventoryReturnModal from './view/InventoryReturnModal';
+import { InventoryService } from '../../../services/inventoryService';
+import { InventoryUsageItem } from '../../../types/inventory.types';
 
 const AssignedTickets = () => {
     const navigate = useNavigate();
@@ -22,6 +26,9 @@ const AssignedTickets = () => {
     const [totalTickets, setTotalTickets] = useState(0);
     const [perPage, setPerPage] = useState(10);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [showInventoryUsageModal, setShowInventoryUsageModal] = useState(false);
+    const [showInventoryReturnModal, setShowInventoryReturnModal] = useState(false);
+    const [pendingTicket, setPendingTicket] = useState<Ticket | null>(null);
 
     const loadAssignedTickets = async () => {
         try {
@@ -153,47 +160,90 @@ const AssignedTickets = () => {
     };
 
     const handleAcceptTicket = async (ticket: Ticket) => {
-        try {
-            setLoading(true);
-            const response = await ticketService.acceptTicket(ticket.id);
-
-            if (response.success) {
-                // Refresh the tickets list
-                await loadAssignedTickets();
-                // Show success message (you can add alert here if needed)
-            }
-        } catch (error) {
-            console.error('Error accepting ticket:', error);
-        } finally {
-            setLoading(false);
-        }
+        setPendingTicket(ticket);
+        setShowInventoryUsageModal(true);
     };
 
     const handleCompleteTicket = async (ticket: Ticket) => {
+        setPendingTicket(ticket);
+        setShowInventoryReturnModal(true);
+    };
+
+    const handleInventoryUsage = async (usages: InventoryUsageItem[], notes: string) => {
+        if (!pendingTicket) return;
+
         try {
-            setLoading(true);
-            const response = await ticketService.completeTicket(ticket.id);
+            await InventoryService.createInventoryUsage({
+                reference_id: pendingTicket.id,
+                usage_type: 'maintenance',
+                usages,
+                usage_date: new Date().toISOString().split('T')[0],
+                notes,
+            });
+
+            const response = await ticketService.acceptTicket(pendingTicket.id);
 
             if (response.success) {
-                // Refresh the tickets list
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: 'Inventory usage recorded and ticket accepted successfully!',
+                });
                 await loadAssignedTickets();
-                // Show success message (you can add alert here if needed)
             }
-        } catch (error) {
-            console.error('Error completing ticket:', error);
-        } finally {
-            setLoading(false);
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to process inventory usage and accept ticket',
+            });
+        }
+    };
+
+    const handleInventoryReturn = async (returns: InventoryUsageItem[], notes: string) => {
+        if (!pendingTicket) return;
+
+        try {
+            await InventoryService.returnInventoryItems({
+                reference_id: pendingTicket.id,
+                usage_type: 'maintenance',
+                usages: returns,
+                return_date: new Date().toISOString().split('T')[0],
+                notes,
+            });
+
+            const response = await ticketService.completeTicket(pendingTicket.id);
+
+            if (response.success) {
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    message: 'Inventory return recorded and ticket completed successfully!',
+                });
+                await loadAssignedTickets();
+            }
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to process inventory return and complete ticket',
+            });
         }
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedTicket(null);
-        // Reload tickets to get updated status
         loadAssignedTickets();
     };
 
-    // Table columns configuration
+    const handleCloseInventoryModals = () => {
+        setShowInventoryUsageModal(false);
+        setShowInventoryReturnModal(false);
+        setPendingTicket(null);
+    };
+
+
     const columns = useMemo(
         () => [
             {
@@ -273,10 +323,8 @@ const AssignedTickets = () => {
         [],
     );
 
-    // Prepare table data
     const tableData = filteredTickets;
 
-    // Prepare pagination data
     const paginationMeta: PaginationData | null = totalTickets > 0 ? {
         current_page: currentPage,
         last_page: totalPages,
@@ -506,6 +554,28 @@ const AssignedTickets = () => {
                     ticket={selectedTicket}
                     open={showModal}
                     onClose={handleCloseModal}
+                />
+            )}
+
+            {/* Inventory Usage Modal */}
+            {showInventoryUsageModal && pendingTicket && (
+                <InventoryUsageModal
+                    open={showInventoryUsageModal}
+                    onClose={handleCloseInventoryModals}
+                    onSubmit={handleInventoryUsage}
+                    ticketId={pendingTicket.id}
+                    loading={loading}
+                />
+            )}
+
+            {/* Inventory Return Modal */}
+            {showInventoryReturnModal && pendingTicket && (
+                <InventoryReturnModal
+                    open={showInventoryReturnModal}
+                    onClose={handleCloseInventoryModals}
+                    onSubmit={handleInventoryReturn}
+                    ticketId={pendingTicket.id}
+                    loading={loading}
                 />
             )}
         </div>
