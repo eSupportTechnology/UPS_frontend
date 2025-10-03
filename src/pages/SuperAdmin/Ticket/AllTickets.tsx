@@ -326,117 +326,71 @@ const AllTickets: React.FC = () => {
                 label: 'Status',
                 render: (value: string, ticket: Ticket) => {
                     const displayStatus = value || 'open';
-
-                    const getStatusStyle = (status: string) => {
-                        switch (status.toLowerCase()) {
-                            case 'open':
-                                return 'bg-blue-50 text-blue-700 border-blue-200';
-                            case 'assigned':
-                                return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-                            case 'accepted':
-                                return 'bg-orange-50 text-orange-700 border-orange-200';
-                            case 'completed':
-                                return 'bg-green-50 text-green-700 border-green-200';
-                            default:
-                                return 'bg-gray-50 text-gray-700 border-gray-200';
-                        }
-                    };
-
-                    return <div className={`px-3 py-2 text-sm font-medium rounded-lg border-2 shadow-sm ${getStatusStyle(displayStatus)} capitalize`}>{displayStatus}</div>;
+                    return <div className="text-sm text-gray-900 capitalize">{displayStatus}</div>;
                 },
             },
             {
                 key: 'priority',
                 label: 'Priority',
                 render: (value: string, ticket: Ticket) => {
-                    const getPriorityStyle = (priority: string) => {
-                        switch (priority.toLowerCase()) {
-                            case 'low':
-                                return 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200 focus:ring-green-500';
-                            case 'medium':
-                                return 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 focus:ring-yellow-500';
-                            case 'high':
-                                return 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200 focus:ring-red-500';
-                            default:
-                                return 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200 focus:ring-gray-500';
-                        }
-                    };
-
-                    const getPriorityBgColor = (priority: string) => {
-                        switch (priority.toLowerCase()) {
-                            case 'low':
-                                return '#dcfce7';
-                            case 'medium':
-                                return '#fef3c7';
-                            case 'high':
-                                return '#fecaca';
-                            default:
-                                return '#f3f4f6';
-                        }
-                    };
-
                     return (
                         <select
                             value={value}
                             onChange={(e) => handlePriorityUpdate(ticket.id, e.target.value)}
                             disabled={updatingTickets.has(ticket.id)}
-                            className={`px-3 py-2 text-sm font-medium rounded-lg border-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${getPriorityStyle(value)}`}
-                            style={{ backgroundColor: getPriorityBgColor(value) }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <option value="low" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
-                                Low
-                            </option>
-                            <option value="medium" style={{ backgroundColor: '#fef3c7', color: '#a16207' }}>
-                                Medium
-                            </option>
-                            <option value="high" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>
-                                High
-                            </option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
                         </select>
                     );
                 },
             },
             {
-                key: 'actions',
+                key: 'assign_to',
                 label: 'Assign To',
                 render: (_: any, ticket: Ticket) => {
                     const currentTechnician = ticket.assigned_to ? users.find((user) => user.id === ticket.assigned_to) : null;
 
                     return (
-                        <div className="flex flex-col space-y-2">
+                        <div className="flex flex-col space-y-1">
                             <select
                                 value={ticket.assigned_to || ''}
                                 onChange={(e) => handleAssignTicket(ticket.id, e.target.value)}
                                 disabled={assigningTickets.has(ticket.id)}
-                                className="px-4 py-2 text-sm font-medium bg-purple-50 text-purple-700 border-2 border-purple-200 rounded-lg transition-all duration-200 cursor-pointer hover:bg-purple-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <option value="" className="text-purple-600">
+                                <option value="">
                                     {assigningTickets.has(ticket.id) ? 'Assigning...' : 'Select Technician'}
                                 </option>
                                 {Array.isArray(users) &&
                                     users.map((user: any) => (
-                                        <option key={user.id} value={user.id} className="text-gray-800">
+                                        <option key={user.id} value={user.id}>
                                             {user.name}
                                         </option>
                                     ))}
                             </select>
                             {currentTechnician && (
-                                <div className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200 shadow-sm">Assigned: {currentTechnician.name}</div>
+                                <div className="text-xs text-gray-600">Assigned: {currentTechnician.name}</div>
                             )}
                         </div>
                     );
                 },
             },
             {
-                key: 'view',
-                label: 'View',
+                key: 'actions',
+                label: 'Actions',
                 render: (_: any, ticket: Ticket) => (
-                    <button
-                        className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all duration-200 shadow-sm hover:shadow-md"
-                        onClick={() => handleViewTicket(ticket)}
-                    >
-                        View
-                    </button>
+                    <div className="flex space-x-2">
+                        <button
+                            type="button"
+                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            onClick={() => handleViewTicket(ticket)}
+                        >
+                            View
+                        </button>
+                    </div>
                 ),
             },
         ],
