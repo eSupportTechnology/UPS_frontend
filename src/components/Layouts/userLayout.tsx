@@ -14,7 +14,7 @@ interface UserLayoutProps extends PropsWithChildren {
     showHeader?: boolean;
 }
 
-const UserLayout = ({ children, headerTitle, headerSubtitle = 'Low Cost Web Hosting Sri Lanka', showHeader = true }: UserLayoutProps) => {
+const UserLayout = ({ children, headerTitle, headerSubtitle = 'Excellence in Power Solutions', showHeader = true }: UserLayoutProps) => {
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
     const { user } = useSelector((state: IRootState) => state.auth);
     const dispatch = useDispatch();
@@ -121,32 +121,49 @@ const UserLayout = ({ children, headerTitle, headerSubtitle = 'Low Cost Web Host
 
                 {/* BEGIN HEADER SECTION */}
                 {showHeader && (
-                    <div className="relative mb-8 -mt-16">
+                    <div className="relative mb-6 -mt-16">
                         <div className="absolute left-1/2 transform -translate-x-1/2 w-screen z-10">
-                            <div className="relative h-80 sm:h-96 overflow-hidden">
-                                {/* Background Image */}
+                            <div className="relative h-72 sm:h-80 lg:h-96 overflow-hidden">
+                                {/* Background Image - No overlay */}
                                 <div className="absolute inset-0">
-                                    <img src="/assets/images/header .jpg" alt="Header background" className="w-full h-full object-cover" />
+                                    <img src="/assets/images/header.jpg" alt="Header background" className="w-full h-full object-cover brightness-110" />
                                 </div>
 
+                                {/* Header Content */}
                                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full relative z-10">
-                                    <div className="flex items-center h-full">
-                                        <div className="max-w-3xl">
-                                            {/* Clean header content */}
-                                            <div className="space-y-6">
-                                                <div className="space-y-4">
-                                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight drop-shadow-lg">
-                                                        <span className="block">WELCOME BACK,</span>
-                                                        <span className="block text-gray-900">{getUserFirstName(user?.name)}</span>
-                                                    </h1>
-
-                                                    <p className="text-xl text-gray-800 font-medium max-w-2xl drop-shadow">{headerSubtitle}</p>
+                                    <div className="flex items-end pb-8 sm:pb-10 lg:pb-12 h-full">
+                                        <div className="max-w-4xl">
+                                            <div className="space-y-3">
+                                                {/* Interlink Brand Badge */}
+                                                <div>
+                                                    <p className="text-xs sm:text-sm font-black text-gray-900 uppercase tracking-[0.3em] inline-block px-5 py-2 bg-blue-500/80 backdrop-blur-md rounded-full border-2 border-gray-900/60 shadow-xl">
+                                                        INTERLINK
+                                                    </p>
                                                 </div>
 
-                                                {/* Simple badge */}
-                                                <div className="inline-flex items-center">
-                                                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white/90 text-gray-900 shadow-lg">Client Portal</span>
+                                                {/* Main Heading - Shop Related */}
+                                                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-gray-900 leading-tight tracking-tight">
+                                                    <span className="block drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]">
+                                                        Your Power,
+                                                    </span>
+                                                    <span className="block drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)] mt-1">
+                                                        Our Priority
+                                                    </span>
+                                                </h1>
+
+                                                {/* Decorative divider with power theme */}
+                                                <div className="flex items-center space-x-2 py-1">
+                                                    <div className="h-0.5 w-10 bg-gray-900/70 shadow-sm"></div>
+                                                    <svg className="w-5 h-5 text-blue-600 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                    <div className="h-0.5 w-10 bg-gray-900/70 shadow-sm"></div>
                                                 </div>
+
+                                                {/* Slogan */}
+                                                <p className="text-sm sm:text-base lg:text-lg text-gray-900 font-bold tracking-wide drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)] italic">
+                                                    {headerSubtitle}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -154,7 +171,7 @@ const UserLayout = ({ children, headerTitle, headerSubtitle = 'Low Cost Web Host
                             </div>
                         </div>
                         {/* Spacer to maintain layout */}
-                        <div className="h-80 sm:h-96"></div>
+                        <div className="h-72 sm:h-80 lg:h-96"></div>
                     </div>
                 )}
                 {/* END HEADER SECTION */}

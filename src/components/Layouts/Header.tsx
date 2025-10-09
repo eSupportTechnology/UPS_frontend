@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { IRootState } from '../../store';
@@ -36,6 +36,8 @@ import LogoutButton from '../Auth/LogoutButton';
 
 const Header = () => {
     const location = useLocation();
+    const user = useSelector((state: IRootState) => state.auth.user);
+
     useEffect(() => {
         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
         if (selector) {
@@ -56,6 +58,13 @@ const Header = () => {
             }
         }
     }, [location]);
+
+    const getGreeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 18) return 'Good Afternoon';
+        return 'Good Evening';
+    }, []);
 
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 
@@ -80,6 +89,19 @@ const Header = () => {
                         >
                             <IconMenu className="w-5 h-5" />
                         </button>
+                    </div>
+
+                    {/* Welcome Text - Professional Style */}
+                    <div className="flex flex-col items-start ltr:ml-2 rtl:mr-2 lg:ltr:ml-4 lg:rtl:mr-4">
+                        <p className="text-[9px] sm:text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide sm:tracking-widest leading-none">
+                            WELCOME BACK,
+                        </p>
+                        <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-gray-900 dark:text-white leading-tight">
+                            {(user?.name || 'USER').toUpperCase()}
+                        </h1>
+                        <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 font-medium hidden sm:block">
+                            UPS Support & Service Management
+                        </p>
                     </div>
 
                     <div className="sm:flex-1 ltr:sm:ml-0 ltr:ml-auto sm:rtl:mr-0 rtl:mr-auto flex items-center space-x-1.5 lg:space-x-2 rtl:space-x-reverse dark:text-[#d0d2d6]">
