@@ -10,6 +10,7 @@ import { useAlert } from '../../../components/Alert/Alert';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
+import ExportButtons from '../../../components/Inventory/ExportButtons';
 
 const AllInventory: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
@@ -70,6 +71,59 @@ const AllInventory: React.FC = () => {
         [fetchInventories],
     );
 
+    // Export handlers
+    const handleExportExcel = async () => {
+        try {
+            const blob = await InventoryService.exportExcel(filters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `shop_inventories_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'Excel file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export Excel file',
+            });
+        }
+    };
+
+    const handleExportPdf = async () => {
+        try {
+            const blob = await InventoryService.exportPdf(filters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `shop_inventories_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'PDF file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export PDF file',
+            });
+        }
+    };
+
     // Modal state
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -104,7 +158,6 @@ const AllInventory: React.FC = () => {
         if (!selectedInventory || !editForm) return;
         setIsSaving(true);
         try {
-            // Call your update API here
             await InventoryService.updateInventory(selectedInventory.id, editForm);
             showAlert({ type: 'success', title: 'Success', message: 'Inventory updated successfully.' });
             closeEditModal();
@@ -146,7 +199,19 @@ const AllInventory: React.FC = () => {
             { key: 'model', label: 'Model', render: (v: string) => v || '-' },
             { key: 'serial_number', label: 'Serial Number', render: (v: string) => v || '-' },
             { key: 'category', label: 'Category' },
-            { key: 'quantity', label: 'Quantity' },
+            {
+                key: 'quantity',
+                label: 'Quantity',
+                render: (v: number, row: Inventory) => {
+                    let colorClass = 'text-green-600';
+                    if (v <= 0) {
+                        colorClass = 'text-red-600 font-bold';
+                    } else if (v <= 10) {
+                        colorClass = 'text-yellow-600 font-semibold';
+                    }
+                    return <span className={colorClass}>{v}</span>;
+                }
+            },
             { key: 'unit_price', label: 'Unit Price', render: (v: number) => `Rs ${v}` },
             {
                 key: 'actions',
@@ -205,12 +270,15 @@ const AllInventory: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory</h1>
                     <p className="text-gray-600">Manage inventory items</p>
                 </div>
-                <Link to="/super-admin/inventory-create" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Create Inventory
-                </Link>
+                <div className="flex gap-3">
+                    <ExportButtons onExportExcel={handleExportExcel} onExportPdf={handleExportPdf} disabled={loading} />
+                    <Link to="/super-admin/inventory-create" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Inventory
+                    </Link>
+                </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -268,7 +336,17 @@ const AllInventory: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <PerPageSelector value={filters.per_page || 10} onChange={(value) => handleFilterChange('per_page', value)} loading={loading} />
-                {inventories && <div className="text-sm text-gray-600">Total: {inventories.total} items</div>}
+                {inventories && (
+                    <div className="flex gap-4 text-sm">
+                        <span className="text-gray-600">Total: {inventories.total} items</span>
+                        {inventories.data && (
+                            <>
+                                <span className="text-red-600">Out of Stock: {inventories.data.filter(i => i.quantity <= 0).length}</span>
+                                <span className="text-yellow-600">Low Stock: {inventories.data.filter(i => i.quantity > 0 && i.quantity <= 10).length}</span>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             <Table data={tableData} columns={columns} loading={loading} emptyMessage="No inventory found" className="mb-6" />

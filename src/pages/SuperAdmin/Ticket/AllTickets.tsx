@@ -9,6 +9,7 @@ import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
 import ViewTicketModal from './view/ViewTicketModal';
+import ExportButtons from '../../../components/Ticket/ExportButtons';
 
 const AllTickets: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
@@ -127,6 +128,71 @@ const AllTickets: React.FC = () => {
         },
         [showAlert, tickets, currentPage],
     );
+
+    // Export handlers
+    const handleExportExcel = async () => {
+        try {
+            const exportFilters = {
+                search: filters.search,
+                status: filters.status,
+                priority: filters.priority,
+            };
+
+            const blob = await TicketService.exportExcel(exportFilters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `tickets_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'Excel file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export Excel file',
+            });
+        }
+    };
+
+    const handleExportPdf = async () => {
+        try {
+            const exportFilters = {
+                search: filters.search,
+                status: filters.status,
+                priority: filters.priority,
+            };
+
+            const blob = await TicketService.exportPdf(exportFilters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `tickets_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'PDF file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export PDF file',
+            });
+        }
+    };
 
     const handleViewTicket = useCallback((ticket: Ticket) => {
         setSelectedTicket(ticket);
@@ -270,44 +336,6 @@ const AllTickets: React.FC = () => {
         [fetchTickets],
     );
 
-    const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-        const getStatusColor = (status: string) => {
-            switch (status.toLowerCase()) {
-                case 'open':
-                    return 'bg-blue-100 text-blue-800';
-                case 'in-progress':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'resolved':
-                    return 'bg-green-100 text-green-800';
-                case 'closed':
-                    return 'bg-gray-100 text-gray-800';
-                default:
-                    return 'bg-gray-100 text-gray-800';
-            }
-        };
-
-        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)} capitalize`}>{status.replace('-', ' ')}</span>;
-    };
-
-    const PriorityBadge: React.FC<{ priority: string }> = ({ priority }) => {
-        const getPriorityColor = (priority: string) => {
-            switch (priority.toLowerCase()) {
-                case 'low':
-                    return 'bg-green-100 text-green-800';
-                case 'medium':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'high':
-                    return 'bg-orange-100 text-orange-800';
-                case 'urgent':
-                    return 'bg-red-100 text-red-800';
-                default:
-                    return 'bg-gray-100 text-gray-800';
-            }
-        };
-
-        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(priority)} capitalize`}>{priority}</span>;
-    };
-
     const columns = useMemo(
         () => [
             {
@@ -326,7 +354,16 @@ const AllTickets: React.FC = () => {
                 label: 'Status',
                 render: (value: string, ticket: Ticket) => {
                     const displayStatus = value || 'open';
-                    return <div className="text-sm text-gray-900 capitalize">{displayStatus}</div>;
+                    return (
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                            displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                                displayStatus === 'in_progress' || displayStatus === 'accepted' ? 'bg-blue-100 text-blue-800' :
+                                    displayStatus === 'assigned' ? 'bg-purple-100 text-purple-800' :
+                                        'bg-yellow-100 text-yellow-800'
+                        }`}>
+                            {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1).replace('_', ' ')}
+                        </span>
+                    );
                 },
             },
             {
@@ -338,11 +375,17 @@ const AllTickets: React.FC = () => {
                             value={value}
                             onChange={(e) => handlePriorityUpdate(ticket.id, e.target.value)}
                             disabled={updatingTickets.has(ticket.id)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full px-3 py-2 border rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium ${
+                                value === 'urgent' ? 'border-red-300 text-red-700' :
+                                    value === 'high' ? 'border-orange-300 text-orange-700' :
+                                        value === 'medium' ? 'border-yellow-300 text-yellow-700' :
+                                            'border-green-300 text-green-700'
+                            }`}
                         >
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
                         </select>
                     );
                 },
@@ -359,7 +402,7 @@ const AllTickets: React.FC = () => {
                                 value={ticket.assigned_to || ''}
                                 onChange={(e) => handleAssignTicket(ticket.id, e.target.value)}
                                 disabled={assigningTickets.has(ticket.id)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                                 <option value="">
                                     {assigningTickets.has(ticket.id) ? 'Assigning...' : 'Select Technician'}
@@ -372,7 +415,7 @@ const AllTickets: React.FC = () => {
                                     ))}
                             </select>
                             {currentTechnician && (
-                                <div className="text-xs text-gray-600">Assigned: {currentTechnician.name}</div>
+                                <div className="text-xs text-green-600 font-medium">✓ {currentTechnician.name}</div>
                             )}
                         </div>
                     );
@@ -411,6 +454,19 @@ const AllTickets: React.FC = () => {
 
     const tableData = useMemo(() => tickets?.data || [], [tickets]);
 
+    // Calculate statistics
+    const statistics = useMemo(() => {
+        if (!tickets?.data) return null;
+        return {
+            total: tickets.data.length,
+            pending: tickets.data.filter(t => !t.status || t.status === 'pending').length,
+            assigned: tickets.data.filter(t => t.status === 'assigned').length,
+            in_progress: tickets.data.filter(t => t.status === 'in_progress' || t.status === 'accepted').length,
+            completed: tickets.data.filter(t => t.status === 'completed').length,
+            high_priority: tickets.data.filter(t => t.priority === 'high' || t.priority === 'urgent').length,
+        };
+    }, [tickets]);
+
     return (
         <div>
             <AlertContainer />
@@ -435,7 +491,38 @@ const AllTickets: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Tickets</h1>
                     <p className="text-gray-600">Manage and view all customer support tickets</p>
                 </div>
+                <ExportButtons onExportExcel={handleExportExcel} onExportPdf={handleExportPdf} disabled={loading} />
             </div>
+
+            {/* Statistics Cards */}
+            {statistics && (
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+                        <div className="text-sm text-gray-600">Total</div>
+                        <div className="text-2xl font-bold text-gray-900">{tickets?.total || 0}</div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
+                        <div className="text-sm text-gray-600">Pending</div>
+                        <div className="text-2xl font-bold text-yellow-600">{statistics.pending}</div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500">
+                        <div className="text-sm text-gray-600">Assigned</div>
+                        <div className="text-2xl font-bold text-purple-600">{statistics.assigned}</div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+                        <div className="text-sm text-gray-600">In Progress</div>
+                        <div className="text-2xl font-bold text-blue-600">{statistics.in_progress}</div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
+                        <div className="text-sm text-gray-600">Completed</div>
+                        <div className="text-2xl font-bold text-green-600">{statistics.completed}</div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500">
+                        <div className="text-sm text-gray-600">High Priority</div>
+                        <div className="text-2xl font-bold text-red-600">{statistics.high_priority}</div>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -464,10 +551,12 @@ const AllTickets: React.FC = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                         >
                             <option value="">All Statuses</option>
-                            <option value="open">Open</option>
-                            <option value="in-progress">Assigned</option>
-                            <option value="resolved">Accepted</option>
-                            <option value="closed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
 
@@ -485,6 +574,7 @@ const AllTickets: React.FC = () => {
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
                         </select>
                     </div>
 
@@ -502,7 +592,6 @@ const AllTickets: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <PerPageSelector value={filters.per_page || 10} onChange={handlePerPageChange} loading={loading} />
-
                 {tickets && <div className="text-sm text-gray-600">Total: {tickets.total} tickets</div>}
             </div>
 
