@@ -698,6 +698,78 @@ class TicketService {
         const mod = gnModule.default ? gnModule.default : gnModule;
         return mod as any as GNDivisionModule;
     }
+
+
+    async exportExcel(filters: Record<string, any> = {}): Promise<Blob> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.priority) params.append('priority', filters.priority);
+            if (filters.assigned_to) params.append('assigned_to', filters.assigned_to);
+            if (filters.district) params.append('district', filters.district);
+            if (filters.city) params.append('city', filters.city);
+            if (filters.gramsewa_division) params.append('gramsewa_division', filters.gramsewa_division);
+            if (filters.start_date) params.append('start_date', filters.start_date);
+            if (filters.end_date) params.append('end_date', filters.end_date);
+
+            const response = await api.get('/tickets/export/excel', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export Excel' };
+        }
+    }
+
+    async exportPdf(filters: Record<string, any> = {}): Promise<Blob> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.priority) params.append('priority', filters.priority);
+            if (filters.assigned_to) params.append('assigned_to', filters.assigned_to);
+            if (filters.district) params.append('district', filters.district);
+            if (filters.city) params.append('city', filters.city);
+            if (filters.gramsewa_division) params.append('gramsewa_division', filters.gramsewa_division);
+            if (filters.start_date) params.append('start_date', filters.start_date);
+            if (filters.end_date) params.append('end_date', filters.end_date);
+
+            const response = await api.get('/tickets/export/pdf', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export PDF' };
+        }
+    }
+
+    async generateReport(filters: Record<string, any> = {}): Promise<any> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.priority) params.append('priority', filters.priority);
+            if (filters.assigned_to) params.append('assigned_to', filters.assigned_to);
+            if (filters.district) params.append('district', filters.district);
+            if (filters.city) params.append('city', filters.city);
+            if (filters.gramsewa_division) params.append('gramsewa_division', filters.gramsewa_division);
+            if (filters.start_date) params.append('start_date', filters.start_date);
+            if (filters.end_date) params.append('end_date', filters.end_date);
+
+            const response = await api.get('/tickets/report', { params });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to generate report' };
+        }
+    }
 }
 
 const ticketServiceInstance = new TicketService();

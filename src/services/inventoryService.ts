@@ -90,12 +90,10 @@ export class InventoryService {
         try {
             const response = await api.get('/shop-inventories-all');
 
-            // Handle the correct response format: {status: 200, inventories: [...]}
             if (response.data.inventories) {
                 return response.data.inventories;
             }
 
-            // Fallback for other formats
             if (response.data.success && response.data.data) {
                 return response.data.data.inventories || response.data.data || [];
             }
@@ -158,6 +156,71 @@ export class InventoryService {
                 success: false,
                 message: 'Network error. Please try again.',
             };
+        }
+    }
+
+    static async exportExcel(filters: Record<string, any> = {}): Promise<Blob> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.brand) params.append('brand', filters.brand);
+            if (filters.purchase_date_from) params.append('start_date', filters.purchase_date_from);
+            if (filters.purchase_date_to) params.append('end_date', filters.purchase_date_to);
+            if (filters.low_stock) params.append('low_stock', filters.low_stock);
+            if (filters.stock_threshold) params.append('stock_threshold', filters.stock_threshold);
+
+            const response = await api.get('/shop-inventories/export/excel', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export Excel' };
+        }
+    }
+
+    static async exportPdf(filters: Record<string, any> = {}): Promise<Blob> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.brand) params.append('brand', filters.brand);
+            if (filters.purchase_date_from) params.append('start_date', filters.purchase_date_from);
+            if (filters.purchase_date_to) params.append('end_date', filters.purchase_date_to);
+            if (filters.low_stock) params.append('low_stock', filters.low_stock);
+            if (filters.stock_threshold) params.append('stock_threshold', filters.stock_threshold);
+
+            const response = await api.get('/shop-inventories/export/pdf', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export PDF' };
+        }
+    }
+
+    static async generateReport(filters: Record<string, any> = {}): Promise<any> {
+        try {
+            const params = new URLSearchParams();
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.brand) params.append('brand', filters.brand);
+            if (filters.purchase_date_from) params.append('start_date', filters.purchase_date_from);
+            if (filters.purchase_date_to) params.append('end_date', filters.purchase_date_to);
+            if (filters.low_stock) params.append('low_stock', filters.low_stock);
+            if (filters.stock_threshold) params.append('stock_threshold', filters.stock_threshold);
+
+            const response = await api.get('/shop-inventories/report', { params });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to generate report' };
         }
     }
 }

@@ -140,11 +140,81 @@ export class AMCContractService {
 
     static async getMaintenanceDetails(contractId: string): Promise<any> {
         try {
-
             const response = await api.get(`/amc-contract/${contractId}/maintenances`);
             return response.data;
         } catch (error: any) {
             throw error.response?.data || { message: 'Failed to get maintenance details' };
+        }
+    }
+
+    static async exportExcel(filters: any): Promise<Blob> {
+        try {
+            const params: any = {};
+
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== '' && value !== undefined && value !== null) {
+                    if (key === 'status') {
+                        params['is_active'] = value;
+                    } else if (key !== 'per_page' && key !== 'page') {
+                        params[key] = value;
+                    }
+                }
+            });
+
+            const response = await api.get('/amc-contracts/export/excel', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export Excel' };
+        }
+    }
+
+    static async exportPdf(filters: any): Promise<Blob> {
+        try {
+            const params: any = {};
+
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== '' && value !== undefined && value !== null) {
+                    if (key === 'status') {
+                        params['is_active'] = value;
+                    } else if (key !== 'per_page' && key !== 'page') {
+                        params[key] = value;
+                    }
+                }
+            });
+
+            const response = await api.get('/amc-contracts/export/pdf', {
+                params,
+                responseType: 'blob',
+            });
+
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to export PDF' };
+        }
+    }
+
+    static async generateReport(filters: any): Promise<any> {
+        try {
+            const params: any = {};
+
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== '' && value !== undefined && value !== null) {
+                    if (key === 'status') {
+                        params['is_active'] = value;
+                    } else if (key !== 'per_page' && key !== 'page') {
+                        params[key] = value;
+                    }
+                }
+            });
+
+            const response = await api.get('/amc-contracts/report', { params });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || { message: 'Failed to generate report' };
         }
     }
 }
