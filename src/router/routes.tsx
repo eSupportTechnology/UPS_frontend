@@ -92,7 +92,7 @@ export const routes: RouteType[] = [
     {
         path: '/admin',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN]}>
+            <ProtectedRoute requiredRoles={[USER_ROLES.ADMIN]}>
                 <AdminDashboard />
             </ProtectedRoute>
         ),

@@ -74,13 +74,21 @@ const Login: React.FC = () => {
         }
     };
 
+    const clearLocalStorage = () => {
+        try {
+            localStorage.clear();
+        } catch (error) {
+            console.error('Error clearing local storage:', error);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) {
             return;
         }
-
+        clearLocalStorage();
         dispatch(loginUser(formData) as any);
     };
 

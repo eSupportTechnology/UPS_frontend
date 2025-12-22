@@ -9,6 +9,7 @@ import { useAlert } from '../../../components/Alert/Alert';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
+import ExportButtons from '../../../components/AMC/ExportButtons';
 
 const AllAMCContracts: React.FC = () => {
     const { showAlert, AlertContainer } = useAlert();
@@ -100,6 +101,59 @@ const AllAMCContracts: React.FC = () => {
         },
         [showAlert, fetchContracts, currentPage],
     );
+
+    // Export handlers
+    const handleExportExcel = async () => {
+        try {
+            const blob = await AMCContractService.exportExcel(filters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `amc_contracts_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'Excel file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export Excel file',
+            });
+        }
+    };
+
+    const handleExportPdf = async () => {
+        try {
+            const blob = await AMCContractService.exportPdf(filters);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `amc_contracts_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                message: 'PDF file downloaded successfully',
+            });
+        } catch (error: any) {
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to export PDF file',
+            });
+        }
+    };
 
     const columns = useMemo(
         () => [
@@ -205,12 +259,15 @@ const AllAMCContracts: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">AMC Contracts</h1>
                     <p className="text-gray-600">Manage AMC contracts</p>
                 </div>
-                <Link to="/super-admin/create-contract" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Create AMC Contract
-                </Link>
+                <div className="flex gap-3">
+                    <ExportButtons onExportExcel={handleExportExcel} onExportPdf={handleExportPdf} disabled={loading} />
+                    <Link to="/super-admin/create-contract" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors inline-flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create AMC Contract
+                    </Link>
+                </div>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
