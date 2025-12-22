@@ -26,6 +26,7 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
     const [showInventoryUsageModal, setShowInventoryUsageModal] = useState(false);
     const [showInventoryReturnModal, setShowInventoryReturnModal] = useState(false);
+    const [workNotes, setWorkNotes] = useState('');
 
     useEffect(() => {
         const fetchTicketDetails = async () => {
@@ -262,278 +263,277 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
 
     return (
         <>
-        <Transition appear show={open} as={Fragment}>
-            <Dialog as="div" open={open} onClose={onClose} className="relative z-[51]">
-                <TransitionChild as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <div className="fixed inset-0 bg-[black]/60" />
-                </TransitionChild>
-                <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center px-4 py-8">
-                        <TransitionChild
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
-                            leaveTo="opacity-0 scale-95"
-                        >
-                            <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-5xl text-black dark:text-white-dark">
-                                <button type="button" onClick={onClose} className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none z-10">
-                                    <IconX />
-                                </button>
-                                <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">
-                                    {displayTicket ? `Ticket Management: ${displayTicket.title}` : 'Ticket Details'}
-                                </div>
-                                <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                                    {loading && (
-                                        <div className="flex justify-center items-center py-8">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                            <span className="ml-3 text-gray-600">Loading ticket details...</span>
-                                        </div>
-                                    )}
-
-                                    {!loading && displayTicket && (
-                                        <>
-
-                                            {/* Basic Information */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="space-y-4">
-                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Ticket Information</h3>
-                                                    <div>
-                                                        <strong className="text-gray-700">Ticket ID:</strong>
-                                                        <span className="ml-2 font-mono text-sm bg-gray-100 px-2 py-1 rounded">{displayTicket.id}</span>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Title:</strong>
-                                                        <span className="ml-2 text-gray-900">{displayTicket.title}</span>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Status:</strong>
-                                                        <span className={`ml-2 px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(displayTicket.status || 'open')} capitalize`}>
-                                                            {displayTicket.status || 'Open'}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Priority:</strong>
-                                                        <span className={`ml-2 px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(displayTicket.priority || 'medium')} capitalize`}>
-                                                            {displayTicket.priority || 'Medium'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Customer Information</h3>
-                                                    <div>
-                                                        <strong className="text-gray-700">Customer Name:</strong>
-                                                        <p className="mt-1 text-gray-900">{displayTicket.customer_name || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Email:</strong>
-                                                        <p className="mt-1 text-gray-900">{displayTicket.customer_email || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Phone:</strong>
-                                                        <p className="mt-1 text-gray-900">{displayTicket.customer_phone || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Address:</strong>
-                                                        <p className="mt-1 text-gray-900">{displayTicket.customer_address || '-'}</p>
-                                                    </div>
-                                                </div>
+            <Transition appear show={open} as={Fragment}>
+                <Dialog as="div" open={open} onClose={onClose} className="relative z-[51]">
+                    <TransitionChild as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <div className="fixed inset-0 bg-[black]/60" />
+                    </TransitionChild>
+                    <div className="fixed inset-0 overflow-y-auto">
+                        <div className="flex min-h-full items-center justify-center px-4 py-8">
+                            <TransitionChild
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0 scale-95"
+                                enterTo="opacity-100 scale-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100 scale-100"
+                                leaveTo="opacity-0 scale-95"
+                            >
+                                <DialogPanel className="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-5xl text-black dark:text-white-dark">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="absolute top-4 ltr:right-4 rtl:left-4 text-gray-400 hover:text-gray-800 dark:hover:text-gray-600 outline-none z-10"
+                                    >
+                                        <IconX />
+                                    </button>
+                                    <div className="text-lg font-medium bg-[#fbfbfb] dark:bg-[#121c2c] ltr:pl-5 rtl:pr-5 py-3 ltr:pr-[50px] rtl:pl-[50px]">
+                                        {displayTicket ? `Ticket Management: ${displayTicket.title}` : 'Ticket Details'}
+                                    </div>
+                                    <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                                        {loading && (
+                                            <div className="flex justify-center items-center py-8">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                                <span className="ml-3 text-gray-600">Loading ticket details...</span>
                                             </div>
+                                        )}
 
-                                            {/* Location Information */}
-                                            {(displayTicket.district || displayTicket.city || displayTicket.gramsewa_division) && (
-                                                <div className="space-y-4">
-                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Location Information</h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                        {displayTicket.district && (
-                                                            <div>
-                                                                <strong className="text-gray-700">District:</strong>
-                                                                <p className="mt-1 text-gray-900">{displayTicket.district}</p>
-                                                            </div>
-                                                        )}
-                                                        {displayTicket.city && (
-                                                            <div>
-                                                                <strong className="text-gray-700">City:</strong>
-                                                                <p className="mt-1 text-gray-900">{displayTicket.city}</p>
-                                                            </div>
-                                                        )}
-                                                        {displayTicket.gramsewa_division && (
-                                                            <div>
-                                                                <strong className="text-gray-700">Grama Niladhari Division:</strong>
-                                                                <p className="mt-1 text-gray-900">{displayTicket.gramsewa_division}</p>
-                                                            </div>
-                                                        )}
+                                        {!loading && displayTicket && (
+                                            <>
+                                                {/* Basic Information */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Ticket Information</h3>
+                                                        <div>
+                                                            <strong className="text-gray-700">Ticket ID:</strong>
+                                                            <span className="ml-2 font-mono text-sm bg-gray-100 px-2 py-1 rounded">{displayTicket.id}</span>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Title:</strong>
+                                                            <span className="ml-2 text-gray-900">{displayTicket.title}</span>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Status:</strong>
+                                                            <span className={`ml-2 px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(displayTicket.status || 'open')} capitalize`}>
+                                                                {displayTicket.status || 'Open'}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Priority:</strong>
+                                                            <span
+                                                                className={`ml-2 px-3 py-1 text-sm font-medium rounded-full border ${getPriorityColor(displayTicket.priority || 'medium')} capitalize`}
+                                                            >
+                                                                {displayTicket.priority || 'Medium'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Customer Information</h3>
+                                                        <div>
+                                                            <strong className="text-gray-700">Customer Name:</strong>
+                                                            <p className="mt-1 text-gray-900">{displayTicket.customer_name || '-'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Email:</strong>
+                                                            <p className="mt-1 text-gray-900">{displayTicket.customer_email || '-'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Phone:</strong>
+                                                            <p className="mt-1 text-gray-900">{displayTicket.customer_phone || '-'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Address:</strong>
+                                                            <p className="mt-1 text-gray-900">{displayTicket.customer_address || '-'}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            )}
 
+                                                {/* Location Information */}
+                                                {(displayTicket.district || displayTicket.city || displayTicket.gramsewa_division) && (
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Location Information</h3>
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                            {displayTicket.district && (
+                                                                <div>
+                                                                    <strong className="text-gray-700">District:</strong>
+                                                                    <p className="mt-1 text-gray-900">{displayTicket.district}</p>
+                                                                </div>
+                                                            )}
+                                                            {displayTicket.city && (
+                                                                <div>
+                                                                    <strong className="text-gray-700">City:</strong>
+                                                                    <p className="mt-1 text-gray-900">{displayTicket.city}</p>
+                                                                </div>
+                                                            )}
+                                                            {displayTicket.gramsewa_division && (
+                                                                <div>
+                                                                    <strong className="text-gray-700">Grama Niladhari Division:</strong>
+                                                                    <p className="mt-1 text-gray-900">{displayTicket.gramsewa_division}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
 
-                                            {/* Photos */}
-                                            {validPhotos.length > 0 && (
-                                                <div className="space-y-4">
-                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Ticket Images</h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
-                                                        {validPhotos.map((photo, index) => {
-                                                            const hasError = imageErrors[index];
+                                                {/* Photos */}
+                                                {validPhotos.length > 0 && (
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Ticket Images</h3>
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
+                                                            {validPhotos.map((photo, index) => {
+                                                                const hasError = imageErrors[index];
 
-                                                            return (
-                                                                <div key={index} className="relative group cursor-pointer" onClick={() => !hasError && openImageModal(photo, index)}>
-                                                                    {hasError ? (
-                                                                        <ImageFallback index={index} />
-                                                                    ) : (
-                                                                        <img
-                                                                            src={photo}
-                                                                            alt={`Ticket Image ${index + 1}`}
-                                                                            className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:border-primary transition-colors"
-                                                                            onError={() => handleImageError(index)}
-                                                                            loading="lazy"
-                                                                        />
-                                                                    )}
+                                                                return (
+                                                                    <div key={index} className="relative group cursor-pointer" onClick={() => !hasError && openImageModal(photo, index)}>
+                                                                        {hasError ? (
+                                                                            <ImageFallback index={index} />
+                                                                        ) : (
+                                                                            <img
+                                                                                src={photo}
+                                                                                alt={`Ticket Image ${index + 1}`}
+                                                                                className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:border-primary transition-colors"
+                                                                                onError={() => handleImageError(index)}
+                                                                                loading="lazy"
+                                                                            />
+                                                                        )}
 
-                                                                    {!hasError && (
-                                                                        <>
-                                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center rounded-lg">
-                                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-2">
-                                                                                    <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                                                    </svg>
+                                                                        {!hasError && (
+                                                                            <>
+                                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center rounded-lg">
+                                                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-2">
+                                                                                        <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                            <path
+                                                                                                strokeLinecap="round"
+                                                                                                strokeLinejoin="round"
+                                                                                                strokeWidth={2}
+                                                                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                                                                            />
+                                                                                        </svg>
+                                                                                    </div>
                                                                                 </div>
+                                                                                <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                                                                    {index + 1}
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        {selectedImage && (
+                                                            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={closeImageModal}>
+                                                                <div className="relative max-w-7xl max-h-full flex items-center justify-center">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            closeImageModal();
+                                                                        }}
+                                                                        className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200"
+                                                                    >
+                                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                        </svg>
+                                                                    </button>
+
+                                                                    {validPhotos.length > 1 && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    navigateImage('prev', validPhotos);
+                                                                                }}
+                                                                                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
+                                                                            >
+                                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    navigateImage('next', validPhotos);
+                                                                                }}
+                                                                                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
+                                                                            >
+                                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                                                                                {selectedImageIndex + 1} / {validPhotos.length}
                                                                             </div>
-                                                                            <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-medium">{index + 1}</div>
                                                                         </>
                                                                     )}
+
+                                                                    <img
+                                                                        src={selectedImage}
+                                                                        alt={`Full size view - Attachment ${selectedImageIndex + 1}`}
+                                                                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    />
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </div>
-
-                                                    {selectedImage && (
-                                                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={closeImageModal}>
-                                                            <div className="relative max-w-7xl max-h-full flex items-center justify-center">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        closeImageModal();
-                                                                    }}
-                                                                    className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200"
-                                                                >
-                                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                                    </svg>
-                                                                </button>
-
-                                                                {validPhotos.length > 1 && (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                navigateImage('prev', validPhotos);
-                                                                            }}
-                                                                            className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
-                                                                        >
-                                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                                                            </svg>
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                navigateImage('next', validPhotos);
-                                                                            }}
-                                                                            className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200"
-                                                                        >
-                                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                                            </svg>
-                                                                        </button>
-                                                                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                                                                            {selectedImageIndex + 1} / {validPhotos.length}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                <img
-                                                                    src={selectedImage}
-                                                                    alt={`Full size view - Attachment ${selectedImageIndex + 1}`}
-                                                                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                />
                                                             </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Description */}
+                                                <div className="space-y-4">
+                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Description</h3>
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <p className="text-gray-900 whitespace-pre-wrap">{displayTicket.description}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Timeline */}
+                                                <div className="space-y-4">
+                                                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Timeline</h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div>
+                                                            <strong className="text-gray-700">Created At:</strong>
+                                                            <p className="mt-1 text-gray-900">{formatDate(displayTicket.created_at)}</p>
                                                         </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Description */}
-                                            <div className="space-y-4">
-                                                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Description</h3>
-                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                    <p className="text-gray-900 whitespace-pre-wrap">{displayTicket.description}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Timeline */}
-                                            <div className="space-y-4">
-                                                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Timeline</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div>
-                                                        <strong className="text-gray-700">Created At:</strong>
-                                                        <p className="mt-1 text-gray-900">{formatDate(displayTicket.created_at)}</p>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Accepted At:</strong>
-                                                        <p className="mt-1 text-gray-900">{formatDate(displayTicket.accepted_at)}</p>
-                                                    </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Completed At:</strong>
-                                                        <p className="mt-1 text-gray-900">{formatDate(displayTicket.completed_at)}</p>
+                                                        <div>
+                                                            <strong className="text-gray-700">Accepted At:</strong>
+                                                            <p className="mt-1 text-gray-900">{formatDate(displayTicket.accepted_at)}</p>
+                                                        </div>
+                                                        <div>
+                                                            <strong className="text-gray-700">Completed At:</strong>
+                                                            <p className="mt-1 text-gray-900">{formatDate(displayTicket.completed_at)}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </>
-                                    )}
+                                            </>
+                                        )}
 
-                                    <div className="flex justify-end mt-6 pt-4 border-t">
-                                        <button
-                                            type="button"
-                                            className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark focus:ring-2 focus:ring-primary transition-colors"
-                                            onClick={onClose}
-                                        >
-                                            Close
-                                        </button>
+                                        <div className="flex justify-end mt-6 pt-4 border-t">
+                                            <button
+                                                type="button"
+                                                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark focus:ring-2 focus:ring-primary transition-colors"
+                                                onClick={onClose}
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            </DialogPanel>
-                        </TransitionChild>
+                                </DialogPanel>
+                            </TransitionChild>
+                        </div>
                     </div>
-                </div>
-            </Dialog>
-        </Transition>
+                </Dialog>
+            </Transition>
 
-        {/* Inventory Usage Modal */}
-        {showInventoryUsageModal && displayTicket && (
-            <InventoryUsageModal
-                open={showInventoryUsageModal}
-                onClose={handleCloseInventoryModals}
-                onSubmit={handleInventoryUsage}
-                ticketId={displayTicket.id}
-                loading={actionLoading}
-            />
-        )}
+            {/* Inventory Usage Modal */}
+            {showInventoryUsageModal && displayTicket && (
+                <InventoryUsageModal open={showInventoryUsageModal} onClose={handleCloseInventoryModals} onSubmit={handleInventoryUsage} ticketId={displayTicket.id} loading={actionLoading} />
+            )}
 
-        {/* Inventory Return Modal */}
-        {showInventoryReturnModal && displayTicket && (
-            <InventoryReturnModal
-                open={showInventoryReturnModal}
-                onClose={handleCloseInventoryModals}
-                onSubmit={handleInventoryReturn}
-                ticketId={displayTicket.id}
-                loading={actionLoading}
-            />
-        )}
+            {/* Inventory Return Modal */}
+            {showInventoryReturnModal && displayTicket && (
+                <InventoryReturnModal open={showInventoryReturnModal} onClose={handleCloseInventoryModals} onSubmit={handleInventoryReturn} ticketId={displayTicket.id} loading={actionLoading} />
+            )}
         </>
     );
 };

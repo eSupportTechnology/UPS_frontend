@@ -11,6 +11,7 @@ import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 import SuperAdminAllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
 import JobSelector from '../pages/SuperAdmin/TechnicianTrack/JobSelector';
+import { Navigate } from 'react-router-dom';
 
 const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
@@ -175,7 +176,7 @@ export const routes: RouteType[] = [
         path: '/super-admin/all-tickets',
         element: (
             <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
-            <SuperAdminAllTickets />
+                <SuperAdminAllTickets />
             </ProtectedRoute>
         ),
         layout: 'default',
@@ -237,7 +238,7 @@ export const routes: RouteType[] = [
     },
     {
         path: '/',
-        element: <Index />,
+        element: <Navigate to="/login" replace />,
         layout: 'blank',
     },
 ];

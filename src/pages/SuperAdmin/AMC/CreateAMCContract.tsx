@@ -6,6 +6,7 @@ import { AMCContractService } from '../../../services/amcContractService';
 import { BranchService } from '../../../services/branchService';
 import { CustomerService } from '../../../services/customerService';
 import { AMCContractFormData, MaintenanceData, Branch, Customer } from '../../../types/amcContract.types';
+import { Branch as BranchFromBranchTypes } from '../../../types/branch.types';
 
 interface FormErrors {
     [key: string]: string | undefined;
@@ -39,7 +40,7 @@ const CreateAMCContract: React.FC = () => {
 
     const [errors, setErrors] = useState<FormErrors>({});
     const [isLoading, setIsLoading] = useState(false);
-    const [branches, setBranches] = useState<Branch[]>([]);
+    const [branches, setBranches] = useState<BranchFromBranchTypes[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
 
     useEffect(() => {
@@ -50,7 +51,7 @@ const CreateAMCContract: React.FC = () => {
     const loadBranches = async () => {
         try {
             const branches = await BranchService.getActiveBranches();
-            setBranches(branches || []);
+            setBranches((branches || []) as BranchFromBranchTypes[]);
         } catch (error) {
             console.error('Failed to load branches:', error);
         }

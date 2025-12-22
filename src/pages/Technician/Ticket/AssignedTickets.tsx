@@ -243,29 +243,22 @@ const AssignedTickets = () => {
         setPendingTicket(null);
     };
 
-
     const columns = useMemo(
         () => [
             {
                 accessor: 'title',
                 Header: 'Ticket',
-                Cell: ({ value }: any) => (
-                    <div className="text-sm font-medium text-gray-900">{value}</div>
-                ),
+                Cell: ({ value }: any) => <div className="text-sm font-medium text-gray-900">{value}</div>,
             },
             {
                 accessor: 'customer_name',
                 Header: 'Customer',
-                Cell: ({ value }: any) => (
-                    <div className="text-sm text-gray-900">{value || 'Unknown Customer'}</div>
-                ),
+                Cell: ({ value }: any) => <div className="text-sm text-gray-900">{value || 'Unknown Customer'}</div>,
             },
             {
                 accessor: 'customer_phone',
                 Header: 'Phone',
-                Cell: ({ value }: any) => (
-                    <div className="text-sm text-gray-900">{value || 'N/A'}</div>
-                ),
+                Cell: ({ value }: any) => <div className="text-sm text-gray-900">{value || 'N/A'}</div>,
             },
             {
                 accessor: 'status',
@@ -280,9 +273,7 @@ const AssignedTickets = () => {
                 accessor: 'priority',
                 Header: 'Priority',
                 Cell: ({ value }: any) => (
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(value)}`}>
-                        {value.replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                    </span>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(value)}`}>{value.replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
                 ),
             },
             {
@@ -325,20 +316,24 @@ const AssignedTickets = () => {
 
     const tableData = filteredTickets;
 
-    const paginationMeta: PaginationData | null = totalTickets > 0 ? {
-        current_page: currentPage,
-        last_page: totalPages,
-        per_page: perPage,
-        total: totalTickets,
-        first_page_url: '',
-        from: (currentPage - 1) * perPage + 1,
-        last_page_url: '',
-        next_page_url: currentPage < totalPages ? '' : null,
-        path: '',
-        prev_page_url: currentPage > 1 ? '' : null,
-        to: Math.min(currentPage * perPage, totalTickets),
-        links: [],
-    } : null;
+    const paginationMeta: PaginationData<Ticket> | null =
+        totalTickets > 0
+            ? {
+                  data: paginatedTickets,
+                  current_page: currentPage,
+                  last_page: totalPages,
+                  per_page: perPage,
+                  total: totalTickets,
+                  first_page_url: '',
+                  from: (currentPage - 1) * perPage + 1,
+                  last_page_url: '',
+                  next_page_url: currentPage < totalPages ? '' : null,
+                  path: '',
+                  prev_page_url: currentPage > 1 ? '' : null,
+                  to: Math.min(currentPage * perPage, totalTickets),
+                  links: [],
+              }
+            : null;
 
     const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page);
@@ -350,7 +345,6 @@ const AssignedTickets = () => {
         setCurrentPage(1);
         loadAssignedTickets();
     }, []);
-
 
     useEffect(() => {
         if (loading && tickets.length === 0) {
@@ -408,7 +402,13 @@ const AssignedTickets = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSearch();
+                    }}
+                    className="grid grid-cols-1 md:grid-cols-4 gap-4"
+                >
                     <div>
                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
                             Search
@@ -537,46 +537,31 @@ const AssignedTickets = () => {
             {paginatedTickets.length === 0 && !loading && (
                 <div className="bg-white rounded-lg shadow-md p-8 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4" />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-4 8l4-4 4 4"
+                        />
                     </svg>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No tickets found</h3>
-                    <p className="text-gray-500">
-                        {searchTerm || statusFilter !== 'all' ? 'Try adjusting your search criteria.' : "You don't have any assigned tickets yet."}
-                    </p>
+                    <p className="text-gray-500">{searchTerm || statusFilter !== 'all' ? 'Try adjusting your search criteria.' : "You don't have any assigned tickets yet."}</p>
                 </div>
             )}
 
             {paginationMeta && <Pagination meta={paginationMeta} onPageChange={handlePageChange} loading={loading} />}
 
             {/* Ticket Detail Modal */}
-            {showModal && selectedTicket && (
-                <TechnicianTicketModal
-                    ticket={selectedTicket}
-                    open={showModal}
-                    onClose={handleCloseModal}
-                />
-            )}
+            {showModal && selectedTicket && <TechnicianTicketModal ticket={selectedTicket} open={showModal} onClose={handleCloseModal} />}
 
             {/* Inventory Usage Modal */}
             {showInventoryUsageModal && pendingTicket && (
-                <InventoryUsageModal
-                    open={showInventoryUsageModal}
-                    onClose={handleCloseInventoryModals}
-                    onSubmit={handleInventoryUsage}
-                    ticketId={pendingTicket.id}
-                    loading={loading}
-                />
+                <InventoryUsageModal open={showInventoryUsageModal} onClose={handleCloseInventoryModals} onSubmit={handleInventoryUsage} ticketId={pendingTicket.id} loading={loading} />
             )}
 
             {/* Inventory Return Modal */}
             {showInventoryReturnModal && pendingTicket && (
-                <InventoryReturnModal
-                    open={showInventoryReturnModal}
-                    onClose={handleCloseInventoryModals}
-                    onSubmit={handleInventoryReturn}
-                    ticketId={pendingTicket.id}
-                    loading={loading}
-                />
+                <InventoryReturnModal open={showInventoryReturnModal} onClose={handleCloseInventoryModals} onSubmit={handleInventoryReturn} ticketId={pendingTicket.id} loading={loading} />
             )}
         </div>
     );
