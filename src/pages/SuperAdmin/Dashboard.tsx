@@ -20,6 +20,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import { DashboardService } from '../../services/dashboardService';
+import { formatCurrency } from '../../utils/numberUtils';
 
 // Register ChartJS
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -229,7 +230,7 @@ const SuperAdminDashboard: React.FC = () => {
                 />
                 <StatCard
                     title="Total Revenue"
-                    value={`$${dashboardData.amc_contracts.total_value.toLocaleString()}`}
+                    value={formatCurrency(dashboardData.amc_contracts.total_value)}
                     change="+23%"
                     trend="up"
                     icon={<CashIcon />}
@@ -326,7 +327,7 @@ const SuperAdminDashboard: React.FC = () => {
                 />
                 <StatCard
                     title="Total Value"
-                    value={`$${dashboardData.inventory.total_value.toLocaleString()}`}
+                    value={formatCurrency(dashboardData.inventory.total_value)}
                     subtitle="Inventory worth"
                     icon={<CashIcon />}
                     color="green"

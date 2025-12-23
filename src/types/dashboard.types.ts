@@ -41,7 +41,7 @@ export interface AMCContractStats {
     inactive: number;
     by_type: Array<{ contract_type: string; count: number }>;
     expiring_soon: number;
-    total_value: number;
+    total_value: number | null;
 }
 
 export interface AMCMaintenanceStats {
@@ -58,7 +58,7 @@ export interface AMCMaintenanceStats {
 export interface InventoryStats {
     total_items: number;
     total_quantity: number;
-    total_value: number;
+    total_value: number | null;
     low_stock: number;
     out_of_stock: number;
     by_category: Array<{ category: string; count: number }>;

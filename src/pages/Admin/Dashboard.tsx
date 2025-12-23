@@ -20,6 +20,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { DashboardService } from '../../services/dashboardService';
+import { formatCurrency } from '../../utils/numberUtils';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -184,7 +185,7 @@ const AdminDashboard: React.FC = () => {
                 <StatCard
                     title="Total Contracts"
                     value={dashboardData.amc_contracts.total}
-                    subtitle={`$${dashboardData.amc_contracts.total_value.toLocaleString()}`}
+                    subtitle={formatCurrency(dashboardData.amc_contracts.total_value)}
                     icon={<DocumentIcon />}
                     color="green"
                     link="/admin/amc-contracts"
@@ -265,7 +266,7 @@ const AdminDashboard: React.FC = () => {
                 <StatCard title="Out of Stock" value={dashboardData.inventory.out_of_stock} icon={<ExclamationIcon />} color="red" />
                 <StatCard
                     title="Total Value"
-                    value={`$${dashboardData.inventory.total_value.toLocaleString()}`}
+                    value={formatCurrency(dashboardData.inventory.total_value)}
                     icon={<CashIcon />}
                     color="green"
                 />
