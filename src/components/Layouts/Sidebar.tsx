@@ -120,6 +120,15 @@ const Sidebar = () => {
                     ],
                 },
                 {
+                    label: t('Customers'),
+                    icon: <IconMenuContacts className="group-hover:!text-primary shrink-0" />,
+                    key: 'customers',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/create-customer' },
+                        { label: t('All'), link: '/super-admin/all-customers' },
+                    ],
+                },
+                {
                     label: t('Inventory'),
                     icon: <IconMenuInventory className="group-hover:!text-primary shrink-0" />,
                     key: 'inventory',

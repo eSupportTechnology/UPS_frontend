@@ -27,6 +27,8 @@ const CreateInsideJob = lazy(() => import('../pages/SuperAdmin/InsideJobs/Create
 const WorkshopDashboard = lazy(() => import('../pages/Technician/InsideJobs/WorkshopDashboard'));
 const CreateTechnician = lazy(() => import('../pages/SuperAdmin/Technician/CreateTechnician'));
 const TechnicianList = lazy(() => import('../pages/SuperAdmin/Technician/TechnicianList'));
+const CreateCustomer = lazy(() => import('../pages/SuperAdmin/Customer/CreateCustomer'));
+const CustomerList = lazy(() => import('../pages/SuperAdmin/Customer/CustomerList'));
 
 interface RouteType {
     path: string;
@@ -247,6 +249,24 @@ export const routes: RouteType[] = [
         element: (
             // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <TechnicianList />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/create-customer',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <CreateCustomer />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-customers',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <CustomerList />
             // </ProtectedRoute>
         ),
         layout: 'default',
