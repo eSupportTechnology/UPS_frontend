@@ -18,6 +18,7 @@ import IconMenuContract from '../Icon/Menu/IconMenuContract';
 import IconMenuInventory from '../Icon/Menu/IconMenuInventory';
 import IconMenuBranch from '../Icon/Menu/IconMenuBranch';
 import IconMapPin from '../Icon/IconMapPin';
+import IconMenuInsideJobs from '../Icon/Menu/IconMenuInsideJobs';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -88,6 +89,14 @@ const Sidebar = () => {
                         { label: t('Assigned Tickets'), link: '/technician/assigned-tickets' },
                     ],
                 },
+                {
+                    label: t('Workshop'),
+                    icon: <IconMenuInsideJobs className="group-hover:!text-primary shrink-0" />,
+                    key: 'workshop',
+                    children: [
+                        { label: t('Dashboard'), link: '/technician/workshop-dashboard' },
+                    ],
+                },
             ];
         } else {
 
@@ -99,6 +108,15 @@ const Sidebar = () => {
                     children: [
                         { label: t('Add'), link: '/super-admin/user-create' },
                         { label: t('All'), link: '/super-admin/all-user' },
+                    ],
+                },
+                {
+                    label: t('Technicians'),
+                    icon: <IconMenuUsers className="group-hover:!text-primary shrink-0" />,
+                    key: 'technicians',
+                    children: [
+                        { label: t('Add'), link: '/super-admin/create-technician' },
+                        { label: t('All'), link: '/super-admin/all-technicians' },
                     ],
                 },
                 {
@@ -129,10 +147,33 @@ const Sidebar = () => {
                     ],
                 },
                 {
-                    label: t('Tickets Maintenance'),
+                    label: t('Job Management'),
+                    icon: <IconMenuChat className="group-hover:!text-primary shrink-0" />,
+                    key: 'job-management',
+                    children: [
+                        { label: t('Create Outside Job'), link: '/super-admin/create-outside-job' },
+                        { label: t('Create Inside Job'), link: '/super-admin/create-inside-job' },
+                        { label: t('Create AMC'), link: '/super-admin/create-contract' },
+                    ],
+                },
+                {
+                    label: t('Outside Jobs'),
                     icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
-                    key: 'tickets',
+                    key: 'outside-jobs',
                     children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
+                },
+                {
+                    label: t('Inside Jobs'),
+                    icon: <IconMenuInsideJobs className="group-hover:!text-primary shrink-0" />,
+                    key: 'inside-jobs',
+                    children: [
+                        { label: t('All'), link: '/super-admin/inside-jobs' },
+                        { label: t('Pending Inspection'), link: '/super-admin/inside-jobs?status=pending_inspection' },
+                        { label: t('Quoted'), link: '/super-admin/inside-jobs?status=quoted' },
+                        { label: t('Approved'), link: '/super-admin/inside-jobs?status=approved_for_repair' },
+                        { label: t('In Repair'), link: '/super-admin/inside-jobs?status=in_repair' },
+                        { label: t('Completed'), link: '/super-admin/inside-jobs?status=completed' },
+                    ],
                 },
                 {
                     label: String(t('Technician Track')),

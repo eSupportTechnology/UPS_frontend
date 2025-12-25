@@ -26,6 +26,7 @@ const TechnicianTicketModal: React.FC<TechnicianTicketModalProps> = ({ open, onC
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
     const [showInventoryUsageModal, setShowInventoryUsageModal] = useState(false);
     const [showInventoryReturnModal, setShowInventoryReturnModal] = useState(false);
+    const [workNotes, setWorkNotes] = useState('');
 
     useEffect(() => {
         const fetchTicketDetails = async () => {

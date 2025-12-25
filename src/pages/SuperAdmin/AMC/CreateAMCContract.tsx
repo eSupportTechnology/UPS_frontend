@@ -50,7 +50,7 @@ const CreateAMCContract: React.FC = () => {
     const loadBranches = async () => {
         try {
             const branches = await BranchService.getActiveBranches();
-            setBranches(branches || []);
+            setBranches((branches as any) || []);
         } catch (error) {
             console.error('Failed to load branches:', error);
         }

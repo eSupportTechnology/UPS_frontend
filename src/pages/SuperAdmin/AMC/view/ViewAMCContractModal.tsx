@@ -73,10 +73,20 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                     onUpdate();
                 }
             } else {
-                showAlert('error', 'Failed to assign technician: ' + response.message);
+                showAlert({
+                    type: 'error',
+                    title: 'Assignment Failed',
+                    message: 'Failed to assign technician: ' + response.message,
+                    duration: 5000,
+                });
             }
         } catch (error: any) {
-            showAlert('error', 'Failed to assign technician. Please try again.');
+            showAlert({
+                type: 'error',
+                title: 'Assignment Failed',
+                message: 'Failed to assign technician. Please try again.',
+                duration: 5000,
+            });
         } finally {
             setAssigningMaintenance(null);
         }
@@ -240,7 +250,7 @@ const ViewAMCContractModal: React.FC<ViewAMCContractModalProps> = ({ open, onClo
                                                                                     className="listbox-options absolute z-50 mt-1 w-full overflow-y-scroll overflow-x-hidden rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-100"
                                                                                     style={{
                                                                                         maxHeight: '120px',
-                                                                                        scrollbarWidth: '8px',
+                                                                                        scrollbarWidth: 'thin',
                                                                                         scrollbarColor: '#9CA3AF #F3F4F6'
                                                                                     }}
                                                                                     onWheel={(e) => {

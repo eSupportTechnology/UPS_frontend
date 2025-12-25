@@ -6,7 +6,7 @@ import { useAlert } from '../../../components/Alert/Alert';
 import TechnicianTicketModal from './view/TechnicianTicketModal';
 import { Table } from '../../../components/UI/Table';
 import { Pagination } from '../../../components/UI/Pagination';
-import { PaginationData } from '../../../types/pagination.types';
+import { PaginationMeta } from '../../../types/pagination.types';
 import { PerPageSelector } from '../../../components/UI/PerPageSelector';
 import InventoryUsageModal from './view/InventoryUsageModal';
 import InventoryReturnModal from './view/InventoryReturnModal';
@@ -325,19 +325,13 @@ const AssignedTickets = () => {
 
     const tableData = filteredTickets;
 
-    const paginationMeta: PaginationData | null = totalTickets > 0 ? {
+    const paginationMeta: PaginationMeta | null = totalTickets > 0 ? {
         current_page: currentPage,
         last_page: totalPages,
         per_page: perPage,
         total: totalTickets,
-        first_page_url: '',
         from: (currentPage - 1) * perPage + 1,
-        last_page_url: '',
-        next_page_url: currentPage < totalPages ? '' : null,
-        path: '',
-        prev_page_url: currentPage > 1 ? '' : null,
         to: Math.min(currentPage * perPage, totalTickets),
-        links: [],
     } : null;
 
     const handlePageChange = useCallback((page: number) => {

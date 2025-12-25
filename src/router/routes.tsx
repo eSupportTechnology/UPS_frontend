@@ -1,7 +1,5 @@
 import { lazy, ReactElement } from 'react';
 import InventoryCreate from '../pages/SuperAdmin/inventory/InventoryCreate';
-import ProtectedRoute from '../components/ProtectedRoute';
-import { USER_ROLES } from '../types/auth.types';
 import Login from '../pages/Auth/Login';
 import UserList from '../pages/SuperAdmin/AllUser/UserList';
 import AllInventory from '../pages/SuperAdmin/inventory/AllInventory';
@@ -12,7 +10,6 @@ import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 import SuperAdminAllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
 import JobSelector from '../pages/SuperAdmin/TechnicianTrack/JobSelector';
 
-const Index = lazy(() => import('../pages/Index'));
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
 const SuperAdminDashboard = lazy(() => import('../pages/SuperAdmin/Dashboard'));
@@ -24,6 +21,12 @@ const CreateTicket = lazy(() => import('../pages/Customer/Ticket/CreateTicket'))
 const AllTickets = lazy(() => import('../pages/Customer/Ticket/AllTickets'));
 const TicketDetail = lazy(() => import('../pages/Customer/Ticket/TicketDetail'));
 const TechnicianAssignedTickets = lazy(() => import('../pages/Technician/Ticket/AssignedTickets'));
+const CreateOutsideJob = lazy(() => import('../pages/SuperAdmin/Ticket/CreateOutsideJob'));
+const InsideJobsList = lazy(() => import('../pages/SuperAdmin/InsideJobs/InsideJobsList'));
+const CreateInsideJob = lazy(() => import('../pages/SuperAdmin/InsideJobs/CreateInsideJob'));
+const WorkshopDashboard = lazy(() => import('../pages/Technician/InsideJobs/WorkshopDashboard'));
+const CreateTechnician = lazy(() => import('../pages/SuperAdmin/Technician/CreateTechnician'));
+const TechnicianList = lazy(() => import('../pages/SuperAdmin/Technician/TechnicianList'));
 
 interface RouteType {
     path: string;
@@ -32,6 +35,11 @@ interface RouteType {
 }
 
 export const routes: RouteType[] = [
+    {
+        path: '/',
+        element: <Login />,
+        layout: 'blank',
+    },
     {
         path: '/login',
         element: <Login />,
@@ -46,54 +54,54 @@ export const routes: RouteType[] = [
     {
         path: '/super-admin',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <SuperAdminDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/user-create',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <UserCreate />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/all-user',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <UserList />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/create-contract',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <CreateAMCContract />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/all-contracts',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <AllAMCContracts />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/admin',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.ADMIN]}>
+            // <ProtectedRoute requiredRoles={[USER_ROLES.ADMIN]}>
                 <AdminDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
@@ -101,9 +109,9 @@ export const routes: RouteType[] = [
     {
         path: '/operator',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.OPERATOR]}>
+            // <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.OPERATOR]}>
                 <OperatorDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
@@ -111,81 +119,135 @@ export const routes: RouteType[] = [
     {
         path: '/technician',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
+            // <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
                 <TechnicianDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/technician/dashboard',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
+            // <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
                 <TechnicianDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/technician/assigned-tickets',
         element: (
-            <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
+            // <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
                 <TechnicianAssignedTickets />
-            </ProtectedRoute>
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/technician/workshop-dashboard',
+        element: (
+            // <ProtectedRoute requiredRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TECHNICIAN]}>
+                <WorkshopDashboard />
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/inventory-create',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <InventoryCreate />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/all-inventory',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <AllInventory />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/create-branch',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <CreateBranch />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/all-branches',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <AllBranches />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/all-tickets',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
             <SuperAdminAllTickets />
-            </ProtectedRoute>
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/create-outside-job',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <CreateOutsideJob />
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
     {
         path: '/super-admin/technician-track',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
                 <JobSelector />
-            </ProtectedRoute>
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/inside-jobs',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <InsideJobsList />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/create-inside-job',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <CreateInsideJob />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/create-technician',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <CreateTechnician />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-technicians',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+                <TechnicianList />
+            // </ProtectedRoute>
         ),
         layout: 'default',
     },
@@ -193,51 +255,46 @@ export const routes: RouteType[] = [
     {
         path: '/customer',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+            // <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
                 <CustomerDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'blank',
     },
     {
         path: '/customer/dashboard',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+            // <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
                 <CustomerDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'blank',
     },
     {
         path: '/customer/ticket/create-ticket',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+            // <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
                 <CreateTicket />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'blank',
     },
     {
         path: '/customer/ticket/all-tickets',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+            // <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
                 <AllTickets />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
         layout: 'blank',
     },
     {
         path: '/customer/ticket/:id',
         element: (
-            <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
+            // <ProtectedRoute requiredRole={USER_ROLES.CUSTOMER}>
                 <TicketDetail ticketId="" onClose={() => {}} />
-            </ProtectedRoute>
+            // </ProtectedRoute>
         ),
-        layout: 'blank',
-    },
-    {
-        path: '/',
-        element: <Index />,
         layout: 'blank',
     },
 ];

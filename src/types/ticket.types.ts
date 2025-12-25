@@ -90,8 +90,93 @@ export interface GNDivisionModule {
     getDNDivisions: (districtName: string, cityName: string) => string[];
 }
 
-declare module '@rdilshan/gn-division' {
-    export function getDistricts(): string[];
-    export function getCities(districtName: string): string[];
-    export function getDNDivisions(districtName: string, cityName: string): string[];
+// Inside Job Types
+export type JobType = 'outside' | 'inside';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type QuoteItemType = 'part' | 'labor' | 'other';
+
+export interface QuoteLineItem {
+    id: string;
+    ticket_id: string;
+    item_type: QuoteItemType;
+    inventory_id?: string;
+    description: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    is_approved: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface InsideJobTicket extends Ticket {
+    job_type: JobType;
+    job_number?: string;
+    parent_ticket_id?: string;
+    ups_serial_number?: string;
+    ups_model?: string;
+    ups_brand?: string;
+    inspection_notes?: string;
+    inspected_at?: string;
+    inspected_by?: string;
+    inspector_name?: string;
+    quote_data?: QuoteLineItem[];
+    quote_total?: number;
+    quoted_at?: string;
+    quoted_by?: string;
+    quoter_name?: string;
+    approval_status?: ApprovalStatus;
+    approval_decision_at?: string;
+    approval_notes?: string;
+    in_repair_at?: string;
+    repair_notes?: string;
+    actual_parts_used?: any;
+    parent_ticket?: Ticket;
+    inside_jobs?: InsideJobTicket[];
+    quote_line_items?: QuoteLineItem[];
+}
+
+export interface ConvertToInsideJobData {
+    outside_ticket_id: string;
+    title?: string;
+    description?: string;
+    ups_serial_number?: string;
+    ups_model?: string;
+    ups_brand?: string;
+    assigned_to?: string;
+    priority?: string;
+}
+
+export interface InspectionData {
+    ticket_id: string;
+    inspection_notes: string;
+    inspected_by: string;
+}
+
+export interface QuoteData {
+    ticket_id: string;
+    quoted_by: string;
+    line_items: {
+        item_type: QuoteItemType;
+        inventory_id?: string;
+        description: string;
+        quantity: number;
+        unit_price: number;
+    }[];
+}
+
+export interface ApprovalData {
+    ticket_id: string;
+    approved: boolean;
+    notes?: string;
+}
+
+export interface StartRepairData {
+    ticket_id: string;
+}
+
+export interface CompleteInsideJobData {
+    ticket_id: string;
+    repair_notes?: string;
+    actual_parts_used?: any;
 }
