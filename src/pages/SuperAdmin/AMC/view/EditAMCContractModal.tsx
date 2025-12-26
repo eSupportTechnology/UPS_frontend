@@ -5,7 +5,7 @@ import { AMCContract, Customer } from '../../../../types/amcContract.types';
 import { Branch } from '../../../../types/branch.types';
 import { AMCContractService } from '../../../../services/amcContractService';
 import { BranchService } from '../../../../services/branchService';
-import { CustomerService } from '../../../../services/customerService';
+import customerService from '../../../../services/customerService';
 import { useAlert } from '../../../../components/Alert/Alert';
 
 interface EditAMCContractModalProps {
@@ -50,7 +50,7 @@ const EditAMCContractModal: React.FC<EditAMCContractModalProps> = ({ open, onClo
 
     const loadCustomers = async () => {
         try {
-            const customers = await CustomerService.getActiveCustomers();
+            const customers = await customerService.getActiveCustomers();
             setCustomers(customers || []);
         } catch (error) {
             console.error('Failed to load customers:', error);

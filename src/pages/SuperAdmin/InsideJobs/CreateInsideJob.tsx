@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import insideJobService from '../../../services/insideJobService';
 import technicianService from '../../../services/technicianService';
-import { CustomerService } from '../../../services/customerService';
+import customerService from '../../../services/customerService';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import toast from 'react-hot-toast';
 
@@ -57,7 +57,7 @@ const CreateInsideJob: React.FC = () => {
     const loadCustomersAndTechnicians = async () => {
         try {
             const [customersResponse, techniciansResponse] = await Promise.all([
-                CustomerService.getActiveCustomers(),
+                customerService.getActiveCustomers(),
                 technicianService.getTechniciansByType('inside'), // Only inside technicians
             ]);
             setCustomers(customersResponse || []);

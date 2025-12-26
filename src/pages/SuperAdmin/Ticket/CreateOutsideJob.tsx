@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import ticketService from '../../../services/ticketService';
 import technicianService from '../../../services/technicianService';
-import { CustomerService } from '../../../services/customerService';
+import customerService from '../../../services/customerService';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import toast from 'react-hot-toast';
 
@@ -17,6 +17,8 @@ interface FormData {
     gramsewa_division: string;
     assigned_to: string;
     photos: File[];
+    address?: string;
+    branch_id?: string;
 }
 
 interface Customer {
@@ -24,6 +26,15 @@ interface Customer {
     name: string;
     email: string;
     phone: string;
+    customer_type?: 'personal' | 'company';
+    address?: string;
+}
+
+interface Branch {
+    id: string;
+    name: string;
+    branch_code: string;
+    city?: string;
 }
 
 interface Technician {
@@ -36,8 +47,23 @@ const CreateOutsideJob: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+    const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
     const [technicians, setTechnicians] = useState<Technician[]>([]);
+    const [selectedCustomerType, setSelectedCustomerType] = useState<'personal' | 'company'>('personal');
+    const [customerType, setCustomerType] = useState<'personal' | 'company' | null>(null);
+    const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
+    const [selectedBranch, setSelectedBranch] = useState<string>('');
+    const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
+    const [newCustomerData, setNewCustomerData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        customer_type: 'personal' as 'personal' | 'company',
+        company_name: '',
+    });
+    const [newCustomerErrors, setNewCustomerErrors] = useState<Record<string, string>>({});
     const [formData, setFormData] = useState<FormData>({
         customer_id: '',
         title: '',
@@ -48,6 +74,8 @@ const CreateOutsideJob: React.FC = () => {
         gramsewa_division: '',
         assigned_to: '',
         photos: [],
+        address: '',
+        branch_id: '',
     });
     const [photoPreview, setPhotoPreview] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,13 +85,31 @@ const CreateOutsideJob: React.FC = () => {
         loadCustomersAndTechnicians();
     }, [dispatch]);
 
+    useEffect(() => {
+        // Filter customers by selected type
+        const filtered = allCustomers.filter((c) => c.customer_type === selectedCustomerType);
+        setFilteredCustomers(filtered);
+        // Reset customer selection when type changes
+        setFormData((prev) => ({
+            ...prev,
+            customer_id: '',
+        }));
+        setCustomerType(null);
+        setSelectedBranch('');
+        setAvailableBranches([]);
+    }, [selectedCustomerType, allCustomers]);
+
     const loadCustomersAndTechnicians = async () => {
         try {
             const [customersResponse, techniciansResponse] = await Promise.all([
-                CustomerService.getActiveCustomers(),
+                customerService.getActiveCustomers(),
                 technicianService.getTechniciansByType('outside'), // Only outside technicians
             ]);
-            setCustomers(customersResponse || []);
+            const customers = (customersResponse?.data || customersResponse || []) as any[];
+            setAllCustomers(customers);
+            // Filter for initial selected type
+            const filtered = customers.filter((c: any) => c.customer_type === 'personal');
+            setFilteredCustomers(filtered);
 
             // Extract technician data
             const techList = techniciansResponse.success
@@ -85,12 +131,42 @@ const CreateOutsideJob: React.FC = () => {
         if (!formData.district.trim()) newErrors.district = 'District is required';
         if (!formData.city.trim()) newErrors.city = 'City is required';
 
+        // Validate address for individual customers
+        if (customerType === 'personal' && !formData.address?.trim()) {
+            newErrors.address = 'Address is required for individual customers';
+        }
+
+        // Validate branch for company customers
+        if (customerType === 'company' && !formData.branch_id) {
+            newErrors.branch_id = 'Branch is required for company customers';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+
+        // Handle customer selection
+        if (name === 'customer_id') {
+            const selectedCustomer = filteredCustomers.find((c: any) => c.id === value);
+            if (selectedCustomer) {
+                setCustomerType(selectedCustomer.customer_type || 'personal');
+                setSelectedBranch('');
+                setAvailableBranches([]);
+
+                // Load branches for company customers
+                if (selectedCustomer.customer_type === 'company') {
+                    loadBranchesForCustomer(value);
+                }
+            } else {
+                setCustomerType(null);
+                setSelectedBranch('');
+                setAvailableBranches([]);
+            }
+        }
+
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -100,6 +176,103 @@ const CreateOutsideJob: React.FC = () => {
                 ...prev,
                 [name]: '',
             }));
+        }
+    };
+
+    const loadBranchesForCustomer = async (customerId: string) => {
+        try {
+            const response = await customerService.getCompanyCustomerBranches(customerId);
+            if (response.success && Array.isArray(response.data)) {
+                setAvailableBranches(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to load branches:', error);
+        }
+    };
+
+    const handleCreateCustomerClick = () => {
+        // Set the new customer type to match the currently selected type
+        setNewCustomerData((prev) => ({
+            ...prev,
+            customer_type: selectedCustomerType,
+        }));
+        setShowCreateCustomerModal(true);
+    };
+
+    const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setNewCustomerData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+        if (newCustomerErrors[name]) {
+            setNewCustomerErrors((prev) => {
+                const updated = { ...prev };
+                delete updated[name];
+                return updated;
+            });
+        }
+    };
+
+    const handleCreateCustomerSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setNewCustomerErrors({});
+
+        // Validation
+        if (!newCustomerData.name.trim() || !newCustomerData.email.trim()) {
+            toast.error('Name and email are required');
+            return;
+        }
+
+        if (newCustomerData.customer_type === 'personal' && !newCustomerData.address.trim()) {
+            toast.error('Address is required for individual customers');
+            return;
+        }
+
+        try {
+            const response = await customerService.createCustomer({
+                name: newCustomerData.name,
+                email: newCustomerData.email,
+                phone: newCustomerData.phone || undefined,
+                address: newCustomerData.customer_type === 'personal' ? newCustomerData.address : undefined,
+                customer_type: newCustomerData.customer_type,
+                company_name: newCustomerData.company_name || undefined,
+            });
+
+            if (response.success) {
+                toast.success('Customer created successfully!');
+                // Reload customers list
+                await loadCustomersAndTechnicians();
+                // Select the newly created customer
+                const createdCustomer = response.data?.customer;
+                if (createdCustomer) {
+                    setSelectedCustomerType(createdCustomer.customer_type || 'personal');
+                    setFormData((prev) => ({
+                        ...prev,
+                        customer_id: createdCustomer.id,
+                    }));
+                    setCustomerType(createdCustomer.customer_type || 'personal');
+                }
+                setShowCreateCustomerModal(false);
+                // Reset new customer form
+                setNewCustomerData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    address: '',
+                    customer_type: 'personal',
+                    company_name: '',
+                });
+            } else {
+                toast.error(response.message || 'Failed to create customer');
+                if (response.errors) {
+                    const errorMessages = Object.values(response.errors).flat() as string[];
+                    errorMessages.forEach((msg) => toast.error(msg));
+                }
+            }
+        } catch (error) {
+            console.error('Error creating customer:', error);
+            toast.error('An error occurred while creating the customer');
         }
     };
 
@@ -146,7 +319,7 @@ const CreateOutsideJob: React.FC = () => {
         setLoading(true);
 
         try {
-            const response = await ticketService.createTicket({
+            const ticketData: any = {
                 customer_id: parseInt(formData.customer_id),
                 title: formData.title,
                 description: formData.description,
@@ -154,7 +327,19 @@ const CreateOutsideJob: React.FC = () => {
                 city: formData.city,
                 gn_division: formData.gramsewa_division,
                 photos: formData.photos,
-            });
+            };
+
+            // Add address for individual customers
+            if (customerType === 'personal' && formData.address) {
+                ticketData.address = formData.address;
+            }
+
+            // Add branch for company customers
+            if (customerType === 'company' && formData.branch_id) {
+                ticketData.branch_id = formData.branch_id;
+            }
+
+            const response = await ticketService.createTicket(ticketData);
 
             if (response.success) {
                 toast.success('Outside job created successfully');
@@ -178,29 +363,140 @@ const CreateOutsideJob: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white dark:bg-black rounded-lg shadow-sm p-6">
+                {/* Customer Type Selection at Top */}
+                <div className="mb-8 border-b border-gray-200 dark:border-gray-700 pb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                        Customer Type
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+                        <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                            selectedCustomerType === 'personal'
+                                ? 'border-primary bg-primary/10'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="customer_type_select"
+                                value="personal"
+                                checked={selectedCustomerType === 'personal'}
+                                onChange={(e) => setSelectedCustomerType(e.target.value as 'personal' | 'company')}
+                                className="w-4 h-4"
+                            />
+                            <div className="ml-3">
+                                <p className="font-semibold text-gray-800 dark:text-white">
+                                    Individual Customer
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Single person customer
+                                </p>
+                            </div>
+                        </label>
+
+                        <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                            selectedCustomerType === 'company'
+                                ? 'border-primary bg-primary/10'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="customer_type_select"
+                                value="company"
+                                checked={selectedCustomerType === 'company'}
+                                onChange={(e) => setSelectedCustomerType(e.target.value as 'personal' | 'company')}
+                                className="w-4 h-4"
+                            />
+                            <div className="ml-3">
+                                <p className="font-semibold text-gray-800 dark:text-white">
+                                    Company Customer
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Multiple branches
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Customer Selection */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Customer <span className="text-red-500">*</span>
                         </label>
-                        <select
-                            name="customer_id"
-                            value={formData.customer_id}
-                            onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                errors.customer_id ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                        >
-                            <option value="">Select Customer</option>
-                            {customers.map((customer) => (
-                                <option key={customer.id} value={customer.id}>
-                                    {customer.name} ({customer.email})
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex gap-2">
+                            <select
+                                name="customer_id"
+                                value={formData.customer_id}
+                                onChange={handleInputChange}
+                                className={`flex-1 px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                    errors.customer_id ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            >
+                                <option value="">Select Customer</option>
+                                {filteredCustomers.map((customer) => (
+                                    <option key={customer.id} value={customer.id}>
+                                        {customer.name} ({customer.email})
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                onClick={handleCreateCustomerClick}
+                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition font-semibold whitespace-nowrap"
+                            >
+                                + Create
+                            </button>
+                        </div>
                         {errors.customer_id && <p className="text-red-500 text-xs mt-1">{errors.customer_id}</p>}
                     </div>
+
+                    {/* Address - Only for Individual Customers */}
+                    {customerType === 'personal' && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Address <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleInputChange}
+                                placeholder="Enter customer address"
+                                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                    errors.address ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            />
+                            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                        </div>
+                    )}
+
+                    {/* Branch - Only for Company Customers */}
+                    {customerType === 'company' && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Branch <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                name="branch_id"
+                                value={formData.branch_id}
+                                onChange={(e) => {
+                                    handleInputChange(e);
+                                    setSelectedBranch(e.target.value);
+                                }}
+                                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                    errors.branch_id ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            >
+                                <option value="">Select Branch</option>
+                                {availableBranches.map((branch) => (
+                                    <option key={branch.id} value={branch.id}>
+                                        {branch.name} {branch.city ? `(${branch.city})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.branch_id && <p className="text-red-500 text-xs mt-1">{errors.branch_id}</p>}
+                        </div>
+                    )}
 
                     {/* Priority */}
                     <div>
@@ -376,6 +672,193 @@ const CreateOutsideJob: React.FC = () => {
                     </button>
                 </div>
             </form>
+
+            {/* Create Customer Modal */}
+            {showCreateCustomerModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-black rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Create New Customer</h2>
+                            <p className="text-gray-500 dark:text-gray-400 mt-2">Add a new customer to the system</p>
+                        </div>
+
+                        <form onSubmit={handleCreateCustomerSubmit} className="p-6 space-y-6">
+                            {/* Customer Type Selection */}
+                            <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                                    Customer Type
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                                        newCustomerData.customer_type === 'personal'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5'
+                                    }`}>
+                                        <input
+                                            type="radio"
+                                            name="customer_type"
+                                            value="personal"
+                                            checked={newCustomerData.customer_type === 'personal'}
+                                            onChange={handleNewCustomerChange}
+                                            className="w-4 h-4"
+                                        />
+                                        <div className="ml-3">
+                                            <p className="font-semibold text-gray-800 dark:text-white">
+                                                Individual Customer
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                Single person customer
+                                            </p>
+                                        </div>
+                                    </label>
+
+                                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                                        newCustomerData.customer_type === 'company'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5'
+                                    }`}>
+                                        <input
+                                            type="radio"
+                                            name="customer_type"
+                                            value="company"
+                                            checked={newCustomerData.customer_type === 'company'}
+                                            onChange={handleNewCustomerChange}
+                                            className="w-4 h-4"
+                                        />
+                                        <div className="ml-3">
+                                            <p className="font-semibold text-gray-800 dark:text-white">
+                                                Company Customer
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                Multiple branches
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Basic Information */}
+                            <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                                    Basic Information
+                                </h3>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    {/* Name */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                            Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={newCustomerData.name}
+                                            onChange={handleNewCustomerChange}
+                                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                                newCustomerErrors.name ? 'border-red-500' : ''
+                                            }`}
+                                            placeholder="Enter customer name"
+                                        />
+                                        {newCustomerErrors.name && (
+                                            <p className="text-red-500 text-xs mt-1">{newCustomerErrors.name}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Email */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                            Email <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={newCustomerData.email}
+                                            onChange={handleNewCustomerChange}
+                                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                                newCustomerErrors.email ? 'border-red-500' : ''
+                                            }`}
+                                            placeholder="Enter customer email"
+                                        />
+                                        {newCustomerErrors.email && (
+                                            <p className="text-red-500 text-xs mt-1">{newCustomerErrors.email}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                            Phone
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={newCustomerData.phone}
+                                            onChange={handleNewCustomerChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
+                                            placeholder="Enter phone number"
+                                        />
+                                    </div>
+
+                                    {/* Company Name - Only for Company Customers */}
+                                    {newCustomerData.customer_type === 'company' && (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                                Company Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="company_name"
+                                                value={newCustomerData.company_name}
+                                                onChange={handleNewCustomerChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
+                                                placeholder="Enter company name"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Address - Only for Individual Customers */}
+                                    {newCustomerData.customer_type === 'personal' && (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                                Address <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="address"
+                                                value={newCustomerData.address}
+                                                onChange={handleNewCustomerChange}
+                                                className={`w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                                    newCustomerErrors.address ? 'border-red-500' : ''
+                                                }`}
+                                                placeholder="Enter address"
+                                            />
+                                            {newCustomerErrors.address && (
+                                                <p className="text-red-500 text-xs mt-1">{newCustomerErrors.address}</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Modal Buttons */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateCustomerModal(false)}
+                                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 dark:text-white-light hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition"
+                                >
+                                    Create Customer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

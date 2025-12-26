@@ -20,12 +20,21 @@ interface SelectedBranch {
     isNew?: boolean;
 }
 
+interface ExistingBranch {
+    id: string;
+    name: string;
+    branch_code: string;
+    city?: string;
+}
+
 const CreateCustomer: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<SelectedBranch[]>([]);
+    const [existingBranches, setExistingBranches] = useState<ExistingBranch[]>([]);
     const [newBranchName, setNewBranchName] = useState<string>('');
+    const [selectedExistingBranch, setSelectedExistingBranch] = useState<string>('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -118,7 +127,7 @@ const CreateCustomer: React.FC = () => {
         if (response.success) {
             toast.success(response.message || 'Customer created successfully');
             setSelectedBranches([]);
-            setSelectedBranchId('');
+            setSelectedExistingBranch('');
             navigate('/super-admin/all-customers');
         } else {
             toast.error(response.message || 'Failed to create customer');

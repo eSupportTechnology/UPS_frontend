@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useAlert } from '../../../components/Alert/Alert';
 import { AMCContractService } from '../../../services/amcContractService';
 import { BranchService } from '../../../services/branchService';
-import { CustomerService } from '../../../services/customerService';
+import customerService from '../../../services/customerService';
 import { AMCContractFormData, MaintenanceData, Branch, Customer } from '../../../types/amcContract.types';
 
 interface FormErrors {
@@ -58,7 +58,7 @@ const CreateAMCContract: React.FC = () => {
 
     const loadCustomers = async () => {
         try {
-            const customers = await CustomerService.getActiveCustomers();
+            const customers = await customerService.getActiveCustomers();
             setCustomers(customers || []);
         } catch (error) {
             console.error('Failed to load customers:', error);

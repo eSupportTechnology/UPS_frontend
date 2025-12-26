@@ -211,15 +211,64 @@ class CustomerService {
         try {
             const response = await api.get(`/customer/${customerId}/branches`);
 
+            // Handle nested data structure
+            let branches = [];
+            if (response.data && response.data.data) {
+                // If data has nested structure with branches array
+                if (response.data.data.branches) {
+                    branches = response.data.data.branches;
+                } else if (Array.isArray(response.data.data)) {
+                    branches = response.data.data;
+                } else {
+                    branches = response.data.data;
+                }
+            }
+
             return {
                 success: true,
-                data: response.data.data,
+                data: branches,
             };
         } catch (error: any) {
             console.error('Get branches error:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to fetch branches',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    async getActiveBranches() {
+        try {
+            const response = await api.get('/active-branches');
+
+            return {
+                success: true,
+                data: Array.isArray(response.data.data) ? response.data.data : response.data,
+            };
+        } catch (error: any) {
+            console.error('Get branches error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to fetch branches',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    async getActiveCustomers() {
+        try {
+            const response = await api.get('/active-customers');
+
+            return {
+                success: true,
+                data: response.data.data || response.data,
+            };
+        } catch (error: any) {
+            console.error('Get active customers error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to fetch active customers',
                 errors: error.response?.data?.errors,
             };
         }
