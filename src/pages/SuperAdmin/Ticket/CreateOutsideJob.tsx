@@ -12,9 +12,6 @@ interface FormData {
     title: string;
     description: string;
     priority: string;
-    district: string;
-    city: string;
-    gramsewa_division: string;
     assigned_to: string;
     photos: File[];
     address?: string;
@@ -25,16 +22,19 @@ interface Customer {
     id: string;
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
     customer_type?: 'personal' | 'company';
+    company_name?: string;
     address?: string;
 }
 
 interface Branch {
     id: string;
-    name: string;
-    branch_code: string;
-    city?: string;
+    branch_name: string;
+    company_id: number;
+    is_primary: boolean;
+    created_at?: string;
+    updated_at?: string;
 }
 
 interface Technician {
@@ -54,6 +54,7 @@ const CreateOutsideJob: React.FC = () => {
     const [customerType, setCustomerType] = useState<'personal' | 'company' | null>(null);
     const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
     const [selectedBranch, setSelectedBranch] = useState<string>('');
+    const [loadingBranches, setLoadingBranches] = useState(false);
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
     const [newCustomerData, setNewCustomerData] = useState({
         name: '',
@@ -62,16 +63,15 @@ const CreateOutsideJob: React.FC = () => {
         address: '',
         customer_type: 'personal' as 'personal' | 'company',
         company_name: '',
+        branches: [] as { name: string; is_primary: boolean }[],
     });
+    const [newBranchInput, setNewBranchInput] = useState('');
     const [newCustomerErrors, setNewCustomerErrors] = useState<Record<string, string>>({});
     const [formData, setFormData] = useState<FormData>({
         customer_id: '',
         title: '',
         description: '',
         priority: 'medium',
-        district: '',
-        city: '',
-        gramsewa_division: '',
         assigned_to: '',
         photos: [],
         address: '',
@@ -89,10 +89,12 @@ const CreateOutsideJob: React.FC = () => {
         // Filter customers by selected type
         const filtered = allCustomers.filter((c) => c.customer_type === selectedCustomerType);
         setFilteredCustomers(filtered);
+
         // Reset customer selection when type changes
         setFormData((prev) => ({
             ...prev,
             customer_id: '',
+            branch_id: '', // Reset branch when type changes
         }));
         setCustomerType(null);
         setSelectedBranch('');
@@ -105,10 +107,16 @@ const CreateOutsideJob: React.FC = () => {
                 customerService.getActiveCustomers(),
                 technicianService.getTechniciansByType('outside'), // Only outside technicians
             ]);
-            const customers = (customersResponse?.data || customersResponse || []) as any[];
+
+            // Extract customers array from response
+            const customers = customersResponse.success && Array.isArray(customersResponse.data)
+                ? customersResponse.data
+                : [];
+
             setAllCustomers(customers);
-            // Filter for initial selected type
-            const filtered = customers.filter((c: any) => c.customer_type === 'personal');
+
+            // Filter for initial selected type (personal)
+            const filtered = customers.filter((c: any) => c.customer_type === selectedCustomerType);
             setFilteredCustomers(filtered);
 
             // Extract technician data
@@ -117,7 +125,6 @@ const CreateOutsideJob: React.FC = () => {
                 : [];
             setTechnicians(techList);
         } catch (error) {
-            console.error('Failed to load data:', error);
             toast.error('Failed to load customers or technicians');
         }
     };
@@ -128,8 +135,6 @@ const CreateOutsideJob: React.FC = () => {
         if (!formData.customer_id) newErrors.customer_id = 'Customer is required';
         if (!formData.title.trim()) newErrors.title = 'Title is required';
         if (!formData.description.trim()) newErrors.description = 'Description is required';
-        if (!formData.district.trim()) newErrors.district = 'District is required';
-        if (!formData.city.trim()) newErrors.city = 'City is required';
 
         // Validate address for individual customers
         if (customerType === 'personal' && !formData.address?.trim()) {
@@ -150,15 +155,18 @@ const CreateOutsideJob: React.FC = () => {
 
         // Handle customer selection
         if (name === 'customer_id') {
-            const selectedCustomer = filteredCustomers.find((c: any) => c.id === value);
+            // Convert ID to string because dropdown returns string value
+            const selectedCustomer = filteredCustomers.find((c: any) => String(c.id) === value);
+
             if (selectedCustomer) {
-                setCustomerType(selectedCustomer.customer_type || 'personal');
+                const type = selectedCustomer.customer_type || 'personal';
+                setCustomerType(type);
                 setSelectedBranch('');
                 setAvailableBranches([]);
 
                 // Load branches for company customers
-                if (selectedCustomer.customer_type === 'company') {
-                    loadBranchesForCustomer(value);
+                if (type === 'company') {
+                    loadBranchesForCustomer(String(value));
                 }
             } else {
                 setCustomerType(null);
@@ -180,13 +188,21 @@ const CreateOutsideJob: React.FC = () => {
     };
 
     const loadBranchesForCustomer = async (customerId: string) => {
+        setLoadingBranches(true);
         try {
             const response = await customerService.getCompanyCustomerBranches(customerId);
-            if (response.success && Array.isArray(response.data)) {
-                setAvailableBranches(response.data);
+
+            if (response.success && response.data?.branches) {
+                setAvailableBranches(response.data.branches);
+            } else {
+                toast.error('Failed to load branches');
+                setAvailableBranches([]);
             }
         } catch (error) {
-            console.error('Failed to load branches:', error);
+            toast.error('Error loading branches');
+            setAvailableBranches([]);
+        } finally {
+            setLoadingBranches(false);
         }
     };
 
@@ -195,8 +211,36 @@ const CreateOutsideJob: React.FC = () => {
         setNewCustomerData((prev) => ({
             ...prev,
             customer_type: selectedCustomerType,
+            branches: [],
         }));
+        setNewBranchInput('');
         setShowCreateCustomerModal(true);
+    };
+
+    const handleAddBranch = () => {
+        if (newBranchInput.trim()) {
+            const newBranch = {
+                name: newBranchInput.trim(),
+                is_primary: newCustomerData.branches.length === 0, // First branch is primary
+            };
+            setNewCustomerData((prev) => ({
+                ...prev,
+                branches: [...prev.branches, newBranch],
+            }));
+            setNewBranchInput('');
+        }
+    };
+
+    const handleRemoveBranch = (index: number) => {
+        const updatedBranches = newCustomerData.branches.filter((_, i) => i !== index);
+        // If we removed the primary branch, set the first remaining as primary
+        if (updatedBranches.length > 0 && !updatedBranches.some(b => b.is_primary)) {
+            updatedBranches[0].is_primary = true;
+        }
+        setNewCustomerData((prev) => ({
+            ...prev,
+            branches: updatedBranches,
+        }));
     };
 
     const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -229,6 +273,11 @@ const CreateOutsideJob: React.FC = () => {
             return;
         }
 
+        if (newCustomerData.customer_type === 'company' && newCustomerData.branches.length === 0) {
+            toast.error('At least one branch is required for company customers');
+            return;
+        }
+
         try {
             const response = await customerService.createCustomer({
                 name: newCustomerData.name,
@@ -236,7 +285,8 @@ const CreateOutsideJob: React.FC = () => {
                 phone: newCustomerData.phone || undefined,
                 address: newCustomerData.customer_type === 'personal' ? newCustomerData.address : undefined,
                 customer_type: newCustomerData.customer_type,
-                company_name: newCustomerData.company_name || undefined,
+                company_name: newCustomerData.customer_type === 'company' ? newCustomerData.company_name : undefined,
+                branches: newCustomerData.customer_type === 'company' ? newCustomerData.branches.map(b => ({ name: b.name })) : undefined,
             });
 
             if (response.success) {
@@ -262,7 +312,9 @@ const CreateOutsideJob: React.FC = () => {
                     address: '',
                     customer_type: 'personal',
                     company_name: '',
+                    branches: [],
                 });
+                setNewBranchInput('');
             } else {
                 toast.error(response.message || 'Failed to create customer');
                 if (response.errors) {
@@ -271,7 +323,6 @@ const CreateOutsideJob: React.FC = () => {
                 }
             }
         } catch (error) {
-            console.error('Error creating customer:', error);
             toast.error('An error occurred while creating the customer');
         }
     };
@@ -323,9 +374,6 @@ const CreateOutsideJob: React.FC = () => {
                 customer_id: parseInt(formData.customer_id),
                 title: formData.title,
                 description: formData.description,
-                district: formData.district,
-                city: formData.city,
-                gn_division: formData.gramsewa_division,
                 photos: formData.photos,
             };
 
@@ -348,7 +396,6 @@ const CreateOutsideJob: React.FC = () => {
                 toast.error(response.message || 'Failed to create outside job');
             }
         } catch (error) {
-            console.error('Error creating outside job:', error);
             toast.error('An error occurred while creating the job');
         } finally {
             setLoading(false);
@@ -417,6 +464,7 @@ const CreateOutsideJob: React.FC = () => {
                     </div>
                 </div>
 
+
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Customer Selection */}
                     <div>
@@ -435,7 +483,11 @@ const CreateOutsideJob: React.FC = () => {
                                 <option value="">Select Customer</option>
                                 {filteredCustomers.map((customer) => (
                                     <option key={customer.id} value={customer.id}>
-                                        {customer.name} ({customer.email})
+                                        {customer.name}
+                                        {customer.customer_type === 'company' && customer.company_name
+                                            ? ` - ${customer.company_name}`
+                                            : ''}
+                                        {' '}({customer.email})
                                     </option>
                                 ))}
                             </select>
@@ -476,24 +528,36 @@ const CreateOutsideJob: React.FC = () => {
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Branch <span className="text-red-500">*</span>
                             </label>
-                            <select
-                                name="branch_id"
-                                value={formData.branch_id}
-                                onChange={(e) => {
-                                    handleInputChange(e);
-                                    setSelectedBranch(e.target.value);
-                                }}
-                                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                    errors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                            >
-                                <option value="">Select Branch</option>
-                                {availableBranches.map((branch) => (
-                                    <option key={branch.id} value={branch.id}>
-                                        {branch.name} {branch.city ? `(${branch.city})` : ''}
-                                    </option>
-                                ))}
-                            </select>
+                            {availableBranches.length > 0 ? (
+                                <select
+                                    name="branch_id"
+                                    value={formData.branch_id}
+                                    onChange={(e) => {
+                                        handleInputChange(e);
+                                        setSelectedBranch(e.target.value);
+                                    }}
+                                    disabled={loadingBranches}
+                                    className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                        errors.branch_id ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                >
+                                    <option value="">Select Branch</option>
+                                    {availableBranches.map((branch) => (
+                                        <option key={branch.id} value={branch.id}>
+                                            {branch.branch_name}
+                                            {branch.is_primary ? ' (Headquarters)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : loadingBranches ? (
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                    Loading branches...
+                                </div>
+                            ) : (
+                                <div className="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                                    No branches available. Please contact support.
+                                </div>
+                            )}
                             {errors.branch_id && <p className="text-red-500 text-xs mt-1">{errors.branch_id}</p>}
                         </div>
                     )}
@@ -554,56 +618,8 @@ const CreateOutsideJob: React.FC = () => {
                         {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                     </div>
 
-                    {/* District */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            District <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="district"
-                            value={formData.district}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Colombo"
-                            className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                errors.district ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                        />
-                        {errors.district && <p className="text-red-500 text-xs mt-1">{errors.district}</p>}
-                    </div>
 
-                    {/* City */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            City <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Colombo 3"
-                            className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                errors.city ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                        />
-                        {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-                    </div>
 
-                    {/* Gramsewa Division */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Gramsewa Division
-                        </label>
-                        <input
-                            type="text"
-                            name="gramsewa_division"
-                            value={formData.gramsewa_division}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Colombo Central"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
-                        />
-                    </div>
                 </div>
 
                 {/* Description */}
@@ -838,6 +854,66 @@ const CreateOutsideJob: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Branches - Only for Company Customers */}
+                            {newCustomerData.customer_type === 'company' && (
+                                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                                        Company Branches
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {/* Add Branch Input */}
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newBranchInput}
+                                                onChange={(e) => setNewBranchInput(e.target.value)}
+                                                placeholder="Enter branch name"
+                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleAddBranch();
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddBranch}
+                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition"
+                                            >
+                                                Add Branch
+                                            </button>
+                                        </div>
+
+                                        {/* Branches List */}
+                                        {newCustomerData.branches.length > 0 && (
+                                            <div className="space-y-2">
+                                                {newCustomerData.branches.map((branch, index) => (
+                                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-gray-800 dark:text-white">
+                                                                {branch.name}
+                                                            </span>
+                                                            {branch.is_primary && (
+                                                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                    Headquarters
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveBranch(index)}
+                                                            className="text-red-500 hover:text-red-700 transition"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Modal Buttons */}
                             <div className="flex justify-end gap-3">
