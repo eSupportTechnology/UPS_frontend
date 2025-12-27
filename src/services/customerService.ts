@@ -226,7 +226,7 @@ class CustomerService {
 
             return {
                 success: true,
-                data: branches,
+                data: { branches },
             };
         } catch (error: any) {
             console.error('Get branches error:', error);

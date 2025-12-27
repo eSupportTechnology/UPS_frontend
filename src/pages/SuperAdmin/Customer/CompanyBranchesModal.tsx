@@ -169,7 +169,7 @@ const CompanyBranchesModal: React.FC<CompanyBranchesModalProps> = ({
                                                     : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50'
                                             }`}
                                         >
-                                            {editingBranchId === item.branch_id ? (
+                                            {editingBranchId === item.id ? (
                                                 // Edit Mode
                                                 <div className="space-y-2">
                                                     <input
