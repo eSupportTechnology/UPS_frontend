@@ -8,6 +8,7 @@ import AllAMCContracts from '../pages/SuperAdmin/AMC/AllAMCContracts';
 import CreateBranch from '../pages/SuperAdmin/Branch/CreateBranch';
 import AllBranches from '../pages/SuperAdmin/Branch/AllBranches';
 import SuperAdminAllTickets from '../pages/SuperAdmin/Ticket/AllTickets';
+import SuperAdminTicketDetail from '../pages/SuperAdmin/Ticket/TicketDetail';
 import JobSelector from '../pages/SuperAdmin/TechnicianTrack/JobSelector';
 
 const UserCreate = lazy(() => import('../pages/SuperAdmin/UserCreate'));
@@ -22,6 +23,7 @@ const AllTickets = lazy(() => import('../pages/Customer/Ticket/AllTickets'));
 const TicketDetail = lazy(() => import('../pages/Customer/Ticket/TicketDetail'));
 const TechnicianAssignedTickets = lazy(() => import('../pages/Technician/Ticket/AssignedTickets'));
 const CreateOutsideJob = lazy(() => import('../pages/SuperAdmin/Ticket/CreateOutsideJob'));
+const AllOutsideJobs = lazy(() => import('../pages/SuperAdmin/Ticket/AllOutsideJobs'));
 const InsideJobsList = lazy(() => import('../pages/SuperAdmin/InsideJobs/InsideJobsList'));
 const CreateInsideJob = lazy(() => import('../pages/SuperAdmin/InsideJobs/CreateInsideJob'));
 const WorkshopDashboard = lazy(() => import('../pages/Technician/InsideJobs/WorkshopDashboard'));
@@ -204,6 +206,24 @@ export const routes: RouteType[] = [
         element: (
             // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
             <CreateOutsideJob />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/all-outside-jobs',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <AllOutsideJobs />
+            // </ProtectedRoute>
+        ),
+        layout: 'default',
+    },
+    {
+        path: '/super-admin/ticket/:id',
+        element: (
+            // <ProtectedRoute requiredRole={USER_ROLES.SUPER_ADMIN}>
+            <SuperAdminTicketDetail />
             // </ProtectedRoute>
         ),
         layout: 'default',

@@ -45,7 +45,7 @@ export function Table<T>({ data, columns, loading = false, emptyMessage = 'No da
                                 <tr key={rowIndex} className="hover:bg-gray-50 transition-colors">
                                     {columns.map((column, colIndex) => (
                                         <td key={colIndex} className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${column.className || ''}`}>
-                                            {column.render ? column.render(getValue(row, column.key), row) : getValue(row, column.key)}
+                                            {column.render ? column.render(getValue(row, column.key), row as T) : getValue(row, column.key)}
                                         </td>
                                     ))}
                                 </tr>

@@ -3,7 +3,7 @@ export interface Ticket {
     customer_id: number;
     title: string;
     description: string;
-    photo_paths?: string[];
+    photo_paths?: string[] | { path: string }[];
     status: string;
     priority: string;
     assigned_to?: number;
@@ -14,19 +14,26 @@ export interface Ticket {
     customer_name?: string;
     customer_email?: string;
     customer_phone?: string;
-    customer_address?: string;
+    customer_type?: 'personal' | 'company';
     technician_name?: string;
     technician_email?: string;
     technician_phone?: string;
     district?: string;
     city?: string;
     gramsewa_division?: string;
+    address?: string;
+    branch_id?: string;
+    branch_name?: string;
+    is_primary?: boolean;
 }
 
 export interface CreateTicketData {
     customer_id: number;
     title: string;
     description: string;
+    priority?: string;
+    address?: string;
+    branch_id?: string;
     district?: string;
     city?: string;
     gn_division?: string;

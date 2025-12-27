@@ -210,26 +210,40 @@ class CustomerService {
     async getCompanyCustomerBranches(customerId: string) {
         try {
             const response = await api.get(`/customer/${customerId}/branches`);
+            console.log('getCompanyCustomerBranches full response:', response);
 
             // Response structure: { status: 200, message: '...', data: { customer_id: '...', branches: [...] } }
             let branches: any[] = [];
 
-            if (response.data && response.data.data) {
-                const data = response.data.data;
+            if (response.data) {
+                console.log('response.data:', response.data);
 
-                // Check if it has branches property
-                if (data.branches && Array.isArray(data.branches)) {
-                    branches = data.branches;
-                } else if (Array.isArray(data)) {
-                    branches = data;
+                // Check direct data.branches first
+                if (response.data.data && response.data.data.branches && Array.isArray(response.data.data.branches)) {
+                    branches = response.data.data.branches;
+                    console.log('Branches from response.data.data.branches:', branches);
+                }
+                // Check if data itself is the wrapper
+                else if (response.data.branches && Array.isArray(response.data.branches)) {
+                    branches = response.data.branches;
+                    console.log('Branches from response.data.branches:', branches);
+                }
+                // Check if entire response.data is array
+                else if (Array.isArray(response.data)) {
+                    branches = response.data;
+                    console.log('Branches from response.data array:', branches);
                 }
             }
 
+            console.log('Final extracted branches:', branches);
+            console.log('Branches count:', branches.length);
+
             return {
-                success: true,
+                success: branches.length > 0,
                 data: { branches },
             };
         } catch (error: any) {
+            console.error('Error fetching branches:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to fetch branches',

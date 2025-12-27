@@ -33,7 +33,7 @@ const InsideJobsList = () => {
 
             // Filter by status if provided
             if (statusFilter) {
-                filteredJobs = filteredJobs.filter((job) => job.status === statusFilter);
+                filteredJobs = filteredJobs.filter((job: InsideJobTicket) => job.status === statusFilter);
             }
 
             setJobs(filteredJobs);
@@ -87,7 +87,7 @@ const InsideJobsList = () => {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {jobs.map((job) => (
+                    {jobs.map((job: InsideJobTicket) => (
                         <div key={job.id} className="bg-white dark:bg-black rounded-lg shadow-sm p-4 hover:shadow-md transition">
                             <div className="flex justify-between items-start mb-3">
                                 <div>

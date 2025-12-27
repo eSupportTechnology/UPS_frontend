@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import ticketService from '../../../services/ticketService';
-import technicianService from '../../../services/technicianService';
 import customerService from '../../../services/customerService';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import toast from 'react-hot-toast';
@@ -12,7 +11,6 @@ interface FormData {
     title: string;
     description: string;
     priority: string;
-    assigned_to: string;
     photos: File[];
     address?: string;
     branch_id?: string;
@@ -37,25 +35,20 @@ interface Branch {
     updated_at?: string;
 }
 
-interface Technician {
-    id: string;
-    name: string;
-    email: string;
-}
-
 const CreateOutsideJob: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
     const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-    const [technicians, setTechnicians] = useState<Technician[]>([]);
     const [selectedCustomerType, setSelectedCustomerType] = useState<'personal' | 'company'>('personal');
     const [customerType, setCustomerType] = useState<'personal' | 'company' | null>(null);
     const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
     const [selectedBranch, setSelectedBranch] = useState<string>('');
     const [loadingBranches, setLoadingBranches] = useState(false);
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [newCustomerData, setNewCustomerData] = useState({
         name: '',
         email: '',
@@ -72,7 +65,6 @@ const CreateOutsideJob: React.FC = () => {
         title: '',
         description: '',
         priority: 'medium',
-        assigned_to: '',
         photos: [],
         address: '',
         branch_id: '',
@@ -82,8 +74,15 @@ const CreateOutsideJob: React.FC = () => {
 
     useEffect(() => {
         dispatch(setPageTitle('Create Outside Job'));
-        loadCustomersAndTechnicians();
+        loadCustomers();
     }, [dispatch]);
+
+    // Log when availableBranches changes
+    useEffect(() => {
+        console.log('availableBranches updated:', availableBranches);
+        console.log('customerType:', customerType);
+        console.log('loadingBranches:', loadingBranches);
+    }, [availableBranches, customerType, loadingBranches]);
 
     useEffect(() => {
         // Filter customers by selected type
@@ -101,12 +100,9 @@ const CreateOutsideJob: React.FC = () => {
         setAvailableBranches([]);
     }, [selectedCustomerType, allCustomers]);
 
-    const loadCustomersAndTechnicians = async () => {
+    const loadCustomers = async () => {
         try {
-            const [customersResponse, techniciansResponse] = await Promise.all([
-                customerService.getActiveCustomers(),
-                technicianService.getTechniciansByType('outside'), // Only outside technicians
-            ]);
+            const customersResponse = await customerService.getActiveCustomers();
 
             // Extract customers array from response
             const customers = customersResponse.success && Array.isArray(customersResponse.data)
@@ -118,14 +114,8 @@ const CreateOutsideJob: React.FC = () => {
             // Filter for initial selected type (personal)
             const filtered = customers.filter((c: any) => c.customer_type === selectedCustomerType);
             setFilteredCustomers(filtered);
-
-            // Extract technician data
-            const techList = techniciansResponse.success
-                ? (Array.isArray(techniciansResponse.data) ? techniciansResponse.data : techniciansResponse.data?.data || [])
-                : [];
-            setTechnicians(techList);
         } catch (error) {
-            toast.error('Failed to load customers or technicians');
+            toast.error('Failed to load customers');
         }
     };
 
@@ -157,28 +147,49 @@ const CreateOutsideJob: React.FC = () => {
         if (name === 'customer_id') {
             // Convert ID to string because dropdown returns string value
             const selectedCustomer = filteredCustomers.find((c: any) => String(c.id) === value);
+            console.log('Selected customer:', selectedCustomer);
 
             if (selectedCustomer) {
                 const type = selectedCustomer.customer_type || 'personal';
+                console.log('Customer type:', type);
                 setCustomerType(type);
                 setSelectedBranch('');
                 setAvailableBranches([]);
 
+                // Update form data with customer selection
+                setFormData((prev) => ({
+                    ...prev,
+                    customer_id: value,
+                    // Pre-fill address for personal customers
+                    address: type === 'personal' ? (selectedCustomer.address || '') : '',
+                    // Clear branch for personal customers
+                    branch_id: type === 'company' ? prev.branch_id : '',
+                }));
+
                 // Load branches for company customers
                 if (type === 'company') {
+                    console.log('Loading branches for company customer:', value);
                     loadBranchesForCustomer(String(value));
                 }
             } else {
+                console.log('Customer not found');
                 setCustomerType(null);
                 setSelectedBranch('');
                 setAvailableBranches([]);
+                setFormData((prev) => ({
+                    ...prev,
+                    customer_id: '',
+                    address: '',
+                    branch_id: '',
+                }));
             }
+        } else {
+            // Handle other form field changes
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
         }
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
         if (errors[name]) {
             setErrors((prev) => ({
                 ...prev,
@@ -191,14 +202,18 @@ const CreateOutsideJob: React.FC = () => {
         setLoadingBranches(true);
         try {
             const response = await customerService.getCompanyCustomerBranches(customerId);
+            console.log('Branch loading response:', response);
 
-            if (response.success && response.data?.branches) {
+            if (response.success && response.data?.branches && Array.isArray(response.data.branches)) {
+                console.log('Branches loaded:', response.data.branches);
                 setAvailableBranches(response.data.branches);
             } else {
-                toast.error('Failed to load branches');
+                console.log('No branches found in response:', response);
+                toast.error(response.message || 'No branches available for this customer');
                 setAvailableBranches([]);
             }
         } catch (error) {
+            console.error('Error loading branches:', error);
             toast.error('Error loading branches');
             setAvailableBranches([]);
         } finally {
@@ -292,16 +307,30 @@ const CreateOutsideJob: React.FC = () => {
             if (response.success) {
                 toast.success('Customer created successfully!');
                 // Reload customers list
-                await loadCustomersAndTechnicians();
+                await loadCustomers();
                 // Select the newly created customer
                 const createdCustomer = response.data?.customer;
                 if (createdCustomer) {
                     setSelectedCustomerType(createdCustomer.customer_type || 'personal');
+                    const type = createdCustomer.customer_type || 'personal';
+                    setCustomerType(type);
+                    setSelectedBranch('');
+                    setAvailableBranches([]);
+
+                    // Update form data with proper address/branch handling
                     setFormData((prev) => ({
                         ...prev,
-                        customer_id: createdCustomer.id,
+                        customer_id: String(createdCustomer.id),
+                        // Pre-fill address for personal customers
+                        address: type === 'personal' ? (createdCustomer.address || '') : '',
+                        // Clear branch for personal customers
+                        branch_id: type === 'company' ? prev.branch_id : '',
                     }));
-                    setCustomerType(createdCustomer.customer_type || 'personal');
+
+                    // Load branches for company customers
+                    if (type === 'company') {
+                        loadBranchesForCustomer(String(createdCustomer.id));
+                    }
                 }
                 setShowCreateCustomerModal(false);
                 // Reset new customer form
@@ -374,6 +403,7 @@ const CreateOutsideJob: React.FC = () => {
                 customer_id: parseInt(formData.customer_id),
                 title: formData.title,
                 description: formData.description,
+                priority: formData.priority,
                 photos: formData.photos,
             };
 
@@ -390,8 +420,19 @@ const CreateOutsideJob: React.FC = () => {
             const response = await ticketService.createTicket(ticketData);
 
             if (response.success) {
-                toast.success('Outside job created successfully');
-                navigate('/super-admin/all-tickets');
+                setSuccessMessage('Outside job created successfully!');
+                setShowSuccessModal(true);
+                // Reset form
+                setFormData({
+                    customer_id: '',
+                    title: '',
+                    description: '',
+                    priority: 'medium',
+                    photos: [],
+                    address: '',
+                    branch_id: '',
+                });
+                setPhotoPreview([]);
             } else {
                 toast.error(response.message || 'Failed to create outside job');
             }
@@ -528,34 +569,80 @@ const CreateOutsideJob: React.FC = () => {
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Branch <span className="text-red-500">*</span>
                             </label>
-                            {availableBranches.length > 0 ? (
-                                <select
-                                    name="branch_id"
-                                    value={formData.branch_id}
-                                    onChange={(e) => {
-                                        handleInputChange(e);
-                                        setSelectedBranch(e.target.value);
-                                    }}
-                                    disabled={loadingBranches}
-                                    className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                        errors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                >
-                                    <option value="">Select Branch</option>
-                                    {availableBranches.map((branch) => (
-                                        <option key={branch.id} value={branch.id}>
-                                            {branch.branch_name}
-                                            {branch.is_primary ? ' (Headquarters)' : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            ) : loadingBranches ? (
+
+                            {loadingBranches ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                                     Loading branches...
                                 </div>
+                            ) : availableBranches.length > 0 ? (
+                                <>
+                                    {/* Dropdown Selection */}
+                                    <select
+                                        name="branch_id"
+                                        value={formData.branch_id}
+                                        onChange={(e) => {
+                                            handleInputChange(e);
+                                            setSelectedBranch(e.target.value);
+                                        }}
+                                        className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light mb-4 ${
+                                            errors.branch_id ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    >
+                                        <option value="">Select a Branch</option>
+                                        {availableBranches.map((branch) => (
+                                            <option key={branch.id} value={branch.id}>
+                                                {branch.branch_name}
+                                                {branch.is_primary ? ' (Headquarters)' : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {/* Branch List Table */}
+                                    <div className="overflow-x-auto rounded-lg border border-gray-300 dark:border-gray-600">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-100 dark:bg-gray-700">
+                                                <tr>
+                                                    <th className="px-4 py-2 text-left text-gray-700 dark:text-white font-semibold">Branch Name</th>
+                                                    <th className="px-4 py-2 text-center text-gray-700 dark:text-white font-semibold">Type</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                                                {availableBranches.map((branch) => (
+                                                    <tr
+                                                        key={branch.id}
+                                                        className={`cursor-pointer transition ${
+                                                            formData.branch_id === branch.id
+                                                                ? 'bg-primary/10 dark:bg-primary/20'
+                                                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                        }`}
+                                                        onClick={() => {
+                                                            setFormData((prev) => ({ ...prev, branch_id: branch.id }));
+                                                            setSelectedBranch(branch.id);
+                                                        }}
+                                                    >
+                                                        <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                                                            {branch.branch_name}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            {branch.is_primary ? (
+                                                                <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 rounded text-xs font-semibold">
+                                                                    Headquarters
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-block bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                                                    Branch
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
                             ) : (
                                 <div className="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                                    No branches available. Please contact support.
+                                    No branches available for this customer. Please ensure the customer has branches assigned.
                                 </div>
                             )}
                             {errors.branch_id && <p className="text-red-500 text-xs mt-1">{errors.branch_id}</p>}
@@ -577,26 +664,6 @@ const CreateOutsideJob: React.FC = () => {
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
                             <option value="urgent">Urgent</option>
-                        </select>
-                    </div>
-
-                    {/* Assign To Technician */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Assign To Technician
-                        </label>
-                        <select
-                            name="assigned_to"
-                            value={formData.assigned_to}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
-                        >
-                            <option value="">Select Technician (Optional)</option>
-                            {technicians.map((tech) => (
-                                <option key={tech.id} value={tech.id}>
-                                    {tech.name}
-                                </option>
-                            ))}
                         </select>
                     </div>
 
@@ -932,6 +999,51 @@ const CreateOutsideJob: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full">
+                        <div className="text-center">
+                            {/* Success Icon */}
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                                <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                Success!
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {successMessage}
+                            </p>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setShowSuccessModal(false)}
+                                    className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                >
+                                    Create Another
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowSuccessModal(false);
+                                        navigate(customerType === 'company'
+                                            ? '/super-admin/all-outside-jobs?type=company'
+                                            : '/super-admin/all-outside-jobs?type=personal'
+                                        );
+                                    }}
+                                    className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition"
+                                >
+                                    View All Jobs
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

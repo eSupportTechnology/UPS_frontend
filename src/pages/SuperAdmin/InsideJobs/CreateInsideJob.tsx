@@ -60,7 +60,7 @@ const CreateInsideJob: React.FC = () => {
                 customerService.getActiveCustomers(),
                 technicianService.getTechniciansByType('inside'), // Only inside technicians
             ]);
-            setCustomers(customersResponse || []);
+            setCustomers(customersResponse.success && Array.isArray(customersResponse.data) ? customersResponse.data : []);
 
             // Extract technician data
             const techList = techniciansResponse.success

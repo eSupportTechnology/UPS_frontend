@@ -58,8 +58,8 @@ const CreateAMCContract: React.FC = () => {
 
     const loadCustomers = async () => {
         try {
-            const customers = await customerService.getActiveCustomers();
-            setCustomers(customers || []);
+            const response = await customerService.getActiveCustomers();
+            setCustomers(response.success && Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error('Failed to load customers:', error);
             setCustomers([]);

@@ -213,10 +213,6 @@ const ViewTicketModal: React.FC<ViewTicketModalProps> = ({ open, onClose, ticket
                                                         <strong className="text-gray-700">Phone:</strong>
                                                         <p className="mt-1 text-gray-900">{displayTicket.customer_phone || '-'}</p>
                                                     </div>
-                                                    <div>
-                                                        <strong className="text-gray-700">Address:</strong>
-                                                        <p className="mt-1 text-gray-900">{displayTicket.customer_address || '-'}</p>
-                                                    </div>
                                                 </div>
                                             </div>
 

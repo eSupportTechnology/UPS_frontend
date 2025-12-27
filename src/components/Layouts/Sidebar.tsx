@@ -169,7 +169,10 @@ const Sidebar = () => {
                     label: t('Outside Jobs'),
                     icon: <IconMenuContract className="group-hover:!text-primary shrink-0" />,
                     key: 'outside-jobs',
-                    children: [{ label: t('All'), link: '/super-admin/all-tickets' }],
+                    children: [
+                        { label: t('Personal'), link: '/super-admin/all-outside-jobs?type=personal' },
+                        { label: t('Company'), link: '/super-admin/all-outside-jobs?type=company' },
+                    ],
                 },
                 {
                     label: t('Inside Jobs'),

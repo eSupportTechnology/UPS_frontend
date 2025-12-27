@@ -10,6 +10,9 @@ class TicketService {
             formData.append('title', ticketData.title);
             formData.append('description', ticketData.description);
 
+            if (ticketData.priority) formData.append('priority', ticketData.priority);
+            if (ticketData.address) formData.append('address', ticketData.address);
+            if (ticketData.branch_id) formData.append('branch_id', ticketData.branch_id);
             if (ticketData.district) formData.append('district', ticketData.district);
             if (ticketData.city) formData.append('city', ticketData.city);
             if (ticketData.gn_division) formData.append('gramsewa_division', ticketData.gn_division);
@@ -43,9 +46,9 @@ class TicketService {
             });
 
             return {
-                success: true,
+                success: response.data.success !== false,
                 message: response.data.message || 'Ticket created successfully',
-                data: response.data.ticket,
+                data: response.data.data,
             };
         } catch (error: any) {
             console.error('Create ticket error:', error);
@@ -191,61 +194,36 @@ class TicketService {
 
     async getTicketById(ticketId: string | number): Promise<TicketResponse> {
         try {
-            const targetTicketId = String(ticketId);
+            const response = await api.get(`/ticket/${ticketId}`);
 
-            const customerTicketsResponse = await this.getCustomerTickets();
-
-            if (customerTicketsResponse.success && customerTicketsResponse.data && customerTicketsResponse.data.tickets) {
-                const tickets = Array.isArray(customerTicketsResponse.data.tickets) ? customerTicketsResponse.data.tickets : [];
-
-                const foundTicket = tickets.find((ticket) => {
-                    return String(ticket.id) === targetTicketId;
-                });
-
-                if (foundTicket) {
-                    return {
-                        success: true,
-                        message: 'Ticket retrieved successfully',
-                        data: foundTicket,
-                    };
-                } else {
-                    return {
-                        success: false,
-                        message: 'Ticket not found or you do not have access to this ticket',
-                    };
-                }
+            if (response.data && response.data.success) {
+                return {
+                    success: true,
+                    message: response.data.message || 'Ticket retrieved successfully',
+                    data: response.data.data,
+                };
             } else {
                 return {
                     success: false,
-                    message: customerTicketsResponse.message || 'Failed to retrieve customer tickets',
+                    message: response.data?.message || 'Ticket not found',
                 };
             }
         } catch (error: any) {
-            return {
-                success: false,
-                message: error.message || 'Failed to retrieve ticket',
-                errors: {
-                    code: error.code,
-                    response: error.response?.data,
-                    status: error.response?.status,
-                },
-            };
-
             if (error.response) {
                 return {
                     success: false,
-                    message: error.response.data.message || `API Error ${error.response.status}: Failed to retrieve ticket`,
+                    message: error.response.data.message || 'Failed to retrieve ticket',
                     errors: error.response.data.errors || error.response.data,
                 };
             } else if (error.request) {
                 return {
                     success: false,
-                    message: error.code === 'ECONNABORTED' ? 'Request timed out. Please check if the server is running and try again.' : 'Network error. Please check your connection and try again.',
+                    message: 'Network error. Please check your connection.',
                 };
             } else {
                 return {
                     success: false,
-                    message: 'An unexpected error occurred. Please try again.',
+                    message: error.message || 'Failed to retrieve ticket',
                 };
             }
         }
@@ -335,17 +313,20 @@ class TicketService {
 
             const response = await api.get(`/all-tickets?${params.toString()}`);
 
-            if (response.data && response.data.tickets) {
+            if (response.data && response.data.data) {
+                const tickets = response.data.data.tickets || [];
+                const pagination = response.data.data.pagination || {};
+
                 return {
                     success: true,
                     message: 'Tickets retrieved successfully',
                     data: {
-                        tickets: response.data.tickets.data || [],
+                        tickets: tickets,
                         pagination: {
-                            current_page: response.data.tickets.current_page || 1,
-                            last_page: response.data.tickets.last_page || 1,
-                            per_page: response.data.tickets.per_page || 10,
-                            total: response.data.tickets.total || 0,
+                            current_page: pagination.current_page || 1,
+                            last_page: pagination.last_page || 1,
+                            per_page: pagination.per_page || 10,
+                            total: pagination.total || 0,
                         },
                     },
                 };

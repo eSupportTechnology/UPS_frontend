@@ -32,7 +32,7 @@ export const isValidImagePath = (photoPath: string): boolean => {
 };
 
 
-export const processTicketPhotos = (photoPaths: string | string[] | null | undefined): string[] => {
+export const processTicketPhotos = (photoPaths: string | string[] | { path: string }[] | null | undefined): string[] => {
     if (!photoPaths) return [];
 
     let photos: string[] = [];
@@ -40,12 +40,13 @@ export const processTicketPhotos = (photoPaths: string | string[] | null | undef
     if (typeof photoPaths === 'string') {
         try {
             const parsed = JSON.parse(photoPaths);
-            photos = Array.isArray(parsed) ? parsed : [photoPaths];
+            photos = Array.isArray(parsed) ? parsed.map((p: any) => typeof p === 'string' ? p : p?.path || '') : [photoPaths];
         } catch {
             photos = [photoPaths];
         }
     } else if (Array.isArray(photoPaths)) {
-        photos = photoPaths;
+        // Handle both string[] and { path: string }[] formats
+        photos = photoPaths.map((p: any) => typeof p === 'string' ? p : p?.path || '');
     }
 
     return photos
