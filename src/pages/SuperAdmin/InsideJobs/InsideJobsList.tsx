@@ -8,6 +8,9 @@ import { InsideJobTicket } from '../../../types/ticket.types';
 import { InsideJobStatus } from '../../../types/kanban.types';
 import toast from 'react-hot-toast';
 import { KanbanBoard, ViewToggle } from '../../../components/Kanban';
+import IconSettings from '../../../components/Icon/IconSettings';
+import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
+import IconXCircle from '../../../components/Icon/IconXCircle';
 
 interface Technician {
     id: string;
@@ -258,24 +261,52 @@ const InsideJobsList = () => {
                                                     </select>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm">
-                                                    <select
-                                                        value=""
-                                                        onChange={async (e) => {
-                                                            if (!e.target.value) return;
-                                                            try {
-                                                                await handleStatusChange(job.id, e.target.value as InsideJobStatus, job.status as InsideJobStatus);
-                                                                toast.success('Job status updated');
-                                                            } catch (error: any) {
-                                                                toast.error(error.message || 'Failed to update status');
-                                                            }
-                                                        }}
-                                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-white-light text-xs"
-                                                    >
-                                                        <option value="">-- Select Action --</option>
-                                                        <option value="in_repair">Move to In Repair</option>
-                                                        <option value="completed">Mark Completed</option>
-                                                        <option value="quote_rejected">Reject Quote</option>
-                                                    </select>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await handleStatusChange(job.id, 'in_repair' as InsideJobStatus, job.status as InsideJobStatus);
+                                                                    toast.success('Moved to In Repair');
+                                                                } catch (error: any) {
+                                                                    toast.error(error.message || 'Failed to update status');
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition"
+                                                            title="Move to In Repair"
+                                                        >
+                                                            <IconSettings className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await handleStatusChange(job.id, 'completed' as InsideJobStatus, job.status as InsideJobStatus);
+                                                                    toast.success('Marked as Completed');
+                                                                } catch (error: any) {
+                                                                    toast.error(error.message || 'Failed to update status');
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition"
+                                                            title="Mark Completed"
+                                                        >
+                                                            <IconCircleCheck className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await handleStatusChange(job.id, 'quote_rejected' as InsideJobStatus, job.status as InsideJobStatus);
+                                                                    toast.success('Quote Rejected');
+                                                                } catch (error: any) {
+                                                                    toast.error(error.message || 'Failed to update status');
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition"
+                                                            title="Reject Quote"
+                                                        >
+                                                            <IconXCircle className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-400">
                                                     {new Date(job.created_at).toLocaleDateString()}
