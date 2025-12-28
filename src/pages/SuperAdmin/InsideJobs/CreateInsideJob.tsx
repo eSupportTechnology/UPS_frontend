@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import insideJobService from '../../../services/insideJobService';
-import customerService from '../../../services/customerService';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import toast from 'react-hot-toast';
 
 interface FormData {
-    customer_id: string;
+    customer_name: string;
+    customer_phone: string;
     title: string;
     description: string;
     ups_serial_number: string;
@@ -16,20 +16,13 @@ interface FormData {
     priority: string;
 }
 
-interface Customer {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-}
-
 const CreateInsideJob: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [customers, setCustomers] = useState<Customer[]>([]);
     const [formData, setFormData] = useState<FormData>({
-        customer_id: '',
+        customer_name: '',
+        customer_phone: '',
         title: '',
         description: '',
         ups_serial_number: '',
@@ -41,23 +34,13 @@ const CreateInsideJob: React.FC = () => {
 
     useEffect(() => {
         dispatch(setPageTitle('Create Inside Job'));
-        loadCustomers();
     }, [dispatch]);
-
-    const loadCustomers = async () => {
-        try {
-            const customersResponse = await customerService.getActiveCustomers();
-            setCustomers(customersResponse.success && Array.isArray(customersResponse.data) ? customersResponse.data : []);
-        } catch (error) {
-            console.error('Failed to load customers:', error);
-            toast.error('Failed to load customers');
-        }
-    };
 
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.customer_id) newErrors.customer_id = 'Customer is required';
+        if (!formData.customer_name.trim()) newErrors.customer_name = 'Customer name is required';
+        if (!formData.customer_phone.trim()) newErrors.customer_phone = 'Customer phone is required';
         if (!formData.title.trim()) newErrors.title = 'Title is required';
         if (!formData.description.trim()) newErrors.description = 'Description is required';
         if (!formData.ups_serial_number.trim()) newErrors.ups_serial_number = 'UPS Serial Number is required';
@@ -94,7 +77,8 @@ const CreateInsideJob: React.FC = () => {
 
         try {
             const response = await insideJobService.createInsideJobDirect({
-                customer_id: formData.customer_id,
+                customer_name: formData.customer_name,
+                customer_phone: formData.customer_phone,
                 title: formData.title,
                 description: formData.description,
                 ups_serial_number: formData.ups_serial_number,
@@ -130,27 +114,40 @@ const CreateInsideJob: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="bg-white dark:bg-black rounded-lg shadow-sm p-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    {/* Customer Selection */}
+                    {/* Customer Name */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Customer <span className="text-red-500">*</span>
+                            Customer Name <span className="text-red-500">*</span>
                         </label>
-                        <select
-                            name="customer_id"
-                            value={formData.customer_id}
+                        <input
+                            type="text"
+                            name="customer_name"
+                            value={formData.customer_name}
                             onChange={handleInputChange}
+                            placeholder="Enter customer name"
                             className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
-                                errors.customer_id ? 'border-red-500' : 'border-gray-300'
+                                errors.customer_name ? 'border-red-500' : 'border-gray-300'
                             }`}
-                        >
-                            <option value="">Select Customer</option>
-                            {customers.map((customer) => (
-                                <option key={customer.id} value={customer.id}>
-                                    {customer.name} ({customer.email})
-                                </option>
-                            ))}
-                        </select>
-                        {errors.customer_id && <p className="text-red-500 text-xs mt-1">{errors.customer_id}</p>}
+                        />
+                        {errors.customer_name && <p className="text-red-500 text-xs mt-1">{errors.customer_name}</p>}
+                    </div>
+
+                    {/* Customer Phone */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Customer Phone <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="tel"
+                            name="customer_phone"
+                            value={formData.customer_phone}
+                            onChange={handleInputChange}
+                            placeholder="Enter customer phone number"
+                            className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white-light ${
+                                errors.customer_phone ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                        {errors.customer_phone && <p className="text-red-500 text-xs mt-1">{errors.customer_phone}</p>}
                     </div>
 
                     {/* Priority */}
