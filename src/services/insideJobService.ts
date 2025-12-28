@@ -10,7 +10,9 @@ import type {
 } from '../types/ticket.types';
 
 interface CreateInsideJobDirectData {
-    customer_id: string;
+    customer_id?: string;
+    customer_name?: string;
+    customer_phone?: string;
     title: string;
     description: string;
     ups_serial_number: string;
@@ -181,6 +183,61 @@ class InsideJobService {
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to complete inside job',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    /**
+     * Unified method to update job status via Kanban drag-and-drop
+     * Maps status transitions to appropriate API endpoints
+     */
+    async updateJobStatus(
+        ticketId: string,
+        oldStatus: string,
+        newStatus: string
+    ): Promise<{ success: boolean; message?: string; data?: any; errors?: any }> {
+        try {
+            // Allow any transition between statuses
+            // Primary flow
+            if (newStatus === 'in_repair') {
+                return this.startRepair({
+                    ticket_id: ticketId,
+                });
+            }
+
+            if (newStatus === 'completed') {
+                return this.completeInsideJob({
+                    ticket_id: ticketId,
+                    repair_notes: 'Job status updated from Kanban board',
+                });
+            }
+
+            if (newStatus === 'quote_rejected') {
+                return this.approveQuote({
+                    ticket_id: ticketId,
+                    approved: false,
+                    notes: 'Quote rejected from Kanban board',
+                });
+            }
+
+            if (newStatus === 'pending_inspection') {
+                // Generic status update for moving back to pending inspection
+                return await api.post('/inside-jobs/update-status', {
+                    ticket_id: ticketId,
+                    status: 'pending_inspection',
+                });
+            }
+
+            return {
+                success: false,
+                message: `Invalid status: ${newStatus}`,
+            };
+        } catch (error: any) {
+            console.error('Update job status error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to update job status',
                 errors: error.response?.data?.errors,
             };
         }

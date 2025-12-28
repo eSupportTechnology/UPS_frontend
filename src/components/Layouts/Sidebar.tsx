@@ -181,8 +181,6 @@ const Sidebar = () => {
                     children: [
                         { label: t('All'), link: '/super-admin/inside-jobs' },
                         { label: t('Pending Inspection'), link: '/super-admin/inside-jobs?status=pending_inspection' },
-                        { label: t('Quoted'), link: '/super-admin/inside-jobs?status=quoted' },
-                        { label: t('Approved'), link: '/super-admin/inside-jobs?status=approved_for_repair' },
                         { label: t('In Repair'), link: '/super-admin/inside-jobs?status=in_repair' },
                         { label: t('Completed'), link: '/super-admin/inside-jobs?status=completed' },
                     ],
