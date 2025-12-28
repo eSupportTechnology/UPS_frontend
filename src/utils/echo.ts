@@ -1,26 +1,15 @@
-import Echo from "laravel-echo";
-import Pusher from "pusher-js";
+// Pusher/Echo disabled
 declare global {
     interface Window {
-        Pusher: typeof Pusher;
-        Echo: Echo<any>;
+        Echo: any;
     }
 }
 
-
-window.Pusher = Pusher;
-
-const echo = new Echo({
-    broadcaster: "pusher",
-    key: import.meta.env.VITE_PUSHER_KEY as string,
-    cluster: import.meta.env.VITE_PUSHER_CLUSTER as string,
-    forceTLS: true,
-    authEndpoint: `${import.meta.env.VITE_API_URL}/broadcasting/auth`,
-    auth: {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-    },
-});
+// Mock Echo object with no-op methods
+const echo = {
+    channel: () => ({ listen: () => {} }),
+    private: () => ({ listen: () => {} }),
+    subscribe: () => ({ listen: () => {} }),
+};
 
 export default echo;

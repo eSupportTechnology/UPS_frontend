@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Job, Track } from '../../../types/track.types';
 import { trackService } from '../../../services/trackService';
-import echo from '../../../utils/echo';
 import GoogleMap from '../../../components/Maps/GoogleMap';
 import { MapPin, Navigation, Clock, Battery, Route, Activity } from 'lucide-react';
 
@@ -109,29 +108,6 @@ const JobLiveTrack: React.FC<Props> = ({ job }) => {
         init();
     }, [job.id]);
 
-    useEffect(() => {
-        if (!track) return;
-
-        const channelName = `tech.${track.technician_id}`;
-        const channel = echo.channel(channelName);
-
-        channel.listen('.TechnicianLocationUpdated', (e: any) => {
-            console.log('New location update:', e);
-            const newPoint = { lat: parseFloat(e.point.lat), lng: parseFloat(e.point.lng) };
-            setPath((prev) => [...prev, newPoint]);
-            setTrack((prevTrack) => {
-                if (!prevTrack) return prevTrack;
-                return {
-                    ...prevTrack,
-                    points: [...(prevTrack.points || []), e.point],
-                };
-            });
-        });
-
-        return () => {
-            echo.leaveChannel(channelName);
-        };
-    }, [track]);
 
     const stats = calculateStats();
 

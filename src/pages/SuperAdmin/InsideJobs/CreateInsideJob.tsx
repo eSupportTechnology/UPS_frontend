@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import insideJobService from '../../../services/insideJobService';
-import technicianService from '../../../services/technicianService';
 import customerService from '../../../services/customerService';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import toast from 'react-hot-toast';
@@ -15,7 +14,6 @@ interface FormData {
     ups_model: string;
     ups_brand: string;
     priority: string;
-    assigned_to: string;
 }
 
 interface Customer {
@@ -25,18 +23,11 @@ interface Customer {
     phone: string;
 }
 
-interface Technician {
-    id: string;
-    name: string;
-    email: string;
-}
-
 const CreateInsideJob: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [customers, setCustomers] = useState<Customer[]>([]);
-    const [technicians, setTechnicians] = useState<Technician[]>([]);
     const [formData, setFormData] = useState<FormData>({
         customer_id: '',
         title: '',
@@ -45,31 +36,21 @@ const CreateInsideJob: React.FC = () => {
         ups_model: '',
         ups_brand: '',
         priority: 'medium',
-        assigned_to: '',
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         dispatch(setPageTitle('Create Inside Job'));
-        loadCustomersAndTechnicians();
+        loadCustomers();
     }, [dispatch]);
 
-    const loadCustomersAndTechnicians = async () => {
+    const loadCustomers = async () => {
         try {
-            const [customersResponse, techniciansResponse] = await Promise.all([
-                customerService.getActiveCustomers(),
-                technicianService.getTechniciansByType('inside'), // Only inside technicians
-            ]);
+            const customersResponse = await customerService.getActiveCustomers();
             setCustomers(customersResponse.success && Array.isArray(customersResponse.data) ? customersResponse.data : []);
-
-            // Extract technician data
-            const techList = techniciansResponse.success
-                ? (Array.isArray(techniciansResponse.data) ? techniciansResponse.data : techniciansResponse.data?.data || [])
-                : [];
-            setTechnicians(techList);
         } catch (error) {
-            console.error('Failed to load data:', error);
-            toast.error('Failed to load customers or technicians');
+            console.error('Failed to load customers:', error);
+            toast.error('Failed to load customers');
         }
     };
 
@@ -120,7 +101,6 @@ const CreateInsideJob: React.FC = () => {
                 ups_model: formData.ups_model,
                 ups_brand: formData.ups_brand,
                 priority: formData.priority,
-                assigned_to: formData.assigned_to,
             });
 
             if (response.success) {
@@ -245,25 +225,6 @@ const CreateInsideJob: React.FC = () => {
                         {errors.ups_serial_number && <p className="text-red-500 text-xs mt-1">{errors.ups_serial_number}</p>}
                     </div>
 
-                    {/* Assigned To */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Assign To (Technician)
-                        </label>
-                        <select
-                            name="assigned_to"
-                            value={formData.assigned_to}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-white-light"
-                        >
-                            <option value="">Select Technician (Optional)</option>
-                            {technicians.map((tech) => (
-                                <option key={tech.id} value={tech.id}>
-                                    {tech.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
                 </div>
 
                 {/* Title */}
