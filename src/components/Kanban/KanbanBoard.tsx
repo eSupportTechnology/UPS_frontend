@@ -4,6 +4,9 @@ import {
   DragEndEvent,
   DragOverlay,
   closestCorners,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { InsideJobTicket } from '../../types/ticket.types';
 import { InsideJobStatus } from '../../types/kanban.types';
@@ -51,6 +54,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [updating, setUpdating] = React.useState<Set<string>>(new Set());
 
+  // Configure sensors with activation constraint to prevent accidental drags
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Minimum drag distance before activation
+      },
+    })
+  );
+
   // Sync optimistic jobs with actual jobs
   React.useEffect(() => {
     setOptimisticJobs(jobs);
@@ -84,7 +96,32 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const activeJob = optimisticJobs.find((j) => j.id === activeId);
       if (!activeJob) return;
 
-      const newStatus = String(over.id) as InsideJobStatus;
+      // Get target status - could be from column or from another job card
+      let newStatus: InsideJobStatus;
+      const overData = over.data.current;
+
+      if (overData?.type === 'column') {
+        // Dropped directly on column
+        newStatus = overData.status as InsideJobStatus;
+      } else if (overData?.type === 'job') {
+        // Dropped on another job card - get the status from that job
+        newStatus = overData.job?.status as InsideJobStatus;
+      } else {
+        // Fallback: check if over.id is a valid status
+        const validStatuses = ['pending_inspection', 'inspected', 'quoted', 'approved_for_repair', 'in_repair', 'completed', 'quote_rejected'];
+        if (validStatuses.includes(String(over.id))) {
+          newStatus = String(over.id) as InsideJobStatus;
+        } else {
+          // over.id might be a job id, find that job's status
+          const targetJob = optimisticJobs.find((j) => j.id === String(over.id));
+          if (targetJob) {
+            newStatus = targetJob.status as InsideJobStatus;
+          } else {
+            return;
+          }
+        }
+      }
+
       const oldStatus = activeJob.status as InsideJobStatus;
 
       // If no change, return early
@@ -134,6 +171,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   return (
     <div className="w-full overflow-x-auto pb-6">
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}

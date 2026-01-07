@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import insideJobService from '../../../services/insideJobService';
@@ -14,15 +14,39 @@ import IconXCircle from '../../../components/Icon/IconXCircle';
 import IconArchive from '../../../components/Icon/IconArchive';
 import IconEye from '../../../components/Icon/IconEye';
 import IconX from '../../../components/Icon/IconX';
+import IconRefresh from '../../../components/Icon/IconRefresh';
 import InventoryUsageModal from '../../../components/InsideJobs/InventoryUsageModal';
 import MaterialsManagementCard from '../../../components/InsideJobs/MaterialsManagementCard';
+import RejectJobModal from '../../../components/InsideJobs/RejectJobModal';
+import InsideJobsFilter from '../../../components/InsideJobs/InsideJobsFilter';
+import MaterialsReportModal from '../../../components/InsideJobs/MaterialsReportModal';
 import { InventoryService } from '../../../services/inventoryService';
 import { InventoryUsageItem } from '../../../types/inventory.types';
+
+interface FilterValues {
+    search: string;
+    status: string[];
+    priority: string;
+    technician: string;
+    fromDate: string;
+    toDate: string;
+    today: boolean;
+}
 
 interface Technician {
     id: string;
     name: string;
 }
+
+const defaultFilters: FilterValues = {
+    search: '',
+    status: [],
+    priority: '',
+    technician: '',
+    fromDate: '',
+    toDate: '',
+    today: false,
+};
 
 const InsideJobsList = () => {
     const dispatch = useDispatch();
@@ -33,15 +57,27 @@ const InsideJobsList = () => {
     const [techniciansLoading, setTechniciansLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalJobs, setTotalJobs] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+    const [filters, setFilters] = useState<FilterValues>(defaultFilters);
+    const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
     const [inventoryModalOpen, setInventoryModalOpen] = useState(false);
     const [jobForInventory, setJobForInventory] = useState<InsideJobTicket | null>(null);
     const [materialsCardOpen, setMaterialsCardOpen] = useState(false);
     const [jobForMaterials, setJobForMaterials] = useState<InsideJobTicket | null>(null);
     const [viewMaterialsOpen, setViewMaterialsOpen] = useState(false);
     const [jobForView, setJobForView] = useState<InsideJobTicket | null>(null);
+    const [rejectModalOpen, setRejectModalOpen] = useState(false);
+    const [jobForReject, setJobForReject] = useState<InsideJobTicket | null>(null);
+    const [materialsReportOpen, setMaterialsReportOpen] = useState(false);
 
-    const statusFilter = searchParams.get('status');
+    // Handle URL status filter on initial load
+    useEffect(() => {
+        const statusFromUrl = searchParams.get('status');
+        if (statusFromUrl) {
+            setFilters(prev => ({ ...prev, status: [statusFromUrl] }));
+        }
+    }, []);
 
     useEffect(() => {
         dispatch(setPageTitle('Inside Jobs'));
@@ -51,9 +87,10 @@ const InsideJobsList = () => {
         fetchTechnicians();
     }, []);
 
+    // Fetch jobs when page or filters change
     useEffect(() => {
-        fetchInsideJobs(currentPage);
-    }, [currentPage, statusFilter]);
+        fetchInsideJobs(currentPage, filters);
+    }, [currentPage, filters]);
 
     const fetchTechnicians = async () => {
         setTechniciansLoading(true);
@@ -76,24 +113,71 @@ const InsideJobsList = () => {
         }
     };
 
-    const fetchInsideJobs = async (page: number) => {
+    const fetchInsideJobs = useCallback(async (page: number, currentFilters: FilterValues) => {
         setLoading(true);
-        const result = await insideJobService.getInsideJobs(page, 15);
+
+        // Prepare filters for API
+        const apiFilters = {
+            search: currentFilters.search || undefined,
+            status: currentFilters.status.length > 0 ? currentFilters.status : undefined,
+            priority: currentFilters.priority || undefined,
+            technician: currentFilters.technician || undefined,
+            fromDate: currentFilters.fromDate || undefined,
+            toDate: currentFilters.toDate || undefined,
+            today: currentFilters.today || undefined,
+        };
+
+        // For Kanban view, load more items per page
+        const perPage = viewMode === 'kanban' ? 100 : 20;
+
+        const result = await insideJobService.getInsideJobs(page, perPage, apiFilters);
 
         if (result.success && result.data) {
-            let filteredJobs = result.data.data || [];
-
-            // Filter by status if provided
-            if (statusFilter) {
-                filteredJobs = filteredJobs.filter((job: InsideJobTicket) => job.status === statusFilter);
-            }
-
-            setJobs(filteredJobs);
+            setJobs(result.data.data || []);
             setTotalPages(result.data.last_page || 1);
+            setTotalJobs(result.data.total || 0);
+            if (result.statusCounts) {
+                setStatusCounts(result.statusCounts);
+            }
         } else {
             toast.error('Failed to fetch inside jobs');
         }
         setLoading(false);
+    }, [viewMode]);
+
+    const handleFilterChange = (newFilters: FilterValues) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset to first page when filters change
+    };
+
+    const handleRefresh = () => {
+        fetchInsideJobs(currentPage, filters);
+    };
+
+    const handleExportPdf = () => {
+        insideJobService.exportPdf({
+            search: filters.search || undefined,
+            status: filters.status.length > 0 ? filters.status : undefined,
+            priority: filters.priority || undefined,
+            technician: filters.technician || undefined,
+            fromDate: filters.fromDate || undefined,
+            toDate: filters.toDate || undefined,
+            today: filters.today || undefined,
+        });
+        toast.success('PDF export started');
+    };
+
+    const handleExportExcel = () => {
+        insideJobService.exportExcel({
+            search: filters.search || undefined,
+            status: filters.status.length > 0 ? filters.status : undefined,
+            priority: filters.priority || undefined,
+            technician: filters.technician || undefined,
+            fromDate: filters.fromDate || undefined,
+            toDate: filters.toDate || undefined,
+            today: filters.today || undefined,
+        });
+        toast.success('Excel export started');
     };
 
     const handleStatusChange = async (
@@ -177,7 +261,7 @@ const InsideJobsList = () => {
 
     const handleMaterialsSave = (materials: any[]) => {
         // Refresh the jobs list after saving materials
-        fetchInsideJobs(currentPage);
+        handleRefresh();
         setMaterialsCardOpen(false);
         setJobForMaterials(null);
     };
@@ -185,6 +269,30 @@ const InsideJobsList = () => {
     const handleViewMaterials = (job: InsideJobTicket) => {
         setJobForView(job);
         setViewMaterialsOpen(true);
+    };
+
+    const handleRejectClick = (job: InsideJobTicket) => {
+        setJobForReject(job);
+        setRejectModalOpen(true);
+    };
+
+    const handleRejectJob = async (reason: string, rollbackMaterialIds: string[]) => {
+        if (!jobForReject) return;
+
+        const response = await insideJobService.rejectJob(
+            jobForReject.id,
+            reason,
+            rollbackMaterialIds
+        );
+
+        if (response.success) {
+            toast.success('Job rejected successfully');
+            handleRefresh();
+            setRejectModalOpen(false);
+            setJobForReject(null);
+        } else {
+            throw new Error(response.message || 'Failed to reject job');
+        }
     };
 
     const handleInventorySubmit = async (usages: InventoryUsageItem[], notes: string) => {
@@ -231,33 +339,63 @@ const InsideJobsList = () => {
         );
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-
     return (
         <div className="p-6">
-            <div className="mb-6 flex items-center justify-between">
+            {/* Header */}
+            <div className="mb-4 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-white-light">Inside Jobs Management</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">
-                        {statusFilter ? `Showing ${statusFilter.replace('_', ' ')} jobs` : 'All inside jobs'}
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">
+                        {totalJobs} total jobs {filters.today ? '(today)' : ''}
                     </p>
                 </div>
-                <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setMaterialsReportOpen(true)}
+                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition flex items-center gap-2"
+                        title="Materials Report"
+                    >
+                        <IconArchive className="w-4 h-4" />
+                        Materials Report
+                    </button>
+                    <button
+                        onClick={handleRefresh}
+                        disabled={loading}
+                        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400 transition disabled:opacity-50"
+                        title="Refresh"
+                    >
+                        <IconRefresh className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <ViewToggle currentView={viewMode} onViewChange={setViewMode} />
+                </div>
             </div>
+
+            {/* Filters */}
+            <InsideJobsFilter
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                technicians={technicians}
+                statusCounts={statusCounts}
+                loading={loading}
+                onExportPdf={handleExportPdf}
+                onExportExcel={handleExportExcel}
+            />
+
+            {/* Loading Overlay */}
+            {loading && jobs.length > 0 && (
+                <div className="fixed top-4 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-blue-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Updating...</span>
+                </div>
+            )}
 
             {/* Kanban View */}
             {viewMode === 'kanban' ? (
                 <KanbanBoard
                     jobs={jobs}
-                    loading={loading}
+                    loading={loading && jobs.length === 0}
                     onStatusChange={handleStatusChange}
-                    onRefresh={() => fetchInsideJobs(currentPage)}
+                    onRefresh={handleRefresh}
                     technicians={technicians}
                     onAssignTechnician={handleAssignTechnician}
                     onManageMaterials={handleMaterialsClick}
@@ -266,9 +404,18 @@ const InsideJobsList = () => {
             ) : (
                 // List View with Data Table
                 <>
-                    {jobs.length === 0 ? (
+                    {loading && jobs.length === 0 ? (
+                        <div className="bg-white dark:bg-black rounded-lg shadow-sm p-8">
+                            <div className="flex justify-center">
+                                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                            </div>
+                        </div>
+                    ) : jobs.length === 0 ? (
                         <div className="bg-white dark:bg-black rounded-lg shadow-sm p-8 text-center">
-                            <p className="text-gray-500 dark:text-gray-400">No inside jobs found</p>
+                            <p className="text-gray-500 dark:text-gray-400 mb-2">No inside jobs found</p>
+                            {(filters.search || filters.status.length > 0 || filters.priority || filters.technician || filters.fromDate || filters.toDate || filters.today) && (
+                                <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your filters</p>
+                            )}
                         </div>
                     ) : (
                         <div className="bg-white dark:bg-black rounded-lg shadow-sm overflow-hidden">
@@ -383,16 +530,9 @@ const InsideJobsList = () => {
                                                         </button>
 
                                                         <button
-                                                            onClick={async () => {
-                                                                try {
-                                                                    await handleStatusChange(job.id, 'quote_rejected' as InsideJobStatus, job.status as InsideJobStatus);
-                                                                    toast.success('Quote Rejected');
-                                                                } catch (error: any) {
-                                                                    toast.error(error.message || 'Failed to update status');
-                                                                }
-                                                            }}
+                                                            onClick={() => handleRejectClick(job)}
                                                             className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition"
-                                                            title="Reject Quote"
+                                                            title="Reject Job"
                                                         >
                                                             <IconXCircle className="w-4 h-4" />
                                                         </button>
@@ -537,6 +677,25 @@ const InsideJobsList = () => {
                     </div>
                 </div>
             )}
+
+            {/* Reject Job Modal */}
+            {rejectModalOpen && jobForReject && (
+                <RejectJobModal
+                    jobId={jobForReject.id}
+                    jobNumber={jobForReject.job_number || jobForReject.id}
+                    onClose={() => {
+                        setRejectModalOpen(false);
+                        setJobForReject(null);
+                    }}
+                    onReject={handleRejectJob}
+                />
+            )}
+
+            {/* Materials Report Modal */}
+            <MaterialsReportModal
+                isOpen={materialsReportOpen}
+                onClose={() => setMaterialsReportOpen(false)}
+            />
         </div>
     );
 };

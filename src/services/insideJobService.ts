@@ -62,17 +62,44 @@ class InsideJobService {
         }
     }
 
-    async getInsideJobs(page: number = 1, perPage: number = 15) {
+    async getInsideJobs(
+        page: number = 1,
+        perPage: number = 15,
+        filters?: {
+            search?: string;
+            status?: string[];
+            priority?: string;
+            technician?: string;
+            fromDate?: string;
+            toDate?: string;
+            today?: boolean;
+            sortBy?: string;
+            sortOrder?: 'asc' | 'desc';
+        }
+    ) {
         try {
-            const response = await api.get('/inside-jobs', {
-                params: { page, per_page: perPage },
-            });
+            const params: Record<string, any> = { page, per_page: perPage };
+
+            if (filters) {
+                if (filters.search) params.search = filters.search;
+                if (filters.status && filters.status.length > 0) params.status = filters.status.join(',');
+                if (filters.priority) params.priority = filters.priority;
+                if (filters.technician) params.technician = filters.technician;
+                if (filters.fromDate) params.from_date = filters.fromDate;
+                if (filters.toDate) params.to_date = filters.toDate;
+                if (filters.today) params.today = 'true';
+                if (filters.sortBy) params.sort_by = filters.sortBy;
+                if (filters.sortOrder) params.sort_order = filters.sortOrder;
+            }
+
+            const response = await api.get('/inside-jobs', { params });
             return {
                 success: true,
                 data: response.data.data,
+                statusCounts: response.data.status_counts || {},
+                filtersApplied: response.data.filters_applied || {},
             };
         } catch (error: any) {
-            console.error('Get inside jobs error:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to fetch inside jobs',
@@ -262,10 +289,30 @@ class InsideJobService {
                 data: response.data.data,
             };
         } catch (error: any) {
-            console.error('Update quantity error:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to update quantity',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    async rejectJob(ticketId: string, reason: string, rollbackMaterialIds: string[]) {
+        try {
+            const response = await api.post('/inside-jobs/reject', {
+                ticket_id: ticketId,
+                reason: reason,
+                rollback_material_ids: rollbackMaterialIds,
+            });
+            return {
+                success: true,
+                message: response.data.message || 'Job rejected successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to reject job',
                 errors: error.response?.data?.errors,
             };
         }
@@ -317,13 +364,70 @@ class InsideJobService {
                 message: `Invalid status: ${newStatus}`,
             };
         } catch (error: any) {
-            console.error('Update job status error:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to update job status',
                 errors: error.response?.data?.errors,
             };
         }
+    }
+
+    // Export methods
+    getExportUrl(
+        type: 'pdf' | 'excel',
+        filters?: {
+            search?: string;
+            status?: string[];
+            priority?: string;
+            technician?: string;
+            fromDate?: string;
+            toDate?: string;
+            today?: boolean;
+        }
+    ): string {
+        const baseUrl = import.meta.env.VITE_API_URL || '';
+        const endpoint = type === 'pdf' ? '/inside-jobs/export/pdf' : '/inside-jobs/export/excel';
+
+        const params = new URLSearchParams();
+
+        if (filters) {
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status && filters.status.length > 0) params.append('status', filters.status.join(','));
+            if (filters.priority) params.append('priority', filters.priority);
+            if (filters.technician) params.append('technician', filters.technician);
+            if (filters.fromDate) params.append('from_date', filters.fromDate);
+            if (filters.toDate) params.append('to_date', filters.toDate);
+            if (filters.today) params.append('today', 'true');
+        }
+
+        const queryString = params.toString();
+        return `${baseUrl}${endpoint}${queryString ? '?' + queryString : ''}`;
+    }
+
+    async exportPdf(filters?: {
+        search?: string;
+        status?: string[];
+        priority?: string;
+        technician?: string;
+        fromDate?: string;
+        toDate?: string;
+        today?: boolean;
+    }): Promise<void> {
+        const url = this.getExportUrl('pdf', filters);
+        window.open(url, '_blank');
+    }
+
+    async exportExcel(filters?: {
+        search?: string;
+        status?: string[];
+        priority?: string;
+        technician?: string;
+        fromDate?: string;
+        toDate?: string;
+        today?: boolean;
+    }): Promise<void> {
+        const url = this.getExportUrl('excel', filters);
+        window.open(url, '_blank');
     }
 }
 
