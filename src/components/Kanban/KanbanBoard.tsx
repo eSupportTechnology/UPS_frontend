@@ -33,6 +33,8 @@ interface KanbanBoardProps {
   onJobClick?: (job: InsideJobTicket) => void;
   technicians?: Technician[];
   onAssignTechnician?: (jobId: string, technicianId: string, oldTechnicianId?: string | number) => Promise<void>;
+  onManageMaterials?: (job: InsideJobTicket) => void;
+  onViewMaterials?: (job: InsideJobTicket) => void;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -42,6 +44,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onJobClick,
   technicians = [],
   onAssignTechnician,
+  onManageMaterials,
+  onViewMaterials,
 }) => {
   const [optimisticJobs, setOptimisticJobs] = React.useState<InsideJobTicket[]>(jobs);
   const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -149,6 +153,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onJobClick={onJobClick}
               technicians={technicians}
               onAssignTechnician={onAssignTechnician}
+              onManageMaterials={onManageMaterials}
+              onViewMaterials={onViewMaterials}
             />
           ))}
         </div>

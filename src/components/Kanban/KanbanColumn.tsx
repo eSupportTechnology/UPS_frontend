@@ -20,6 +20,8 @@ interface KanbanColumnProps {
   onJobClick?: (job: InsideJobTicket) => void;
   technicians?: Technician[];
   onAssignTechnician?: (jobId: string, technicianId: string, oldTechnicianId?: string | number) => void;
+  onManageMaterials?: (job: InsideJobTicket) => void;
+  onViewMaterials?: (job: InsideJobTicket) => void;
 }
 
 const KanbanColumn: React.FC<KanbanColumnProps> = ({
@@ -29,6 +31,8 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onJobClick,
   technicians = [],
   onAssignTechnician,
+  onManageMaterials,
+  onViewMaterials,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: config.id,
@@ -90,6 +94,8 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 onClick={() => onJobClick?.(job)}
                 technicians={technicians}
                 onAssignTechnician={onAssignTechnician}
+                onManageMaterials={onManageMaterials}
+                onViewMaterials={onViewMaterials}
               />
             ))}
           </SortableContext>

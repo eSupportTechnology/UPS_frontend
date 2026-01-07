@@ -11,6 +11,13 @@ import { KanbanBoard, ViewToggle } from '../../../components/Kanban';
 import IconSettings from '../../../components/Icon/IconSettings';
 import IconCircleCheck from '../../../components/Icon/IconCircleCheck';
 import IconXCircle from '../../../components/Icon/IconXCircle';
+import IconArchive from '../../../components/Icon/IconArchive';
+import IconEye from '../../../components/Icon/IconEye';
+import IconX from '../../../components/Icon/IconX';
+import InventoryUsageModal from '../../../components/InsideJobs/InventoryUsageModal';
+import MaterialsManagementCard from '../../../components/InsideJobs/MaterialsManagementCard';
+import { InventoryService } from '../../../services/inventoryService';
+import { InventoryUsageItem } from '../../../types/inventory.types';
 
 interface Technician {
     id: string;
@@ -27,6 +34,12 @@ const InsideJobsList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+    const [inventoryModalOpen, setInventoryModalOpen] = useState(false);
+    const [jobForInventory, setJobForInventory] = useState<InsideJobTicket | null>(null);
+    const [materialsCardOpen, setMaterialsCardOpen] = useState(false);
+    const [jobForMaterials, setJobForMaterials] = useState<InsideJobTicket | null>(null);
+    const [viewMaterialsOpen, setViewMaterialsOpen] = useState(false);
+    const [jobForView, setJobForView] = useState<InsideJobTicket | null>(null);
 
     const statusFilter = searchParams.get('status');
 
@@ -35,17 +48,12 @@ const InsideJobsList = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        console.log('InsideJobsList mounted, fetching technicians...');
         fetchTechnicians();
     }, []);
 
     useEffect(() => {
         fetchInsideJobs(currentPage);
     }, [currentPage, statusFilter]);
-
-    useEffect(() => {
-        console.log('Technicians state updated:', technicians);
-    }, [technicians]);
 
     const fetchTechnicians = async () => {
         setTechniciansLoading(true);
@@ -58,17 +66,13 @@ const InsideJobsList = () => {
                     name: tech.name,
                 }));
                 setTechnicians(formattedTechs);
-                console.log('Inside Job Technicians loaded:', formattedTechs);
             } else {
                 setTechnicians([]);
-                console.warn('No technicians data received from API');
             }
         } catch (error) {
-            console.error('Failed to fetch inside job technicians:', error);
             setTechnicians([]);
         } finally {
             setTechniciansLoading(false);
-            console.log('Technician fetch completed, technicians loading state set to false');
         }
     };
 
@@ -161,6 +165,52 @@ const InsideJobsList = () => {
         }
     };
 
+    const handleCompleteClick = (job: InsideJobTicket) => {
+        setJobForInventory(job);
+        setInventoryModalOpen(true);
+    };
+
+    const handleMaterialsClick = (job: InsideJobTicket) => {
+        setJobForMaterials(job);
+        setMaterialsCardOpen(true);
+    };
+
+    const handleMaterialsSave = (materials: any[]) => {
+        // Refresh the jobs list after saving materials
+        fetchInsideJobs(currentPage);
+        setMaterialsCardOpen(false);
+        setJobForMaterials(null);
+    };
+
+    const handleViewMaterials = (job: InsideJobTicket) => {
+        setJobForView(job);
+        setViewMaterialsOpen(true);
+    };
+
+    const handleInventorySubmit = async (usages: InventoryUsageItem[], notes: string) => {
+        if (!jobForInventory) return;
+
+        try {
+            // Record inventory usage if materials were selected
+            if (usages.length > 0) {
+                await InventoryService.createInventoryUsage({
+                    reference_id: jobForInventory.id,
+                    usage_type: 'maintenance',
+                    usages: usages,
+                    usage_date: new Date().toISOString().split('T')[0],
+                    notes: notes,
+                });
+            }
+
+            // Complete the job
+            await handleStatusChange(jobForInventory.id, 'completed' as InsideJobStatus, jobForInventory.status as InsideJobStatus);
+            toast.success('Job completed with materials recorded');
+            setInventoryModalOpen(false);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to complete job');
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { color: string; label: string }> = {
             pending_inspection: { color: 'bg-blue-100 text-blue-800', label: 'Pending Inspection' },
@@ -210,6 +260,8 @@ const InsideJobsList = () => {
                     onRefresh={() => fetchInsideJobs(currentPage)}
                     technicians={technicians}
                     onAssignTechnician={handleAssignTechnician}
+                    onManageMaterials={handleMaterialsClick}
+                    onViewMaterials={handleViewMaterials}
                 />
             ) : (
                 // List View with Data Table
@@ -230,6 +282,7 @@ const InsideJobsList = () => {
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">UPS Details</th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Status</th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Technician</th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Materials Used</th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Action</th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Created Date</th>
                                         </tr>
@@ -261,6 +314,35 @@ const InsideJobsList = () => {
                                                     </select>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm">
+                                                    <div className="text-gray-700 dark:text-gray-400">
+                                                        {(job as any).planned_materials && Array.isArray((job as any).planned_materials) && (job as any).planned_materials.length > 0 ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="space-y-1 flex-1">
+                                                                    {(job as any).planned_materials.slice(0, 2).map((part: any, idx: number) => (
+                                                                        <div key={idx} className="text-xs">
+                                                                            {part.product_name || part.name} {part.quantity && `(${part.quantity})`}
+                                                                        </div>
+                                                                    ))}
+                                                                    {(job as any).planned_materials.length > 2 && (
+                                                                        <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                                                                            +{(job as any).planned_materials.length - 2} more
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleViewMaterials(job)}
+                                                                    className="p-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition"
+                                                                    title="View Materials"
+                                                                >
+                                                                    <IconEye className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-400 dark:text-gray-500 text-xs">No materials</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm">
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={async () => {
@@ -278,12 +360,20 @@ const InsideJobsList = () => {
                                                         </button>
 
                                                         <button
+                                                            onClick={() => handleMaterialsClick(job)}
+                                                            className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition"
+                                                            title="Manage Materials"
+                                                        >
+                                                            <IconArchive className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
                                                             onClick={async () => {
                                                                 try {
                                                                     await handleStatusChange(job.id, 'completed' as InsideJobStatus, job.status as InsideJobStatus);
-                                                                    toast.success('Marked as Completed');
+                                                                    toast.success('Job Completed');
                                                                 } catch (error: any) {
-                                                                    toast.error(error.message || 'Failed to update status');
+                                                                    toast.error(error.message || 'Failed to complete job');
                                                                 }
                                                             }}
                                                             className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition"
@@ -337,6 +427,115 @@ const InsideJobsList = () => {
                         </div>
                     )}
                 </>
+            )}
+
+            {/* Inventory Usage Modal */}
+            {jobForInventory && (
+                <InventoryUsageModal
+                    open={inventoryModalOpen}
+                    onClose={() => {
+                        setInventoryModalOpen(false);
+                        setJobForInventory(null);
+                    }}
+                    onSubmit={handleInventorySubmit}
+                    jobId={jobForInventory.job_number || jobForInventory.id}
+                />
+            )}
+
+            {/* Materials Management Card */}
+            {materialsCardOpen && jobForMaterials && (
+                <MaterialsManagementCard
+                    jobId={jobForMaterials.id}
+                    jobNumber={jobForMaterials.job_number || jobForMaterials.id}
+                    onClose={() => {
+                        setMaterialsCardOpen(false);
+                        setJobForMaterials(null);
+                    }}
+                    onSave={handleMaterialsSave}
+                />
+            )}
+
+            {/* View Materials Modal */}
+            {viewMaterialsOpen && jobForView && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-xl font-bold">Planned Materials</h2>
+                                <p className="text-blue-100 text-sm">Job: {jobForView.job_number || jobForView.id}</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setViewMaterialsOpen(false);
+                                    setJobForView(null);
+                                }}
+                                className="p-2 hover:bg-blue-800 rounded-full transition"
+                            >
+                                <IconX className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 overflow-y-auto max-h-[60vh]">
+                            {(jobForView as any).planned_materials && (jobForView as any).planned_materials.length > 0 ? (
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                            Total Items: {(jobForView as any).planned_materials.length}
+                                        </span>
+                                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                            Total Quantity: {(jobForView as any).planned_materials.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)}
+                                        </span>
+                                    </div>
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="bg-gray-100 dark:bg-gray-700">
+                                                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-300">#</th>
+                                                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-300">Product Name</th>
+                                                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-300">Brand</th>
+                                                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-300">Category</th>
+                                                <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300">Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(jobForView as any).planned_materials.map((material: any, idx: number) => (
+                                                <tr key={material.id || idx} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{idx + 1}</td>
+                                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{material.product_name}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{material.brand || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{material.category || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm text-center">
+                                                        <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 rounded-full font-semibold">
+                                                            {material.quantity}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    No materials planned for this job
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setViewMaterialsOpen(false);
+                                    setJobForView(null);
+                                }}
+                                className="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -4,6 +4,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { InsideJobTicket } from '../../types/ticket.types';
 import Badge from '../UI/Badge';
 import { getPriorityColor, formatCurrency } from '../../utils/kanbanHelpers';
+import IconArchive from '../Icon/IconArchive';
+import IconEye from '../Icon/IconEye';
 
 interface Technician {
   id: string;
@@ -15,9 +17,11 @@ interface JobCardProps {
   onClick?: () => void;
   technicians?: Technician[];
   onAssignTechnician?: (jobId: string, technicianId: string, oldTechnicianId?: string | number) => void;
+  onManageMaterials?: (job: InsideJobTicket) => void;
+  onViewMaterials?: (job: InsideJobTicket) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onClick, technicians = [], onAssignTechnician }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onClick, technicians = [], onAssignTechnician, onManageMaterials, onViewMaterials }) => {
   const {
     attributes,
     listeners,
@@ -92,6 +96,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick, technicians = [], onAss
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Assigned To</p>
           <select
             value={job.assigned_to || ''}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
             onChange={(e) => {
               e.stopPropagation();
               if (onAssignTechnician && e.target.value) {
@@ -118,8 +124,59 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick, technicians = [], onAss
         </div>
       )}
 
+      {/* Materials Section */}
+      {(onManageMaterials || onViewMaterials) && (
+        <div className="mt-3 mb-2 space-y-2">
+          {/* Materials Count */}
+          {(job as any).planned_materials && (job as any).planned_materials.length > 0 && (
+            <div className="flex items-center justify-between px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Materials:</span>
+              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                {(job as any).planned_materials.length} items
+              </span>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {onManageMaterials && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onManageMaterials(job);
+                }}
+                className="flex-1 px-3 py-2 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded transition font-medium flex items-center justify-center gap-1"
+              >
+                <IconArchive className="w-3 h-3" />
+                Add
+              </button>
+            )}
+            {onViewMaterials && (job as any).planned_materials && (job as any).planned_materials.length > 0 && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onViewMaterials(job);
+                }}
+                className="flex-1 px-3 py-2 text-xs text-white bg-green-600 hover:bg-green-700 rounded transition font-medium flex items-center justify-center gap-1"
+              >
+                <IconEye className="w-3 h-3" />
+                View
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Footer with Status Indicator */}
-      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs">
+      <div className="mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs">
         <span className="text-gray-500 dark:text-gray-400">
           {job.created_at
             ? new Date(job.created_at).toLocaleDateString()

@@ -138,6 +138,7 @@ export interface InsideJobTicket extends Ticket {
     in_repair_at?: string;
     repair_notes?: string;
     actual_parts_used?: any;
+    planned_materials?: any[];
     parent_ticket?: Ticket;
     inside_jobs?: InsideJobTicket[];
     quote_line_items?: QuoteLineItem[];

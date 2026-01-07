@@ -188,6 +188,89 @@ class InsideJobService {
         }
     }
 
+    async addPlannedMaterial(data: {
+        ticket_id: string;
+        inventory_id: string;
+        product_name: string;
+        brand?: string;
+        category?: string;
+        quantity: number;
+    }) {
+        try {
+            const response = await api.post('/inside-jobs/add-material', data);
+            return {
+                success: true,
+                message: response.data.message || 'Material added successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            console.error('Add material error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to add material',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    async removePlannedMaterial(materialId: string) {
+        try {
+            const response = await api.post('/inside-jobs/remove-material', {
+                material_id: materialId,
+            });
+            return {
+                success: true,
+                message: response.data.message || 'Material removed successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            console.error('Remove material error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to remove material',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
+    async getPlannedMaterials(ticketId: string) {
+        try {
+            const response = await api.get(`/inside-jobs/${ticketId}/materials`);
+            return {
+                success: true,
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            console.error('Get materials error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to get materials',
+                data: [],
+            };
+        }
+    }
+
+    async updateMaterialQuantity(materialId: string, quantity: number) {
+        try {
+            const response = await api.post('/inside-jobs/update-material-quantity', {
+                material_id: materialId,
+                quantity: quantity,
+            });
+            return {
+                success: true,
+                message: response.data.message || 'Quantity updated successfully',
+                data: response.data.data,
+            };
+        } catch (error: any) {
+            console.error('Update quantity error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to update quantity',
+                errors: error.response?.data?.errors,
+            };
+        }
+    }
+
     /**
      * Unified method to update job status via Kanban drag-and-drop
      * Maps status transitions to appropriate API endpoints
